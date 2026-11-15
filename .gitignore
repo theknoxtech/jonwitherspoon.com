@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code local state
+.claude/
+
+# Astro build output
+dist/
+.astro/
+
+# Node
+node_modules/
+
+# Local environment files (never commit)
+.env
+.env.*
