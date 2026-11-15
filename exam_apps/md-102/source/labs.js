@@ -196,7 +196,8 @@ const LABS = [
       'Sync the VM and confirm the install. Check that the available app shows in Company Portal for lab.user1.']},
     {t:'Part B: Microsoft 365 Apps', s:[
       'Create > Microsoft 365 Apps for Windows 10 and later (LAB-M365-Apps): Word, Excel and PowerPoint only, 64-bit, Current Channel, Remove other versions Yes.',
-      'Assign Required to GRP-Dev-Test and wait for the large download.']},
+      'Assign Required to GRP-Dev-Test and wait for the large download.',
+      'MSI check: install an MSI-based Office on a test VM first, then set Remove other versions to No and watch the install fail. Set it to Yes and confirm all MSI Office apps are removed, not just the three you selected.']},
     {t:'Part C: Win32 app (.intunewin)', s:[
       'Package the 7-Zip MSI with IntuneWinAppUtil.exe -c <source folder> -s <setup file> -o <output>.',
       'Create > Windows app (Win32), upload the .intunewin. Program: install command msiexec /i ... /qn, matching uninstall command, install behavior System.',

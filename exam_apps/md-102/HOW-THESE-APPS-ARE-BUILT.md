@@ -21,7 +21,7 @@ md-102/
   kql-source/                 KQL app shell, scenario data, test
 ```
 
-For a new exam, add a sibling folder (for example `sc-300/`) with the same layout, so each app is its own page: `/md-102/`, `/sc-300/` and so on.
+For a new exam, add a sibling folder (for example `sc-300/`) with the same layout, so each app is its own page: `/exam_apps/md-102/`, `/exam_apps/sc-300/` and so on.
 
 ## 2. The build pipeline (MD-102)
 
@@ -140,7 +140,7 @@ The app keeps everything in one `store` object under a localStorage key (`md102.
 
 ## 10. Putting the apps on your website
 
-1. Copy the folder (`md-102/`) into the site. `index.html` is a single file with no dependencies, so it works from any static host or a plain `<a href="/md-102/">` link.
+1. Copy the folder (`md-102/`) into the site. `index.html` is a single file with no dependencies, so it works from any static host or a plain `<a href="/exam_apps/md-102/">` link.
 2. The page loads one Google Fonts stylesheet if you kept the font link; the app falls back to system fonts if it is blocked.
 3. Progress lives in the visitor's browser for that exact address. Moving the app to a new URL starts everyone from zero, so decide the final path before sharing it. The Progress tab has a backup file (works on your own site because of the shim) and a restore.
 4. To rebuild after changing questions: `cd md-102/source && bash assemble.sh && node chk.js`, then copy `standalone.html` over `../index.html`.
