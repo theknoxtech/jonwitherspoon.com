@@ -7,7 +7,7 @@ Re-read at the start of every stage; update at the end of every stage.
 | Request | New jonwitherspoon.com Astro site: career pages moved from old site, GitHub avatar, current role, projects, hosts cert apps (md-102 first), Azure SWA + GitHub Actions |
 | Size | Normal (multi-file new site; not Large because it does not handle secrets or many systems) |
 | Exposure | Public (internet-facing personal site) |
-| Stage | 3 Prototype built and committed; QC (prototype scope) next |
+| Stage | 4 Prototype review (QC round 1 on prototype done: 91 of 97 tests pass; 6 minor failures logged for hardening) |
 | Design round | 2 |
 | Prompt 1 (prototype review) | Not yet |
 | Plan | `docs/plans/proposed/2026-11-15-personal-site.md` (written, advisor consulted) |
