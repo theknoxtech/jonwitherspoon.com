@@ -34,6 +34,9 @@ Re-read at the start of every stage; update at the end of every stage.
 
 - HARD RULE from Jon (2026-11-15): do not change his apps unless he says so. The md-102 and KQL apps are NOT rebuilt, edited, or given back links or font changes. They are only moved (his request: everything under `exam_apps/`). The plan's back-link, font swap, import-path fix, and personal-data fix steps are cancelled; the personal-data audit becomes a read-only report to Jon. Verify at the end that the files are byte-identical to commit c1d1619.
 
+- Astro: stay on 6.4.8 with a written exception (CVE follow-up, `cve/report-2.md`: audit findings do not apply to a static build, fixes only in Astro 7); plan the Astro 7 upgrade on its own branch later. `npm audit` is not a CI gate until then.
+- Test command for Jon: `npm run build && npm run preview` (the `lab-copy` step runs only at build, so the dev server does not serve the labs).
+
 ## Log
 
 - 2026-11-15: an orchestrator restore command emptied 44 md-102 files (PATH lost, shell truncated targets). All restored from c1d1619 and verified identical (0 differing, 0 empty). Backend dev had rebuilt md-102 without Jon asking; that work was discarded and the dev stopped.

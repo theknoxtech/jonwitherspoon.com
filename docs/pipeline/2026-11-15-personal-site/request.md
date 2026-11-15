@@ -7,4 +7,11 @@
 - Project Context: accepted as proposed, with the framework choice stated: "I do like Astro for websites or python and flask. I am not a fan of straight html and css."
 - Repo setup (git init, main and dev): "yes".
 - Safety stop (local npm install of Astro, plus downloading the GitHub avatar and IBM Plex fonts): "Yes to both questions". md-102 edits made by Jon after the first commit: "no add the changes to md-102. That was me." (committed as their own commit).
+- Jon, mid-build: "one other thing. Put all the exam labs in one folder called exam_apps and then each app will have it's own folder."
+- Jon: "also the apps need to be able to be used by others. So, I dont want my exam data in the app that is on the site. Not sure how that works" then "yea I am not talking about the question banks".
+- Jon: "my md-102 app isn't working now." then "you moved it and it stopped working" then "I dont want the app rebuilt. I didn't say rebuild it" then "Do not change my apps unless I tell you to again".
+- Jon: "fix it]" (restore of the emptied files), then "when I say to move things I mean move them or copy them. Do not rebuild things".
+- Jon: "No it is still broken. I was launching it by openign the index.html. The index.html was not in the source folder either. I dont know what you did but you need to get it fixed right now".
+- Jon: "it opens now. I dont know why it wasnt in the other folder. But it has to be the way it is written". Then "yes" to: move the whole original md-102 folder into exam_apps/md-102 unchanged, remove the duplicate copies, add a build step that copies only the top-level HTML pages into the site.
+- Jon: "include the md-102 edits on commit" (committed as 89eda90).
 - Reading the old site at ~/Personal Src/siliconscripted.com: "yes".
