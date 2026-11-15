@@ -1,0 +1,367 @@
+const DQ = 'Domain 2 · Run a device query by using KQL';
+const AA = 'Domain 2 · Intune Advanced Analytics';
+const RP = 'Domain 5 · Reporting and data visibility';
+const MDE = 'Domain 3 · Defender for Endpoint integration';
+const CA = 'Domain 1 · Conditional Access and compliance';
+const SC = {
+  dev: 'IntuneDevices(DeviceName, OS, OSVersion, Manufacturer, Model, SerialNumber, Ownership, CompliantState, LastContact: datetime, TimeGenerated: datetime)',
+  app: 'InstalledApplication(DeviceName, ProductName, ProductVersion, Publisher)',
+  qfe: 'WindowsQfe(DeviceName, HotFixId, InstalledOn: datetime)',
+  drv: 'LogicalDrive(DeviceName, DriveLetter, SizeGB: real, FreeGB: real)',
+  sign: 'SigninLogs(TimeGenerated: datetime, UserPrincipalName, AppDisplayName, ResultType: string, IPAddress, DeviceDetail: dynamic)',
+  proc: 'DeviceProcessEvents(Timestamp: datetime, DeviceName, AccountName, FileName, ProcessCommandLine)',
+  net: 'DeviceNetworkEvents(Timestamp: datetime, DeviceName, RemoteIP, RemotePort: int, ActionType)',
+  logon: 'DeviceLogonEvents(Timestamp: datetime, DeviceName, AccountName, ActionType)'
+};
+const K = [];
+function SC1(obj, cat, lvl, title, schema, task, a, e, w) { K.push({ id: K.length + 1, obj, cat, lvl, title, schema, task, a, e, w }); }
+
+/* ===== Filtering ===== */
+SC1(DQ, 'Filtering', 1, 'Dell devices only', SC.dev,
+  'Return every device whose manufacturer is exactly "Dell Inc.".',
+  'IntuneDevices\n| where Manufacturer == "Dell Inc."',
+  'where filters rows, and == is the comparison operator. It is case-sensitive, which is fine here because the value is exact.',
+  [['IntuneDevices\n| where Manufacturer = "Dell Inc."', 'A single = is not a comparison in KQL. Use == for equals.'],
+   ['IntuneDevices\n| where Manufacturer is "Dell Inc."', 'KQL has no "is" operator. Comparison uses ==, =~, has, contains and similar.'],
+   ['IntuneDevices\n| select * where Manufacturer == "Dell Inc."', 'select is SQL. KQL filters with a where operator after a pipe.']]);
+SC1(DQ, 'Filtering', 1, 'Ignore case on the model name', SC.dev,
+  'Find devices whose Model is "Latitude 7440", whether the data says "LATITUDE 7440" or "latitude 7440".',
+  'IntuneDevices\n| where Model =~ "Latitude 7440"',
+  '=~ is the case-insensitive equals. == would miss rows that differ in case.',
+  [['IntuneDevices\n| where Model == "Latitude 7440"', '== is case-sensitive, so rows with different casing are skipped.'],
+   ['IntuneDevices\n| where Model !~ "Latitude 7440"', '!~ means "not equal, ignoring case". It returns the opposite set.'],
+   ['IntuneDevices\n| where Model has_cs "Latitude 7440"', 'has_cs is the case-sensitive term match, the opposite of what you need.']]);
+SC1(DQ, 'Filtering', 1, 'Names that start with a prefix', SC.dev,
+  'List devices whose name starts with "LAP-".',
+  'IntuneDevices\n| where DeviceName startswith "LAP-"',
+  'startswith checks the beginning of a string and ignores case. KQL has no wildcard syntax inside ==.',
+  [['IntuneDevices\n| where DeviceName like "LAP-%"', 'like is SQL. KQL does not support it.'],
+   ['IntuneDevices\n| where DeviceName == "LAP-*"', 'Wildcards are not expanded with ==. This matches only a name that is literally "LAP-*".'],
+   ['IntuneDevices\n| where DeviceName endswith "LAP-"', 'endswith looks at the end of the string, not the beginning.']]);
+SC1(RP, 'Filtering', 1, 'Match one of several values', SC.dev,
+  'Return devices running Windows 11 22H2 (10.0.22621) or 23H2 (10.0.22631).',
+  'IntuneDevices\n| where OSVersion startswith "10.0.22621" or OSVersion startswith "10.0.22631"',
+  'Combine conditions with or. startswith is useful here because OSVersion strings carry a build revision after the number.',
+  [['IntuneDevices\n| where OSVersion == "10.0.22621" or "10.0.22631"', 'The right side of or must be a full condition. "10.0.22631" alone is a string, not a comparison.'],
+   ['IntuneDevices\n| where OSVersion startswith "10.0.22621", "10.0.22631"', 'A comma does not separate conditions in where. Use and or or.'],
+   ['IntuneDevices\n| where OSVersion startswith "10.0.22621" and OSVersion startswith "10.0.22631"', 'and requires both. No version starts with both values, so nothing is returned.']]);
+SC1(RP, 'Filtering', 1, 'In a list of values', SC.dev,
+  'Return devices whose OS is "Windows", "macOS" or "iOS" using the shortest correct form.',
+  'IntuneDevices\n| where OS in ("Windows", "macOS", "iOS")',
+  'in takes a list in parentheses. It is exact and case-sensitive, and in~ is the case-insensitive version.',
+  [['IntuneDevices\n| where OS in "Windows", "macOS", "iOS"', 'The list must be wrapped in parentheses.'],
+   ['IntuneDevices\n| where OS == ("Windows", "macOS", "iOS")', '== compares to one value. Use in for a list.'],
+   ['IntuneDevices\n| where OS in ["Windows", "macOS", "iOS"]', 'Square brackets are for dynamic arrays. in uses parentheses.']]);
+SC1(RP, 'Filtering', 1, 'Exclude a value', SC.dev,
+  'Return every device that is not personally owned (Ownership is "Personal").',
+  'IntuneDevices\n| where Ownership != "Personal"',
+  '!= excludes the matching value. Remember it is case-sensitive, so use !~ if the casing varies.',
+  [['IntuneDevices\n| where not Ownership == "Personal"', 'not is a function and needs parentheses: not(Ownership == "Personal").'],
+   ['IntuneDevices\n| where Ownership ! "Personal"', 'A bare ! is not an operator. Use != for not equal.'],
+   ['IntuneDevices\n| where Ownership isnot "Personal"', 'isnot does not exist in KQL.']]);
+SC1(RP, 'Filtering', 1, 'Two conditions', SC.dev,
+  'Find Dell devices on Windows 11 (OSVersion starts with "10.0.22").',
+  'IntuneDevices\n| where Manufacturer == "Dell Inc." and OSVersion startswith "10.0.22"',
+  'and joins conditions inside one where. Chaining two where operators with a pipe also works.',
+  [['IntuneDevices\n| where Manufacturer == "Dell Inc." && OSVersion startswith "10.0.22"', 'KQL does not use &&. The word and is the logical operator.'],
+   ['IntuneDevices\n| where Manufacturer == "Dell Inc.", OSVersion startswith "10.0.22"', 'A comma is not a logical operator in where.'],
+   ['IntuneDevices\n| where Manufacturer == "Dell Inc." and where OSVersion startswith "10.0.22"', 'The second where is not allowed inside the expression. Use a pipe: | where ...']]);
+SC1(RP, 'Filtering', 2, 'Blank serial numbers', SC.dev,
+  'Find devices that have no serial number recorded.',
+  'IntuneDevices\n| where isempty(SerialNumber)',
+  'isempty() is true for empty or null strings. For string columns it is the right check for missing data.',
+  [['IntuneDevices\n| where SerialNumber is null', 'KQL has no "is null" syntax. Use isempty(), isnull() or isnotnull() as functions.'],
+   ['IntuneDevices\n| where SerialNumber == null', 'Comparing to null does not behave like a test. Use isempty() for strings.'],
+   ['IntuneDevices\n| where isnotempty(SerialNumber)', 'This returns devices that do have a serial number, the opposite of the task.']]);
+SC1(DQ, 'Filtering', 2, 'has or contains', SC.proc,
+  'Find process events whose command line includes "frombase64", including cases such as "[Convert]::FromBase64String(...)" where it is only part of a longer word.',
+  'DeviceProcessEvents\n| where ProcessCommandLine contains "frombase64"',
+  'contains matches the text anywhere, even inside a longer word. has needs a whole term, so it would miss "FromBase64String".',
+  [['DeviceProcessEvents\n| where ProcessCommandLine has "frombase64"', 'has looks for whole terms. "frombase64string" is a different term, so it is missed.'],
+   ['DeviceProcessEvents\n| where ProcessCommandLine == "frombase64"', '== needs the whole command line to equal the value.'],
+   ['DeviceProcessEvents\n| where ProcessCommandLine startswith "frombase64"', 'startswith only matches the beginning of the command line.']]);
+
+/* ===== Shaping columns ===== */
+SC1(DQ, 'Shaping columns', 1, 'Choose columns', SC.dev,
+  'Return only the DeviceName and OSVersion columns.',
+  'IntuneDevices\n| project DeviceName, OSVersion',
+  'project keeps just the columns you list, separated by commas.',
+  [['IntuneDevices\n| select DeviceName, OSVersion', 'select is SQL. Use project.'],
+   ['IntuneDevices\n| project DeviceName OSVersion', 'Columns in project must be separated by a comma.'],
+   ['IntuneDevices\n| get DeviceName, OSVersion', 'get is not a KQL operator.']]);
+SC1(DQ, 'Shaping columns', 1, 'Drop one column', SC.dev,
+  'Return all columns except SerialNumber.',
+  'IntuneDevices\n| project-away SerialNumber',
+  'project-away removes the listed columns and keeps everything else.',
+  [['IntuneDevices\n| project !SerialNumber', 'KQL does not support negating a column name in project.'],
+   ['IntuneDevices\n| drop SerialNumber', 'drop is not a KQL operator.'],
+   ['IntuneDevices\n| project-keep SerialNumber', 'project-keep does the opposite. It keeps only SerialNumber.']]);
+SC1(DQ, 'Shaping columns', 1, 'Rename while projecting', SC.dev,
+  'Return DeviceName shown as Computer, plus OSVersion.',
+  'IntuneDevices\n| project Computer = DeviceName, OSVersion',
+  'Rename with newName = oldName inside project.',
+  [['IntuneDevices\n| project DeviceName as Computer, OSVersion', 'as is not used for aliasing in project. The syntax is new = old.'],
+   ['IntuneDevices\n| project DeviceName -> Computer, OSVersion', 'The arrow is not KQL syntax.'],
+   ['IntuneDevices\n| project Computer, OSVersion = DeviceName', 'The names are swapped. Computer is not a column, and OSVersion would be overwritten with the device name.']]);
+SC1(DQ, 'Shaping columns', 2, 'Add a calculated column', SC.drv,
+  'Keep every column and add FreePct, the free space as a percentage rounded to one decimal.',
+  'LogicalDrive\n| extend FreePct = round(FreeGB / SizeGB * 100, 1)',
+  'extend adds a column and keeps all existing ones. FreeGB and SizeGB are real, so the division keeps decimals.',
+  [['LogicalDrive\n| project FreePct = round(FreeGB / SizeGB * 100, 1)', 'project returns only the new column. The other columns are dropped.'],
+   ['LogicalDrive\n| extend FreePct := round(FreeGB / SizeGB * 100, 1)', ':= is not KQL. Assignment uses a single =.'],
+   ['LogicalDrive\n| set FreePct = round(FreeGB / SizeGB * 100, 1)', 'set is not a KQL operator for adding columns. Use extend.']]);
+SC1(RP, 'Shaping columns', 2, 'Build a text label', SC.dev,
+  'Add a Label column that reads like "LAP-014 (Latitude 7440)".',
+  'IntuneDevices\n| extend Label = strcat(DeviceName, " (", Model, ")")',
+  'strcat joins strings. In KQL, + is for numbers, not for text.',
+  [['IntuneDevices\n| extend Label = DeviceName + " (" + Model + ")"', '+ does not concatenate strings in KQL.'],
+   ['IntuneDevices\n| extend Label = concat(DeviceName, " (", Model, ")")', 'concat is not the KQL function. The name is strcat.'],
+   ['IntuneDevices\n| extend Label = DeviceName & " (" & Model & ")"', '& is not a string operator in KQL.']]);
+SC1(AA, 'Shaping columns', 2, 'If-then column', SC.drv,
+  'Add a Status column that says "Low" when FreeGB is under 10 and "OK" otherwise.',
+  'LogicalDrive\n| extend Status = iff(FreeGB < 10, "Low", "OK")',
+  'iff(condition, valueIfTrue, valueIfFalse) is the inline conditional.',
+  [['LogicalDrive\n| extend Status = if(FreeGB < 10, "Low", "OK")', 'if is a reserved word and not a function. Use iff.'],
+   ['LogicalDrive\n| extend Status = FreeGB < 10 ? "Low" : "OK"', 'The ternary operator is not available in KQL.'],
+   ['LogicalDrive\n| extend Status = when(FreeGB < 10, "Low", "OK")', 'when is not a KQL function.']]);
+
+/* ===== Aggregation ===== */
+SC1(RP, 'Aggregation', 1, 'Count rows', SC.dev,
+  'How many devices are in the table?',
+  'IntuneDevices\n| count',
+  'The count operator returns a single row with the number of records.',
+  [['IntuneDevices\n| count()', 'count() is an aggregation function that works inside summarize. As an operator it is just count.'],
+   ['IntuneDevices\n| summarize count', 'The function needs parentheses: summarize count().'],
+   ['IntuneDevices\n| length', 'There is no length operator for tables.']]);
+SC1(RP, 'Aggregation', 1, 'Count by group', SC.dev,
+  'Show how many devices there are for each Manufacturer.',
+  'IntuneDevices\n| summarize DeviceCount = count() by Manufacturer',
+  'summarize <aggregates> by <columns> is the grouping pattern.',
+  [['IntuneDevices\n| summarize count() group by Manufacturer', 'group by is SQL. KQL uses by.'],
+   ['IntuneDevices\n| summarize by Manufacturer count()', 'The aggregation goes before by, not after.'],
+   ['IntuneDevices\n| count by Manufacturer', 'The count operator takes no by clause. Use summarize.']]);
+SC1(RP, 'Aggregation', 1, 'Unique devices', SC.app,
+  'How many different devices appear in the table?',
+  'InstalledApplication\n| summarize UniqueDevices = dcount(DeviceName)',
+  'dcount returns the number of distinct values. It is an estimate on very large data, but exact enough for most work.',
+  [['InstalledApplication\n| summarize UniqueDevices = count(distinct DeviceName)', 'count(distinct x) is SQL. KQL uses dcount(x).'],
+   ['InstalledApplication\n| summarize UniqueDevices = unique(DeviceName)', 'unique is not a KQL aggregation.'],
+   ['InstalledApplication\n| summarize UniqueDevices = count(DeviceName)', 'This counts rows, so a device with 40 apps is counted 40 times.']]);
+SC1(RP, 'Aggregation', 2, 'Conditional count', SC.dev,
+  'For each OS, return the total devices and how many are not compliant (CompliantState is not "Compliant").',
+  'IntuneDevices\n| summarize Total = count(), NonCompliant = countif(CompliantState != "Compliant") by OS',
+  'countif counts only rows where the condition is true, so you can total and filter in the same pass.',
+  [['IntuneDevices\n| summarize Total = count() by OS\n| where CompliantState != "Compliant"', 'After summarize, CompliantState no longer exists as a column.'],
+   ['IntuneDevices\n| where CompliantState != "Compliant"\n| summarize Total = count() by OS', 'This counts only the non-compliant devices, so Total is wrong and there is no non-compliant column.'],
+   ['IntuneDevices\n| summarize Total = count(), NonCompliant = count(CompliantState != "Compliant") by OS', 'count(expr) counts rows where expr is not null, which is every row. Use countif.']]);
+SC1(AA, 'Aggregation', 2, 'Percentage without integer division', SC.dev,
+  'For each OS, return Total, NonCompliant and PctNonCompliant to one decimal place.',
+  'IntuneDevices\n| summarize Total = count(), NonCompliant = countif(CompliantState != "Compliant") by OS\n| extend PctNonCompliant = round(100.0 * NonCompliant / Total, 1)',
+  'count() returns whole numbers, and whole number division drops the decimals. Starting with 100.0 forces real division.',
+  [['IntuneDevices\n| summarize Total = count(), NonCompliant = countif(CompliantState != "Compliant") by OS\n| extend PctNonCompliant = NonCompliant / Total * 100', 'long / long is integer division, so NonCompliant / Total is 0 unless every device is non-compliant.'],
+   ['IntuneDevices\n| summarize Total = count(), NonCompliant = countif(CompliantState != "Compliant") by OS\n| extend PctNonCompliant = round(NonCompliant / Total, 1) * 100', 'The division is still integer division, so rounding after it cannot restore the decimals.'],
+   ['IntuneDevices\n| extend PctNonCompliant = round(100.0 * countif(CompliantState != "Compliant") / count(), 1) by OS', 'Aggregation functions only work inside summarize, and extend has no by clause.']]);
+SC1(RP, 'Aggregation', 2, 'Top 5 by count', SC.app,
+  'Show the five most commonly installed applications and how many devices have each.',
+  'InstalledApplication\n| summarize Installs = count() by ProductName\n| top 5 by Installs desc',
+  'Group first, then take the top rows by the aggregated column.',
+  [['InstalledApplication\n| summarize Installs = count() by ProductName\n| take 5', 'take returns any five rows, not the highest five.'],
+   ['InstalledApplication\n| summarize Installs = count() by ProductName\n| top 5 Installs desc', 'top needs the keyword by: top 5 by Installs desc.'],
+   ['InstalledApplication\n| summarize Installs = count() by ProductName\n| top 5 by ProductName desc', 'This ranks by name (Z to A), not by how often the app is installed.']]);
+SC1(AA, 'Aggregation', 2, 'Latest row per device', SC.dev,
+  'IntuneDevices has several snapshots per device. Return the newest full row for each DeviceName.',
+  'IntuneDevices\n| summarize arg_max(TimeGenerated, *) by DeviceName',
+  'arg_max returns the row where the first argument is highest, and * brings along every other column.',
+  [['IntuneDevices\n| summarize max(TimeGenerated) by DeviceName', 'This returns only the latest time for each device and loses the other columns.'],
+   ['IntuneDevices\n| top 1 by TimeGenerated', 'This returns one row for the whole table, not one per device.'],
+   ['IntuneDevices\n| summarize last(TimeGenerated) by DeviceName', 'last() depends on the row order and returns only the one column.']]);
+SC1(DQ, 'Aggregation', 2, 'List unique values per group', SC.app,
+  'For each device, return one row with the set of distinct application names.',
+  'InstalledApplication\n| summarize Apps = make_set(ProductName) by DeviceName',
+  'make_set collects distinct values into an array. make_list keeps duplicates.',
+  [['InstalledApplication\n| summarize Apps = make_list(ProductName) by DeviceName', 'make_list keeps duplicates, so repeated names appear more than once.'],
+   ['InstalledApplication\n| summarize Apps = join(ProductName) by DeviceName', 'join is a tabular operator and not an aggregation function.'],
+   ['InstalledApplication\n| summarize Apps = strcat_array(ProductName) by DeviceName', 'strcat_array is a scalar function that needs an array and a delimiter. It cannot aggregate rows.']]);
+SC1(RP, 'Aggregation', 2, 'Filter after grouping', SC.logon,
+  'Find devices with more than 3 failed logons ("LogonFailed") and show the failure count.',
+  'DeviceLogonEvents\n| where ActionType == "LogonFailed"\n| summarize Failures = count() by DeviceName\n| where Failures > 3',
+  'Filter rows first, summarize, then filter the aggregated result with a second where. KQL has no HAVING.',
+  [['DeviceLogonEvents\n| where ActionType == "LogonFailed"\n| summarize Failures = count() by DeviceName having Failures > 3', 'having is SQL. Use a where after summarize.'],
+   ['DeviceLogonEvents\n| where ActionType == "LogonFailed" and count() > 3\n| summarize Failures = count() by DeviceName', 'Aggregation functions are not allowed inside where on raw rows.'],
+   ['DeviceLogonEvents\n| summarize Failures = count() by DeviceName\n| where Failures > 3', 'This counts every logon, successful or not, because the ActionType filter is missing.']]);
+SC1(AA, 'Aggregation', 1, 'Average by group', SC.drv,
+  'Show the average free space for each DriveLetter.',
+  'LogicalDrive\n| summarize AvgFree = avg(FreeGB) by DriveLetter',
+  'avg() is the average aggregation. The function is avg, not average or mean.',
+  [['LogicalDrive\n| summarize AvgFree = average(FreeGB) by DriveLetter', 'average is not a KQL function. Use avg.'],
+   ['LogicalDrive\n| summarize AvgFree = mean(FreeGB) by DriveLetter', 'mean is not a KQL function. Use avg.'],
+   ['LogicalDrive\n| summarize AvgFree = avg FreeGB by DriveLetter', 'Function arguments go in parentheses: avg(FreeGB).']]);
+
+/* ===== Time ===== */
+SC1(RP, 'Time', 1, 'Last 7 days', SC.sign,
+  'Return sign-ins from the last 7 days.',
+  'SigninLogs\n| where TimeGenerated > ago(7d)',
+  'ago(7d) returns the moment 7 days before now. The d suffix creates a timespan.',
+  [['SigninLogs\n| where TimeGenerated > ago(7)', 'ago needs a timespan such as 7d. A bare number is not a timespan.'],
+   ['SigninLogs\n| where TimeGenerated > ago("7 days")', 'Timespan literals are not written as text. Use 7d.'],
+   ['SigninLogs\n| where TimeGenerated < ago(7d)', 'This returns sign-ins older than 7 days, the opposite of the last 7 days.']]);
+SC1(RP, 'Time', 2, 'A date range', SC.sign,
+  'Return sign-ins between Nov 1 and Nov 7, 2026 (inclusive of both days).',
+  'SigninLogs\n| where TimeGenerated between (datetime(2026-11-01) .. datetime(2026-11-08))',
+  'between (a .. b) uses two dots and includes both ends. Using Nov 8 at 00:00 as the end captures the whole of Nov 7.',
+  [['SigninLogs\n| where TimeGenerated between (datetime(2026-11-01), datetime(2026-11-08))', 'between takes two dots (..) and not a comma.'],
+   ['SigninLogs\n| where TimeGenerated between datetime(2026-11-01) and datetime(2026-11-08)', 'between needs parentheses with a .. range. The SQL and form is not valid.'],
+   ['SigninLogs\n| where TimeGenerated == datetime(2026-11-01) .. datetime(2026-11-08)', 'A range cannot be used with ==.']]);
+SC1(RP, 'Time', 2, 'Group by hour', SC.net,
+  'Count network events per hour, so that different days are kept separate.',
+  'DeviceNetworkEvents\n| summarize Events = count() by bin(Timestamp, 1h)',
+  'bin rounds a time down to a bucket, and the bucket size is a timespan like 1h.',
+  [['DeviceNetworkEvents\n| summarize Events = count() by hour(Timestamp)', 'hour() returns 0 to 23, so every day collapses into the same 24 buckets.'],
+   ['DeviceNetworkEvents\n| summarize Events = count() by Timestamp', 'Each unique timestamp becomes its own group. Almost nothing is combined.'],
+   ['DeviceNetworkEvents\n| summarize Events = count() by bin(Timestamp, 1)', 'A bin size of 1 is a number of ticks, not an hour. Use 1h.']]);
+SC1(AA, 'Time', 1, 'Stale devices', SC.dev,
+  'Find devices that have not contacted Intune in the last 30 days.',
+  'IntuneDevices\n| where LastContact < ago(30d)',
+  'Older than 30 days means earlier than ago(30d), so the comparison is less than.',
+  [['IntuneDevices\n| where LastContact > ago(30d)', 'This returns devices that contacted Intune recently, the opposite.'],
+   ['IntuneDevices\n| where LastContact < ago(-30d)', 'A negative ago() gives a time in the future, so almost every device would match.'],
+   ['IntuneDevices\n| where datetime_diff("day", now(), LastContact) < 30', 'This also returns devices seen in the last 30 days. The comparison is reversed.']]);
+SC1(RP, 'Time', 2, 'Since midnight', SC.sign,
+  'Return sign-ins since the start of the current calendar day (UTC).',
+  'SigninLogs\n| where TimeGenerated >= startofday(now())',
+  'startofday() rounds a datetime down to midnight. ago(1d) would instead mean the last 24 hours.',
+  [['SigninLogs\n| where TimeGenerated > ago(1d)', 'This covers the last 24 hours, which reaches back before midnight.'],
+   ['SigninLogs\n| where TimeGenerated == now()', 'No record has exactly the current time, so nothing is returned.'],
+   ['SigninLogs\n| where TimeGenerated >= today()', 'There is no today() function. Use startofday(now()).']]);
+SC1(AA, 'Time', 2, 'Hours since last contact', SC.dev,
+  'Add HoursSince, the whole number of hours between LastContact and now.',
+  'IntuneDevices\n| extend HoursSince = datetime_diff("hour", now(), LastContact)',
+  'datetime_diff(period, later, earlier) returns a whole number in the unit you pick.',
+  [['IntuneDevices\n| extend HoursSince = datediff(hour, LastContact, now())', 'datediff is T-SQL. The KQL function is datetime_diff with a quoted period.'],
+   ['IntuneDevices\n| extend HoursSince = datetime_diff("hour", LastContact, now())', 'The arguments are reversed, so the result is negative.'],
+   ['IntuneDevices\n| extend HoursSince = now() - LastContact', 'This gives a timespan such as 3.04:15:00, not a whole number of hours.']]);
+
+/* ===== Strings and parsing ===== */
+SC1(RP, 'Strings and parsing', 2, 'Part before the @', SC.sign,
+  'Add User, the part of UserPrincipalName before the @ sign.',
+  'SigninLogs\n| extend User = tostring(split(UserPrincipalName, "@")[0])',
+  'split returns an array, indexes start at 0, and tostring turns the dynamic element into a string.',
+  [['SigninLogs\n| extend User = tostring(split(UserPrincipalName, "@")[1])', 'Index 1 is the part after the @ (the domain).'],
+   ['SigninLogs\n| extend User = substring(UserPrincipalName, "@")', 'substring takes numeric start and length, not a delimiter.'],
+   ['SigninLogs\n| extend User = UserPrincipalName.split("@")[0]', 'KQL does not have method-style calls on strings.']]);
+SC1(RP, 'Strings and parsing', 2, 'Pull a value with regex', SC.sign,
+  'Add Domain, the text after the @ in UserPrincipalName, using extract.',
+  'SigninLogs\n| extend Domain = extract("@(.+)$", 1, UserPrincipalName)',
+  'extract(regex, captureGroup, source). The parentheses in the pattern create capture group 1.',
+  [['SigninLogs\n| extend Domain = extract("@(.+)$", UserPrincipalName)', 'The capture group number is missing. The signature is extract(regex, group, source).'],
+   ['SigninLogs\n| extend Domain = extract(UserPrincipalName, 1, "@(.+)$")', 'The source and regex are swapped.'],
+   ['SigninLogs\n| extend Domain = regex("@(.+)$", UserPrincipalName)', 'There is no regex() function in KQL.']]);
+SC1(DQ, 'Strings and parsing', 1, 'Lowercase', SC.dev,
+  'Add NameLower, DeviceName in lowercase.',
+  'IntuneDevices\n| extend NameLower = tolower(DeviceName)',
+  'tolower() is the KQL function for lowercase.',
+  [['IntuneDevices\n| extend NameLower = lower(DeviceName)', 'lower is not a KQL function. Use tolower.'],
+   ['IntuneDevices\n| extend NameLower = DeviceName.toLower()', 'KQL has no method calls on strings.'],
+   ['IntuneDevices\n| extend NameLower = lcase(DeviceName)', 'lcase is not a KQL function.']]);
+SC1(DQ, 'Strings and parsing', 3, 'Version comparison', SC.app,
+  'Find installs of "Google Chrome" whose ProductVersion (for example "129.0.6668.101") is lower than 130.',
+  'InstalledApplication\n| where ProductName == "Google Chrome"\n| where parse_version(ProductVersion) < parse_version("130.0.0.0")',
+  'Version strings compare wrongly as text. parse_version turns them into comparable numbers, field by field.',
+  [['InstalledApplication\n| where ProductName == "Google Chrome"\n| where ProductVersion < "130"', 'String comparison is alphabetical, so "99.0" is greater than "130".'],
+   ['InstalledApplication\n| where ProductName == "Google Chrome"\n| where toint(ProductVersion) < 130', 'toint on "129.0.6668.101" returns null, so nothing matches.'],
+   ['InstalledApplication\n| where ProductName == "Google Chrome"\n| where ProductVersion has "<130"', 'has searches for that literal text, not a version range.']]);
+SC1(AA, 'Strings and parsing', 3, 'Expand a list', 'IntuneDevices(DeviceName, Tags: dynamic)',
+  'Each device has an array of Tags. Count how many devices carry each tag.',
+  'IntuneDevices\n| mv-expand Tag = Tags\n| summarize Devices = count() by tostring(Tag)',
+  'mv-expand makes one row per array element, which can then be grouped.',
+  [['IntuneDevices\n| summarize Devices = count() by Tags', 'This groups by the whole array, so each unique combination of tags is one group.'],
+   ['IntuneDevices\n| expand Tag = Tags\n| summarize Devices = count() by tostring(Tag)', 'expand is not a KQL operator. It is mv-expand.'],
+   ['IntuneDevices\n| summarize Devices = count() by Tags[*]', 'Wildcard indexing is not supported in KQL.']]);
+SC1(CA, 'Strings and parsing', 3, 'Read a dynamic property', SC.sign,
+  'Add Os, the operatingSystem value from the dynamic DeviceDetail column, as text.',
+  'SigninLogs\n| extend Os = tostring(DeviceDetail.operatingSystem)',
+  'Use dot or bracket notation on dynamic values, then wrap it in tostring to get a string.',
+  [['SigninLogs\n| extend Os = DeviceDetail->operatingSystem', 'The arrow is not KQL syntax.'],
+   ['SigninLogs\n| extend Os = DeviceDetail:operatingSystem', 'A colon is not used for property access.'],
+   ['SigninLogs\n| extend Os = tostring(DeviceDetail(operatingSystem))', 'Parentheses make this a function call. DeviceDetail is a column, not a function.']]);
+SC1(DQ, 'Strings and parsing', 2, 'Numeric list', SC.net,
+  'Return connections to remote ports 3389 or 22.',
+  'DeviceNetworkEvents\n| where RemotePort in (3389, 22)',
+  'RemotePort is an int, so the list holds numbers and not strings.',
+  [['DeviceNetworkEvents\n| where RemotePort in [3389, 22]', 'in uses parentheses, not square brackets.'],
+   ['DeviceNetworkEvents\n| where RemotePort == 3389 or 22', 'The text after or must be a full condition. 22 is just a number.'],
+   ['DeviceNetworkEvents\n| where RemotePort in (3389; 22)', 'Values are separated with commas, not semicolons.']]);
+
+/* ===== Joins and let ===== */
+SC1(RP, 'Joins and let', 1, 'A variable', SC.drv,
+  'Use a variable named threshold set to 10 to return drives with less than that many GB free.',
+  'let threshold = 10;\nLogicalDrive\n| where FreeGB < threshold',
+  'A let statement defines a name and ends with a semicolon before the main query.',
+  [['let threshold = 10\nLogicalDrive\n| where FreeGB < threshold', 'The let statement must end with a semicolon.'],
+   ['set threshold = 10;\nLogicalDrive\n| where FreeGB < threshold', 'set is not how variables are declared. Use let.'],
+   ['var threshold = 10;\nLogicalDrive\n| where FreeGB < threshold', 'var is not a KQL keyword.']]);
+SC1(DQ, 'Joins and let', 3, 'Devices missing a hotfix', SC.dev + '\n' + SC.qfe,
+  'Return the devices in IntuneDevices that do not have hotfix KB5034441 installed.',
+  'IntuneDevices\n| join kind=leftanti (WindowsQfe | where HotFixId == "KB5034441") on DeviceName',
+  'leftanti keeps the left rows that have no match on the right. The inner query holds the devices that do have the hotfix.',
+  [['WindowsQfe\n| where HotFixId != "KB5034441"', 'This returns hotfix rows, including those from devices that also have KB5034441 among others.'],
+   ['IntuneDevices\n| join kind=inner (WindowsQfe | where HotFixId == "KB5034441") on DeviceName', 'inner returns the devices that do have the hotfix, the opposite.'],
+   ['IntuneDevices\n| join kind=rightanti (WindowsQfe | where HotFixId == "KB5034441") on DeviceName', 'rightanti returns right-side rows with no match, which are hotfix rows, not devices.']]);
+SC1(DQ, 'Joins and let', 3, 'Different column names', 'IntuneDevices(DeviceName, Model)\nInstalledApplication(ComputerName, ProductName)',
+  'Join IntuneDevices to InstalledApplication where the key is DeviceName on the left and ComputerName on the right.',
+  'IntuneDevices\n| join kind=inner (InstalledApplication) on $left.DeviceName == $right.ComputerName',
+  '$left and $right pick the column from each side when the names differ.',
+  [['IntuneDevices\n| join kind=inner (InstalledApplication) on DeviceName == ComputerName', 'Without $left and $right, KQL cannot tell which side each name belongs to.'],
+   ['IntuneDevices\n| join kind=inner (InstalledApplication) on DeviceName, ComputerName', 'A comma-separated list means both columns must exist on both sides.'],
+   ['IntuneDevices\n| join kind=inner (InstalledApplication) where DeviceName = ComputerName', 'join uses on, not where, and = is not an equality test.']]);
+
+/* ===== Hunting and sign-ins ===== */
+SC1(MDE, 'Hunting and sign-ins', 2, 'Encoded PowerShell', SC.proc,
+  'In the last day, find PowerShell launches with EncodedCommand on the command line. Show time, device, account and command line, newest first.',
+  'DeviceProcessEvents\n| where Timestamp > ago(1d)\n| where FileName =~ "powershell.exe"\n| where ProcessCommandLine has "EncodedCommand"\n| project Timestamp, DeviceName, AccountName, ProcessCommandLine\n| order by Timestamp desc',
+  'Filter early, project after the filters, then sort. =~ catches PowerShell.exe or powershell.exe.',
+  [['DeviceProcessEvents\n| project Timestamp, DeviceName, AccountName\n| where Timestamp > ago(1d)\n| where ProcessCommandLine has "EncodedCommand"', 'project removed FileName and ProcessCommandLine, so the later where fails.'],
+   ['DeviceProcessEvents\n| where Timestamp > ago(1d)\n| where FileName == "PowerShell.exe"\n| where ProcessCommandLine has "EncodedCommand"\n| project Timestamp, DeviceName, AccountName, ProcessCommandLine', '== is case-sensitive, so powershell.exe is missed. Also there is no ordering.'],
+   ['DeviceProcessEvents\n| take 100\n| where FileName =~ "powershell.exe" and ProcessCommandLine has "EncodedCommand"\n| order by Timestamp desc', 'take 100 picks an arbitrary 100 rows first, so matches are lost. The time filter is also missing.']]);
+SC1(CA, 'Hunting and sign-ins', 2, 'Failed sign-in bursts', SC.sign,
+  'Find users with 10 or more failed sign-ins in any one hour. Failed means ResultType is not "0".',
+  'SigninLogs\n| where ResultType != "0"\n| summarize Failures = count() by UserPrincipalName, bin(TimeGenerated, 1h)\n| where Failures >= 10',
+  'ResultType is a string, so it is compared to "0" in quotes. Group by user and hour bucket, then filter the count.',
+  [['SigninLogs\n| where ResultType != 0\n| summarize Failures = count() by UserPrincipalName, bin(TimeGenerated, 1h)\n| where Failures >= 10', 'ResultType is a string, so comparing it to the number 0 raises a type error.'],
+   ['SigninLogs\n| where ResultType != "0"\n| summarize Failures = count() by bin(TimeGenerated, 1h)\n| where Failures >= 10', 'The users are missing from the group by, so this counts failures across all users.'],
+   ['SigninLogs\n| where ResultType != "0" and Failures >= 10\n| summarize count() by UserPrincipalName, bin(TimeGenerated, 1h)', 'Failures does not exist yet at the where. It is created by summarize.']]);
+SC1(MDE, 'Hunting and sign-ins', 2, 'Busiest devices', SC.net,
+  'Rank the ten devices that connected to the most different remote IP addresses.',
+  'DeviceNetworkEvents\n| summarize RemoteIPs = dcount(RemoteIP) by DeviceName\n| top 10 by RemoteIPs desc',
+  'dcount counts distinct IPs per device, and top ranks them.',
+  [['DeviceNetworkEvents\n| summarize RemoteIPs = count(RemoteIP) by DeviceName\n| top 10 by RemoteIPs desc', 'count() counts connections, not different IPs.'],
+   ['DeviceNetworkEvents\n| summarize RemoteIPs = dcount(RemoteIP)\n| top 10 by RemoteIPs desc', 'With no by clause the result is one number for the whole table.'],
+   ['DeviceNetworkEvents\n| distinct DeviceName, RemoteIP\n| take 10', 'This returns ten arbitrary pairs and no ranking.']]);
+SC1(RP, 'Hunting and sign-ins', 2, 'Chart failures per day', SC.sign,
+  'Chart the number of failed sign-ins per day.',
+  'SigninLogs\n| where ResultType != "0"\n| summarize Failures = count() by bin(TimeGenerated, 1d)\n| render timechart',
+  'render is the last operator, and it needs a time column and a number to plot.',
+  [['SigninLogs\n| where ResultType != "0"\n| render timechart\n| summarize Failures = count() by bin(TimeGenerated, 1d)', 'render must come last, after the data has been summarized.'],
+   ['SigninLogs\n| where ResultType != "0"\n| summarize Failures = count() by bin(TimeGenerated, 1d)\n| chart', 'There is no chart operator. Use render with a chart type.'],
+   ['SigninLogs\n| where ResultType != "0"\n| summarize Failures = count() by bin(TimeGenerated, 1d)\n| plot timechart', 'plot is not a KQL operator. Use render.']]);
+SC1(RP, 'Hunting and sign-ins', 1, 'Distinct values', SC.dev,
+  'List the different manufacturers that appear in the table, one per row.',
+  'IntuneDevices\n| distinct Manufacturer',
+  'distinct returns the unique combinations of the columns you list.',
+  [['IntuneDevices\n| unique Manufacturer', 'unique is not a KQL operator.'],
+   ['IntuneDevices\n| summarize distinct Manufacturer', 'distinct is a standalone operator, not a summarize function.'],
+   ['IntuneDevices\n| select distinct Manufacturer', 'select is SQL. KQL uses distinct after a pipe.']]);
+SC1(RP, 'Hunting and sign-ins', 1, 'Oldest first', SC.dev,
+  'List devices with the oldest LastContact first.',
+  'IntuneDevices\n| order by LastContact asc',
+  'order by sorts descending unless you add asc.',
+  [['IntuneDevices\n| order by LastContact', 'The default is descending, so this puts the newest first.'],
+   ['IntuneDevices\n| sort LastContact asc', 'sort needs by: sort by LastContact asc.'],
+   ['IntuneDevices\n| order LastContact asc', 'order must be followed by by.']]);
+SC1(AA, 'Hunting and sign-ins', 3, 'Low disk on C:', SC.drv,
+  'Find drives on C: with less than 10 percent free and show device, free and size.',
+  'LogicalDrive\n| where DriveLetter == "C:" and FreeGB / SizeGB < 0.1\n| project DeviceName, FreeGB, SizeGB',
+  'FreeGB / SizeGB is a fraction between 0 and 1, so 10 percent is 0.1.',
+  [['LogicalDrive\n| where DriveLetter == "C:" and FreeGB / SizeGB < 10\n| project DeviceName, FreeGB, SizeGB', 'The ratio is below 1, so < 10 matches every drive.'],
+   ['LogicalDrive\n| where DriveLetter = "C:" and FreeGB / SizeGB < 0.1\n| project DeviceName, FreeGB, SizeGB', 'A single = is not a comparison. Use ==.'],
+   ['LogicalDrive\n| where DriveLetter == "C:" and FreeGB < 10%\n| project DeviceName, FreeGB, SizeGB', 'KQL has no percent literal, and FreeGB < 10 would also be an absolute size.']]);

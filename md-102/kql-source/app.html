@@ -1,0 +1,354 @@
+<title>KQL Query Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column, a scenario card with dark code panels for the choices */
+:root{
+  --bg:#edf1f5; --surface:#ffffff; --ink:#142030; --muted:#566677; --line:#d1dae3; --soft:#e2e9f0;
+  --accent:#0b6f8a; --accent-ink:#ffffff; --accent-soft:#d9eef4;
+  --good:#1d7444; --good-soft:#dcefe3; --bad:#ad352c; --bad-soft:#f6dedb; --warn:#8a6a00;
+  --code-bg:#101a26; --code-fg:#d7e2ee; --c-kw:#7cc4ff; --c-str:#f2b872; --c-num:#b4e08a; --c-fn:#c9a6ff; --c-op:#8aa0b6;
+  --l1:#2b7a4b; --l2:#9a6a12; --l3:#a23d60;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d141c; --surface:#16202b; --ink:#e4ecf4; --muted:#93a4b6; --line:#2a3846; --soft:#1f2b37;
+  --accent:#5cc2dc; --accent-ink:#06222b; --accent-soft:#143240;
+  --good:#58c787; --good-soft:#143324; --bad:#ff8f84; --bad-soft:#3b1d1a; --warn:#e0b84a;
+  --code-bg:#0a1119; --l1:#6fcf97; --l2:#e0a24f; --l3:#f08aa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141c; --surface:#16202b; --ink:#e4ecf4; --muted:#93a4b6; --line:#2a3846; --soft:#1f2b37;
+  --accent:#5cc2dc; --accent-ink:#06222b; --accent-soft:#143240;
+  --good:#58c787; --good-soft:#143324; --bad:#ff8f84; --bad-soft:#3b1d1a; --warn:#e0b84a;
+  --code-bg:#0a1119; --l1:#6fcf97; --l2:#e0a24f; --l3:#f08aa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:26px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600}
+h3{font-size:15px;font-weight:600}
+p{margin:0}
+header.top{padding-block:24px 8px;display:flex;gap:16px;justify-content:space-between;align-items:flex-end;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.sub{color:var(--muted);margin-top:6px;max-width:60ch}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-block:12px 20px;overflow-x:auto}
+nav button{font:inherit;font-weight:500;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button:focus-visible,summary:focus-visible,select:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.mode{display:flex;flex-direction:column;gap:10px}
+.mode p{color:var(--muted);font-size:14px}
+.meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.btn{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:10px 16px;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;max-width:100%}
+.note{color:var(--muted);font-size:13px}
+.flag{border-left:4px solid var(--accent);background:var(--accent-soft)}
+.chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;border:1px solid currentColor;border-radius:4px;padding:2px 7px;white-space:nowrap}
+.chip.l1{color:var(--l1)} .chip.l2{color:var(--l2)} .chip.l3{color:var(--l3)} .chip.cat{color:var(--muted)}
+.qhead{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.bar{height:4px;background:var(--soft);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.obj{font-size:13px;color:var(--muted);margin-top:4px}
+.schema{font-family:var(--mono);font-size:12.5px;background:var(--soft);border-radius:6px;padding:10px 12px;margin-block:12px;overflow-x:auto;white-space:pre;line-height:1.6}
+.task{font-size:16px;font-weight:500;margin-bottom:6px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:10px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-block:12px}
+.opt{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;text-align:left;width:100%;font:inherit;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;align-items:start}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .let{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--muted);padding-top:9px;text-align:center}
+.opt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.opt.right{border-color:var(--good)} .opt.wrong{border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.opt .tag{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;margin-top:6px;padding-inline:2px}
+.opt.right .tag{color:var(--good)} .opt.wrong .tag{color:var(--bad)}
+pre.code{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--code-bg);color:var(--code-fg);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.k{color:var(--c-kw)} .s{color:var(--c-str)} .n{color:var(--c-num)} .f{color:var(--c-fn)} .o{color:var(--c-op)}
+.fb{border-radius:8px;padding:14px 16px;margin-top:6px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.fb.ok{border-color:var(--good);background:var(--good-soft)}
+.fb.no{border-color:var(--bad);background:var(--bad-soft)}
+.fb h3{display:flex;gap:8px;align-items:center}
+.fb .lab{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+details{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--surface)}
+summary{cursor:pointer;font-weight:500}
+details .item{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.score{font-size:44px;font-weight:700;line-height:1}
+.dom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding-block:8px;border-top:1px solid var(--line)}
+.dom:first-child{border-top:0}
+.dom .pc{font-family:var(--mono);font-weight:500}
+.meter{grid-column:1 / -1;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.m{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.scroll{overflow-x:auto}
+.tbl .n{text-align:right;font-variant-numeric:tabular-nums}
+.sec{margin-top:22px;margin-bottom:10px}
+.review .item{padding-block:12px;border-top:1px solid var(--line)}
+@media (max-width:520px){h1{font-size:22px} .score{font-size:36px}}
+@media (prefers-reduced-motion:no-preference){.bar i,.meter i{transition:width .25s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Exam MD-102 · KQL for Intune</div>
+      <h1>KQL Query Lab</h1>
+      <p class="sub">Pick the correct query for each scenario. After you check, you see why it works or fails and what it should have been.</p>
+    </div>
+  </header>
+  <nav id="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="practice" aria-selected="true">Practice</button>
+    <button role="tab" data-tab="reference" aria-selected="false">Cheat sheet</button>
+    <button role="tab" data-tab="progress" aria-selected="false">Progress</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<script>
+/*__DATA__*/
+
+const KEY = 'kql.md102.lab.v1';
+let store = {q:{}, attempts:[]};
+try { const s = localStorage.getItem(KEY); if (s) store = Object.assign({q:{}, attempts:[]}, JSON.parse(s)); } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pct = (r, t) => t ? Math.round(100 * r / t) : 0;
+const LVL = {1:'Basic', 2:'Intermediate', 3:'Advanced'};
+const CATS = Array.from(new Set(K.map(k => k.cat)));
+const OBJS = Array.from(new Set(K.map(k => k.obj)));
+const stat = id => store.q[id] || {seen:0, right:0, last:null};
+
+/* ---------- syntax coloring ---------- */
+const KW = new Set('where project project-away project-keep project-rename extend summarize by count distinct top take limit order sort join on kind let render mv-expand parse and or not in between asc desc startswith endswith contains has has_cs has_any leftanti rightanti inner leftouter leftsemi union'.split(' '));
+function hl(src){
+  const re = /("(?:[^"\\]|\\.)*")|(\$left|\$right)|(\b\d+(?:\.\d+)?[dhms]?\b)|([A-Za-z_][\w]*(?:-[A-Za-z]+)*)(?=\()|([A-Za-z_][\w]*(?:-[A-Za-z]+)*)|(\|)|(==|=~|!=|!~|<=|>=|\.\.|<|>|=)/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    const t = esc(m[0]);
+    if (m[1]) out += '<span class="s">' + t + '</span>';
+    else if (m[2]) out += '<span class="f">' + t + '</span>';
+    else if (m[3]) out += '<span class="n">' + t + '</span>';
+    else if (m[4]) out += '<span class="f">' + t + '</span>';
+    else if (m[5]) out += KW.has(m[5].toLowerCase()) ? '<span class="k">' + t + '</span>' : t;
+    else out += '<span class="o">' + t + '</span>';
+  }
+  return out + esc(src.slice(last));
+}
+const code = q => '<pre class="code">' + hl(q) + '</pre>';
+
+/* ---------- session ---------- */
+let tab = 'practice', view = 'home', S = null, last = null;
+
+function pickQuick(n){
+  const sc = K.map(k => { const s = stat(k.id); return {k, v:(s.seen ? 1 : 0) + (s.last === false ? -1.2 : 0) + Math.random()}; });
+  sc.sort((a, b) => a.v - b.v);
+  return shuffle(sc.slice(0, n).map(x => x.k));
+}
+function start(mode, opt){
+  opt = opt || {};
+  let items = [], label = '';
+  if (mode === 'quick'){ items = pickQuick(10); label = 'Quick 10'; }
+  else if (mode === 'all'){ items = shuffle(K); label = 'All scenarios'; }
+  else if (mode === 'missed'){ items = shuffle(K.filter(k => stat(k.id).last === false)); label = 'Missed scenarios'; }
+  else if (mode === 'cat'){ items = shuffle(K.filter(k => k.cat === opt.v)); label = opt.v; }
+  else if (mode === 'obj'){ items = shuffle(K.filter(k => k.obj === opt.v)); label = opt.v; }
+  else if (mode === 'lvl'){ items = shuffle(K.filter(k => k.lvl === +opt.v)); label = LVL[opt.v] + ' level'; }
+  if (!items.length) return;
+  S = {label, i:0, picked:null, checked:false, rs:[], items:items.map(k => ({k, opts:shuffle([{q:k.a, ok:true, why:k.e}].concat(k.w.map(w => ({q:w[0], ok:false, why:w[1]}))))}))};
+  view = 'q'; tab = 'practice'; location.hash = 'practice'; render();
+}
+function submit(){
+  if (S.picked === null || S.checked) return;
+  const it = S.items[S.i], ok = it.opts[S.picked].ok;
+  S.checked = true; S.rs.push({k:it.k, ok});
+  const st = store.q[it.k.id] || (store.q[it.k.id] = {seen:0, right:0, last:null});
+  st.seen++; if (ok) st.right++; st.last = ok; save(); render();
+}
+function next(){
+  if (S.i >= S.items.length - 1) return finish();
+  S.i++; S.picked = null; S.checked = false; render(); window.scrollTo(0, 0);
+}
+function finish(){
+  const done = S.rs, cats = {};
+  done.forEach(r => { const c = cats[r.k.cat] || (cats[r.k.cat] = [0, 0]); c[1]++; if (r.ok) c[0]++; });
+  last = {label:S.label, right:done.filter(r => r.ok).length, total:done.length, cats, wrong:done.filter(r => !r.ok).map(r => r.k)};
+  if (done.length){ store.attempts.push({ts:Date.now(), label:S.label, right:last.right, total:last.total}); store.attempts = store.attempts.slice(-40); save(); }
+  S = null; view = 'result'; render(); window.scrollTo(0, 0);
+}
+
+/* ---------- views ---------- */
+function homeView(){
+  const missed = K.filter(k => stat(k.id).last === false).length, seen = K.filter(k => stat(k.id).seen).length;
+  return '' +
+  '<section class="panel flag"><h3>Why KQL for MD-102</h3><p style="margin-top:6px">The exam skills list includes running a device query by using KQL (Manage and maintain devices) and reporting on Intune data (Optimize endpoint operations). The Protect devices area also covers investigating threats from Defender for Endpoint. The tables here are simplified practice schemas modeled on Intune device query, Intune logs in Log Analytics, and Defender advanced hunting. Intune device query accepts a subset of KQL, so check the portal for what it supports.</p></section>' +
+  '<div class="grid sec">' +
+    '<section class="panel mode"><h2>Quick 10</h2><p>Ten scenarios, favoring ones you have not seen or missed.</p><div class="meta">' + seen + ' of ' + K.length + ' seen</div><div><button class="btn" data-act="start" data-mode="quick">Start</button></div></section>' +
+    '<section class="panel mode"><h2>By exam area</h2><p>Practice the queries tied to one part of the MD-102 outline.</p><div class="row"><select id="selObj" aria-label="Exam area">' + OBJS.map(o => '<option value="' + esc(o) + '">' + esc(o) + ' (' + K.filter(k => k.obj === o).length + ')</option>').join('') + '</select></div><div><button class="btn" data-act="startSel" data-mode="obj" data-sel="selObj">Start</button></div></section>' +
+    '<section class="panel mode"><h2>By skill</h2><p>Filtering, grouping, time, joins and more.</p><div class="row"><select id="selCat" aria-label="Skill">' + CATS.map(c => '<option value="' + esc(c) + '">' + esc(c) + ' (' + K.filter(k => k.cat === c).length + ')</option>').join('') + '</select></div><div><button class="btn" data-act="startSel" data-mode="cat" data-sel="selCat">Start</button></div></section>' +
+    '<section class="panel mode"><h2>By level</h2><p>Basic syntax first, then multi-step queries.</p><div class="row"><select id="selLvl" aria-label="Level">' + [1,2,3].map(l => '<option value="' + l + '">' + LVL[l] + ' (' + K.filter(k => k.lvl === l).length + ')</option>').join('') + '</select></div><div><button class="btn" data-act="startSel" data-mode="lvl" data-sel="selLvl">Start</button></div></section>' +
+    '<section class="panel mode"><h2>Missed scenarios</h2><p>Replay every scenario you last got wrong.</p><div class="meta">' + missed + ' waiting</div><div><button class="btn" data-act="start" data-mode="missed"' + (missed ? '' : ' disabled') + '>Replay</button></div></section>' +
+    '<section class="panel mode"><h2>Everything</h2><p>All ' + K.length + ' scenarios in random order.</p><div class="meta">no time limit</div><div><button class="btn ghost" data-act="start" data-mode="all">Start</button></div></section>' +
+  '</div>';
+}
+
+function qView(){
+  const it = S.items[S.i], k = it.k, n = S.items.length;
+  const opts = it.opts.map((o, i) => {
+    let cls = 'opt', tag = '';
+    if (S.checked){
+      if (o.ok){ cls += ' right'; tag = (i === S.picked ? 'Your answer, correct' : 'Correct answer'); }
+      else if (i === S.picked){ cls += ' wrong'; tag = 'Your answer'; }
+    } else if (i === S.picked) cls += ' sel';
+    return '<button class="' + cls + '" data-act="pick" data-i="' + i + '"' + (S.checked ? ' disabled' : '') + ' role="radio" aria-checked="' + (i === S.picked) + '"><span class="let">' + 'ABCD'[i] + '</span><span>' + code(o.q) + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</span></button>';
+  }).join('');
+  let fb = '';
+  if (S.checked){
+    const o = it.opts[S.picked], good = it.opts.find(x => x.ok);
+    const others = it.opts.map((x, i) => ({x, i})).filter(z => !z.x.ok && z.i !== S.picked);
+    if (o.ok){
+      fb = '<div class="fb ok"><h3>Correct</h3><p>' + esc(k.e) + '</p>' +
+        '<details><summary>Why the other three fail</summary>' + it.opts.map((x, i) => x.ok ? '' : '<div class="item"><span class="lab">Option ' + 'ABCD'[i] + '</span>' + code(x.q) + '<p>' + esc(x.why) + '</p></div>').join('') + '</details></div>';
+    } else {
+      fb = '<div class="fb no"><h3>Not quite</h3>' +
+        '<div><span class="lab">Why your pick (' + 'ABCD'[S.picked] + ') fails</span><p style="margin-top:4px">' + esc(o.why) + '</p></div>' +
+        '<div><span class="lab">It should have been (' + 'ABCD'[it.opts.indexOf(good)] + ')</span>' + '<div style="margin-top:6px">' + code(good.q) + '</div><p style="margin-top:8px">' + esc(k.e) + '</p></div>' +
+        '<details><summary>Why the other options fail</summary>' + others.map(z => '<div class="item"><span class="lab">Option ' + 'ABCD'[z.i] + '</span>' + code(z.x.q) + '<p>' + esc(z.x.why) + '</p></div>').join('') + '</details></div>';
+    }
+  }
+  const act = S.checked
+    ? '<button class="btn" data-act="next">' + (S.i >= n - 1 ? 'See results' : 'Next scenario') + '</button>'
+    : '<button class="btn" data-act="submit"' + (S.picked === null ? ' disabled' : '') + '>Check answer</button>';
+  return '' +
+  '<div class="qhead"><div class="row"><span class="chip l' + k.lvl + '">' + LVL[k.lvl] + '</span><span class="chip cat">' + esc(k.cat) + '</span></div><span class="meta">' + (S.i + 1) + ' / ' + n + '</span></div>' +
+  '<div class="bar"><i style="width:' + Math.round(100 * (S.i + (S.checked ? 1 : 0)) / n) + '%"></i></div>' +
+  '<section class="panel"><h2>' + esc(k.title) + '</h2><div class="obj">MD-102: ' + esc(k.obj) + '</div>' +
+    '<div class="schema">' + esc(k.schema) + '</div>' +
+    '<p class="task">' + esc(k.task) + '</p><p class="hint">Choose one query. Keys A to D select, Enter checks.</p>' +
+    '<div class="opts" role="radiogroup" aria-label="Query options">' + opts + '</div>' + fb +
+    '<div class="actions">' + act + '<button class="btn ghost" data-act="end">End and score</button></div></section>';
+}
+
+function bars(map){
+  return Object.keys(map).map(c => {
+    const r = map[c][0], t = map[c][1], p = pct(r, t);
+    return '<div class="dom"><div>' + esc(c) + '<div class="note">' + r + ' of ' + t + '</div></div><div class="pc">' + (t ? p + '%' : 'n/a') + '</div><div class="meter"><i style="width:' + p + '%"></i></div></div>';
+  }).join('');
+}
+function resultView(){
+  const R = last, p = pct(R.right, R.total);
+  const msg = p >= 85 ? 'Strong. Mix in the advanced level and the missed list.' : p >= 65 ? 'Getting there. Replay the misses, then try a different skill.' : 'Keep going. Start with the Basic level, then read the cheat sheet.';
+  return '' +
+  '<section class="panel"><span class="meta">' + esc(R.label) + '</span><div class="score" style="margin-top:6px">' + R.right + ' / ' + R.total + '</div><p style="margin-top:8px">' + p + '%. ' + msg + '</p></section>' +
+  '<h2 class="sec">By skill</h2><section class="panel">' + bars(R.cats) + '</section>' +
+  '<div class="actions"><button class="btn" data-act="start" data-mode="missed"' + (K.some(k => stat(k.id).last === false) ? '' : ' disabled') + '>Replay missed</button><button class="btn ghost" data-act="home">Back to practice</button></div>' +
+  (R.wrong.length ? '<h2 class="sec">What you missed (' + R.wrong.length + ')</h2><section class="panel review">' + R.wrong.map(k => '<div class="item"><h3>' + esc(k.title) + '</h3><p class="note" style="margin:4px 0 8px">' + esc(k.task) + '</p>' + code(k.a) + '<p style="margin-top:8px">' + esc(k.e) + '</p></div>').join('') + '</section>' : '<p class="sec">No misses in this set.</p>');
+}
+
+function progressView(){
+  const cats = {}, objs = {}, lv = {};
+  K.forEach(k => {
+    const s = stat(k.id);
+    [[cats, k.cat], [objs, k.obj], [lv, LVL[k.lvl]]].forEach(z => { const e = z[0][z[1]] || (z[0][z[1]] = [0, 0]); e[0] += s.right; e[1] += s.seen; });
+  });
+  const att = store.attempts.slice().reverse().slice(0, 10).map(a => '<tr><td class="m">' + new Date(a.ts).toLocaleDateString(undefined, {month:'short', day:'numeric'}) + '</td><td>' + esc(a.label) + '</td><td class="n">' + a.right + ' / ' + a.total + '</td><td class="n">' + pct(a.right, a.total) + '%</td></tr>').join('');
+  const seen = K.filter(k => stat(k.id).seen).length;
+  return '' +
+  '<section class="panel"><span class="meta">Coverage</span><div class="score" style="margin-top:6px">' + seen + ' / ' + K.length + '</div><p class="note" style="margin-top:6px">scenarios attempted at least once. Progress is saved in this browser only.</p></section>' +
+  '<h2 class="sec">By skill</h2><section class="panel">' + bars(cats) + '</section>' +
+  '<h2 class="sec">By MD-102 area</h2><section class="panel">' + bars(objs) + '</section>' +
+  '<h2 class="sec">By level</h2><section class="panel">' + bars(lv) + '</section>' +
+  '<h2 class="sec">Recent sessions</h2><section class="panel scroll">' + (att ? '<table class="tbl"><thead><tr><th>Date</th><th>Set</th><th class="n">Score</th><th class="n">%</th></tr></thead><tbody>' + att + '</tbody></table>' : '<p class="note">No sessions yet. Take a Quick 10.</p>') + '</section>' +
+  '<section class="panel sec"><div class="row"><button class="btn ghost sm" data-act="reset">Reset all progress</button><span class="note" id="resetmsg"></span></div></section>';
+}
+
+const REF = [
+  ['Keep rows', 'T | where Col == "x"', 'The comparison is ==. = alone is not a test. == is case-sensitive, =~ ignores case.'],
+  ['Text matching', 'where Col has "term"  /  contains "part"  /  startswith "x"', 'has needs a whole term and is fast. contains finds text inside a word and is slower.'],
+  ['Lists', 'where Col in ("a", "b")', 'Parentheses and commas. in~ ignores case. !in excludes.'],
+  ['Pick columns', 'project A, B  /  project-away C', 'project keeps only what you list. extend keeps everything and adds columns.'],
+  ['Add a column', 'extend Pct = round(100.0 * a / b, 1)', 'Whole number / whole number is integer division. Start with 100.0.'],
+  ['If / else', 'iff(cond, "yes", "no")', 'iff, not if, and no ternary operator.'],
+  ['Count', 'T | count   /   summarize count() by Col', 'count is an operator. count() is an aggregation inside summarize.'],
+  ['Distinct count', 'summarize dcount(Col)', 'count(distinct x) is SQL.'],
+  ['Conditional count', 'summarize countif(Col != "ok")', 'count(expr) does not filter. Use countif.'],
+  ['Top rows', 'summarize n = count() by A | top 5 by n desc', 'top needs by. take returns arbitrary rows.'],
+  ['Latest per key', 'summarize arg_max(Time, *) by Key', 'max() returns only the value, not the row.'],
+  ['After grouping', 'summarize n = count() by A | where n > 3', 'No HAVING. Filter after summarize with where.'],
+  ['Time filters', 'where Time > ago(7d)', 'ago needs a timespan: 30m, 12h, 7d. now(-7d) also works.'],
+  ['Time buckets', 'summarize count() by bin(Time, 1h)', 'hour(Time) gives 0 to 23 and merges days.'],
+  ['Date range', 'where Time between (datetime(2026-11-01) .. datetime(2026-11-08))', 'Two dots, parentheses. The end is included.'],
+  ['Strings', 'strcat(a, b)  /  tolower(x)  /  split(x, "@")[0]', '+ does not join text. Indexes start at 0. split returns a dynamic value, so wrap it in tostring().'],
+  ['Parse', 'extract("@(.+)$", 1, Col)  /  parse Col with A "@" B', 'extract(regex, group, source).'],
+  ['Versions', 'parse_version(v) < parse_version("130.0.0.0")', 'Strings compare alphabetically, so "99" is greater than "130".'],
+  ['Joins', 'L | join kind=leftanti (R) on Key', 'leftanti = left rows with no match. Different names: on $left.A == $right.B'],
+  ['Variables', 'let n = 10; T | where X < n', 'let ends with a semicolon.'],
+  ['Arrays', 'mv-expand Tag = Tags', 'One row per element. Then group by tostring(Tag).'],
+  ['Charts', '... | summarize n = count() by bin(Time, 1d) | render timechart', 'render goes last.']
+];
+function refView(){
+  return '' +
+  '<section class="panel flag"><h3>Device query in Intune</h3><p style="margin-top:6px">Device query runs KQL against a single device from its page in the admin center. Querying many devices at once needs the Intune Advanced Analytics add-on. Intune supports a subset of KQL, so a query that works in Log Analytics may not run in device query. The pattern is always a table, then pipes: T | where ... | project ...</p></section>' +
+  '<h2 class="sec">Operators and gotchas</h2><section class="panel scroll"><table class="tbl"><thead><tr><th>Task</th><th>Pattern</th><th>Watch out</th></tr></thead><tbody>' +
+  REF.map(r => '<tr><td>' + esc(r[0]) + '</td><td class="m" style="white-space:normal;min-width:220px">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>').join('') + '</tbody></table></section>' +
+  '<h2 class="sec">Official resources</h2><section class="panel"><ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">' +
+  [['KQL quick reference','https://learn.microsoft.com/kusto/query/kql-quick-reference'],['Intune device query','https://learn.microsoft.com/intune/advanced-analytics/device-query'],['Intune log tables for Azure Monitor','https://learn.microsoft.com/intune/device-management/monitoring/review-logs-using-azure-monitor'],['Advanced hunting schema (Defender)','https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables']].map(r => '<li><a href="' + r[1] + '" target="_blank" rel="noopener">' + esc(r[0]) + '</a></li>').join('') + '</ul><p class="note" style="margin-top:10px">Links are unverified. Search the title on Learn if one fails.</p></section>';
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  const v = $('#view');
+  if (tab === 'reference') v.innerHTML = refView();
+  else if (tab === 'progress') v.innerHTML = progressView();
+  else v.innerHTML = view === 'q' && S ? qView() : view === 'result' && last ? resultView() : homeView();
+}
+function route(){
+  const h = (location.hash || '').replace('#', '');
+  tab = ['practice','reference','progress'].includes(h) ? h : 'practice';
+  if (tab === 'practice' && !S && view === 'q') view = 'home';
+  render();
+}
+window.addEventListener('hashchange', route);
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) location.hash = b.dataset.tab; });
+let resetArmed = false;
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'start') start(b.dataset.mode);
+  else if (a === 'startSel') start(b.dataset.mode, {v:$('#' + b.dataset.sel).value});
+  else if (a === 'pick'){ if (S.checked) return; S.picked = +b.dataset.i; render(); }
+  else if (a === 'submit') submit();
+  else if (a === 'next') next();
+  else if (a === 'end') finish();
+  else if (a === 'home'){ view = 'home'; render(); }
+  else if (a === 'reset'){
+    const m = $('#resetmsg');
+    if (!resetArmed){ resetArmed = true; m.textContent = 'Select Reset again to erase everything.'; return; }
+    store = {q:{}, attempts:[]}; save(); resetArmed = false; render();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (tab !== 'practice' || view !== 'q' || !S) return;
+  if (e.target.matches('select,textarea,input')) return;
+  const it = S.items[S.i], k = e.key.toLowerCase();
+  const idx = 'abcd'.indexOf(k) >= 0 ? 'abcd'.indexOf(k) : '1234'.indexOf(k);
+  if (k.length === 1 && idx >= 0 && idx < it.opts.length && !S.checked){ e.preventDefault(); S.picked = idx; render(); }
+  else if (k === 'enter'){ if (e.target.closest('button')) return; e.preventDefault(); if (S.checked) next(); else submit(); }
+});
+route();
+</script>
