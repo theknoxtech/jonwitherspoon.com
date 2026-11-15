@@ -1,0 +1,242 @@
+{
+    "profile": {
+        "name": "Jonathan Witherspoon",
+        "roleLine": "Systems Administrator · Infrastructure Engineer · Mentor",
+        "intro": "I build and run infrastructure, and I automate the repetitive parts of it. I am the person who gets the call when things break and the one who makes sure they break less often.",
+        "location": "Knoxville, TN",
+        "github": "https://github.com/theknoxtech",
+        "linkedin": "https://www.linkedin.com/in/witherspoon84/",
+        "avatar": "/avatar.jpg",
+        "aboutDraftNote": "[DRAFT: Jon to review]",
+        "about": [
+            "I grew up dying of dysentery and guessing how to play Minesweeper, and I learned to install Windows 95 before I left elementary school.",
+            "Since then I have been boots on the ground implementing infrastructure, the person who gets the call at midnight, and the person behind the scenes streamlining workflows. Learning PowerShell is when IT became fun for me, because it showed me what solving problems through automation looks like.",
+            "I am not chasing a title. I want to build things that matter, keep learning how technologies fit together, and do work where owning the implementation is part of the job. I also like helping people understand the tools they use."
+        ]
+    },
+    "experience": [
+        {
+            "company": "Critical Network Solutions",
+            "title": "[TO SUPPLY: job title]",
+            "start": "[TO SUPPLY: start month, YYYY-MM]",
+            "end": "present",
+            "location": "[TO SUPPLY: location or Remote]",
+            "current": true,
+            "bullets": [
+                "[TO SUPPLY: achievement bullet 1]",
+                "[TO SUPPLY: achievement bullet 2]",
+                "[TO SUPPLY: achievement bullet 3]"
+            ],
+            "technologies": ["[TO SUPPLY: technologies]"]
+        },
+        {
+            "company": "Enable Resource Group",
+            "title": "Support Engineer",
+            "start": "2022-08",
+            "end": "2025-08",
+            "location": "Knoxville, TN",
+            "current": false,
+            "bullets": [
+                "Senior escalation point on a 300+ ticket/week multi-market service desk covering 100+ clients and 10,000+ managed endpoints. Maintained 80–90% billable utilization across the full three-year tenure, personally resolving ~25 tickets daily with a <10% reopen rate.",
+                "Engineered enterprise BitLocker automation for Dell devices and automated M365 tenant onboarding via Azure Function App and PowerShell, reducing configuration errors by 75% and eliminating manual technician steps across the endpoint fleet.",
+                "Developed ConnectWise Automate scripts for Microsoft Teams installation and removal on macOS and Windows, reducing per-incident handling time across a 20-person engineering team.",
+                "Built the team's Hudu knowledge base from scratch (40+ articles covering common and complex issues, internal processes, and escalation guides) and mentored 5+ junior engineers, reducing escalation volume by 25%."
+            ],
+            "technologies": ["PowerShell", "Azure Functions", "ConnectWise Automate", "Microsoft 365", "Entra ID", "Intune", "Hudu", "Huntress", "ThreatLocker"]
+        },
+        {
+            "company": "Southeastern Computer Associates",
+            "title": "Solutions Engineer",
+            "start": "2019-06",
+            "end": "2022-08",
+            "location": "Remote",
+            "current": false,
+            "bullets": [
+                "Delivered tier-3 engineering support across 80+ clients in veterinary, law enforcement, medical, and education sectors. Designed and implemented security and deployment processes adopted organization-wide.",
+                "Pioneered ChromeOS patch management for Georgia Cyber Academy's 5,000+ device fleet using a staggered test-group rollout methodology, ensuring zero-downtime updates and establishing a repeatable deployment process adopted across the client base.",
+                "Designed and implemented a ChromeOS extension vetting process (security review, isolated behavioral testing, staged deployment) applied across 80+ clients.",
+                "Configured Conditional Access policies (MFA enforcement, geo-blocking) and automated new user onboarding using dynamic distribution groups and group-based licensing across multi-tenant Microsoft 365 environments.",
+                "Delivered tier-3 escalation support for Active Directory, DNS, DHCP, and Windows Server, including installation and configuration of server roles (AD DS, DHCP, DNS, ADUC) across client environments."
+            ],
+            "technologies": ["Microsoft 365", "Azure AD", "Conditional Access", "Active Directory", "Windows Server", "Google Workspace", "ChromeOS"]
+        },
+        {
+            "company": "DWK Lifesciences",
+            "title": "IT Technician",
+            "start": "2017-08",
+            "end": "2019-06",
+            "location": "Knoxville, TN",
+            "current": false,
+            "bullets": [
+                "Sole IT technician responsible for endpoint management, infrastructure, and network security across a ~200-device mixed-OS production environment.",
+                "Pioneered WDS server deployment and built a fully unattended Windows 10 migration using answer files, replacing manual USB installs with a boot-to-network, zero-touch process across ~200 endpoints.",
+                "Implemented WSUS for patch management using a staggered test-group rollout, maintaining update compliance across mixed Windows, Linux, iOS, and Android devices.",
+                "Deployed FreeRADIUS on Ubuntu Server to enforce wireless network authentication across the entire production facility; managed full user lifecycle including device provisioning and vendor coordination."
+            ],
+            "technologies": ["WDS", "WSUS", "FreeRADIUS", "Ubuntu Server", "Windows 10"]
+        },
+        {
+            "company": "K12",
+            "title": "Regional IT Administrator",
+            "start": "2016-06",
+            "end": "2017-08",
+            "location": "Knoxville, TN",
+            "current": false,
+            "bullets": [
+                "Sole on-site IT for a campus of ~300 users and 300 workstations, maintaining all classroom, administrative, and testing infrastructure independently, with Meraki network access for emergency response."
+            ],
+            "technologies": ["Meraki", "Windows"]
+        }
+    ],
+    "projects": [
+        {
+            "title": "Winnow",
+            "description": "Single-file Windows Event Log triage tool for remote support, built for ScreenConnect Backstage.",
+            "tags": ["C#", "Windows Event Log", "Remote Support"],
+            "status": "active",
+            "date": "2026-09-04",
+            "url": "https://github.com/theknoxtech/winnow/releases/latest",
+            "linkLabel": "Latest release",
+            "featured": true,
+            "order": 1
+        },
+        {
+            "title": "Dell BitLocker & TPM Activation Automation",
+            "description": "Zero-touch PowerShell framework to programmatically provision TPM and enforce BitLocker encryption on Dell enterprise hardware.",
+            "tags": ["PowerShell", "WMI", "ConnectWise Automate", "Dell BIOS Provider"],
+            "status": "active",
+            "date": "2026-01-01",
+            "url": "https://github.com/theknoxtech/Dell-TPM-and-BitLocker-Activation",
+            "linkLabel": "Repository",
+            "featured": true,
+            "order": 1
+        },
+        {
+            "title": "OneDrive Shared Shortcut Audit Tool",
+            "description": "Custom PowerShell utility to identify \"Add Shortcut to OneDrive\" folders that standard file-system queries fail to distinguish from physical directories.",
+            "tags": ["PowerShell", "Windows Shell API", "OneDrive"],
+            "status": "active",
+            "date": "2026-01-01",
+            "url": "https://github.com/theknoxtech",
+            "linkLabel": "GitHub profile",
+            "featured": true,
+            "order": 2
+        },
+        {
+            "title": "Budgetry",
+            "description": "Self-hosted personal finance application with Plaid API integration, OAuth 2.0 authentication, and an AI layer for categorization and insight generation.",
+            "tags": ["Python", "Plaid API", "OAuth 2.0", "Docker", "AI"],
+            "status": "active",
+            "date": "2026-01-01",
+            "url": "https://github.com/theknoxtech",
+            "linkLabel": "GitHub profile",
+            "featured": true,
+            "order": 3
+        },
+        {
+            "title": "Microsoft Teams Install & Uninstall Automation",
+            "description": "PowerShell and Bash scripts to standardize Microsoft Teams deployment and removal across Windows and macOS endpoints.",
+            "tags": ["PowerShell", "Bash", "ConnectWise Automate", "macOS", "Windows"],
+            "status": "active",
+            "date": "2026-01-01",
+            "url": "https://github.com/theknoxtech",
+            "linkLabel": "GitHub profile",
+            "featured": true,
+            "order": 4
+        }
+    ],
+    "certifications": [
+        {
+            "issuer": "Microsoft",
+            "name": "Microsoft Certified: Azure Fundamentals",
+            "earned": "2022-06-25",
+            "verifyLabel": "Verify on Microsoft Learn",
+            "verifyUrl": "https://learn.microsoft.com/en-us/users/jonwitherspoon-9260/credentials?tab=credentials-tab"
+        },
+        {
+            "issuer": "Microsoft",
+            "name": "Microsoft Certified Professional",
+            "earned": "2017-06-27",
+            "verifyLabel": "Verify on Microsoft Learn",
+            "verifyUrl": "https://learn.microsoft.com/en-us/users/jonwitherspoon-9260/credentials?tab=credentials-tab"
+        },
+        {
+            "issuer": "Google Career Certificates",
+            "name": "Google AI Professional Certificate",
+            "earned": "2026-02-25",
+            "verifyLabel": "Verify on Credly",
+            "verifyUrl": "https://www.credly.com/users/jonathan-witherspoon/badges"
+        },
+        {
+            "issuer": "CompTIA",
+            "name": "CompTIA Project+",
+            "earned": "2018-10-02",
+            "verifyLabel": "Verify on CompTIA",
+            "verifyUrl": "http://verify.CompTIA.org"
+        },
+        {
+            "issuer": "CompTIA",
+            "name": "CompTIA Cloud Essentials+",
+            "earned": "2018-06-19",
+            "verifyLabel": "Verify on CompTIA",
+            "verifyUrl": "http://verify.CompTIA.org"
+        },
+        {
+            "issuer": "Linux Professional Institute",
+            "name": "LPI Linux Essentials",
+            "earned": null,
+            "verifyLabel": null,
+            "verifyUrl": null
+        }
+    ],
+    "pastExamsNote": "Exams passed where the associated certification has since expired or the program has been retired. The knowledge and hands-on experience behind each one remains active in daily practice.",
+    "pastExams": [
+        {
+            "name": "Microsoft Identity and Access Administrator (SC-300)",
+            "issuer": "Microsoft",
+            "passed": "2022-06-04",
+            "format": "Online, proctored by PVUE",
+            "description": "Covered the full Microsoft Entra ID identity platform: Conditional Access policy design, identity governance, PIM, entitlement management, and multi-tenant identity federation. Directly applied in production work configuring MFA enforcement, geo-blocking, and automated user lifecycle management across M365 environments."
+        },
+        {
+            "name": "TS: Windows 7, Configuring (70-680)",
+            "issuer": "Microsoft",
+            "passed": "2017-06-27",
+            "format": "In person, proctored by PVUE",
+            "description": "The exam that earned the Microsoft Certified Professional designation. Covered Windows 7 deployment, configuration, and management, including answer files, WDS, disk management, networking, security, and remote access. Directly preceded hands-on WDS and endpoint deployment work at DWK Lifesciences."
+        }
+    ],
+    "skills": [
+        { "group": "Cloud & Identity", "items": ["Microsoft 365", "Active Directory", "Entra ID", "Azure AD", "Azure", "Google Workspace", "Exchange", "Teams", "SharePoint", "Autopilot", "Intune", "Mosyle"] },
+        { "group": "Automation & AI", "items": ["PowerShell", "Python", "Bash", "Azure Functions", "ConnectWise Automate", "Power Automate", "Claude / Anthropic API", "AI-assisted Development (iOS Only)"] },
+        { "group": "Systems & Infrastructure", "items": ["Windows Server", "Hyper-V", "VMware", "SonicWall", "Ubiquiti", "Cloudflare", "Ruckus", "Datto", "LAN / WAN", "VPN", "DNS", "DHCP", "WSUS", "WDS"] },
+        { "group": "Security", "items": ["Conditional Access", "MFA", "Endpoint Hardening", "EDR / IDTR", "Huntress", "ThreatLocker", "FreeRADIUS", "Encryption", "NTFS Permissions"] },
+        { "group": "Platforms & Tools", "items": ["ConnectWise", "Autotask", "ServiceNow", "IT Glue", "Hudu", "Auvik", "VS Code", "GitHub", "SysInternals"] }
+    ],
+    "education": {
+        "degree": "B.S., Information Technology",
+        "school": "Western Governors University",
+        "detail": "Competency-based, fully online",
+        "summary": "A self-paced bachelor's program focused on practical IT skills and industry-aligned certifications. Coursework spans networking, cybersecurity, cloud computing, systems administration, and IT project management, with each competency validated through proctored examinations and performance assessments.",
+        "areas": ["Cloud Computing", "Cybersecurity", "Networking", "Systems Administration", "IT Project Management", "Database Management", "Software Development Concepts"]
+    },
+    "labs": [
+        {
+            "code": "MD-102",
+            "name": "Endpoint Administrator practice app",
+            "status": "live",
+            "updated": "2026-11-15",
+            "path": "/exam_apps/md-102/",
+            "companions": [
+                { "name": "KQL Lab", "path": "/exam_apps/md-102/kql-lab.html" }
+            ]
+        },
+        {
+            "code": "SC-300",
+            "name": "Identity and Access Administrator practice app",
+            "status": "planned",
+            "updated": null,
+            "companions": []
+        }
+    ]
+}

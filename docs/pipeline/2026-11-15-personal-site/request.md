@@ -6,4 +6,5 @@
 
 - Project Context: accepted as proposed, with the framework choice stated: "I do like Astro for websites or python and flask. I am not a fan of straight html and css."
 - Repo setup (git init, main and dev): "yes".
+- Safety stop (local npm install of Astro, plus downloading the GitHub avatar and IBM Plex fonts): "Yes to both questions". md-102 edits made by Jon after the first commit: "no add the changes to md-102. That was me." (committed as their own commit).
 - Reading the old site at ~/Personal Src/siliconscripted.com: "yes".

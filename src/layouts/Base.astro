@@ -1,0 +1,55 @@
+---
+import '../styles/site.css';
+import site from '../data/site.json';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  section?: 'work' | 'projects' | 'labs';
+}
+
+const { title, description, path, section } = Astro.props;
+const canonicalUrl = `https://jonwitherspoon.com${path}`;
+const builtOn = new Date().toISOString().slice(0, 10);
+const commit = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'local';
+const navLinks = [
+  { label: 'Work', href: '/work/', key: 'work' },
+  { label: 'Projects', href: '/projects/', key: 'projects' },
+  { label: 'Labs', href: '/labs/', key: 'labs' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="preload" href="/fonts/IBMPlexSans-Regular.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <nav class="nav" aria-label="Main">
+        <a class="nav-name" href="/">{site.profile.name}</a>
+        <ul class="nav-list">
+          {navLinks.map((link) => (
+            <li><a href={link.href} aria-current={section === link.key ? 'page' : undefined}>{link.label}</a></li>
+          ))}
+          <li class="nav-external"><a href={site.profile.github} rel="noopener noreferrer">GitHub</a></li>
+          <li class="nav-external"><a href={site.profile.linkedin} rel="noopener noreferrer">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p class="mono">built {builtOn} · {commit}</p>
+      <p><a href="https://siliconscripted.com" rel="noopener noreferrer">Previous site: siliconscripted.com</a></p>
+    </footer>
+  </body>
+</html>

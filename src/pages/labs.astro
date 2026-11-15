@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+
+const statusLabel: Record<string, string> = { live: 'live', 'in-progress': 'in progress', planned: 'planned' };
+---
+
+<Base
+  title="Labs - Jonathan Witherspoon"
+  description="Practice apps I build while studying for Microsoft certification exams, starting with MD-102 and a KQL lab."
+  path="/labs/"
+  section="labs"
+>
+  <header class="page-header">
+    <h1 id="page-title">Labs</h1>
+    <p class="intro">Practice apps I build while studying for certification exams. Each one runs in your browser and keeps its progress on your device.</p>
+  </header>
+  <ul class="lab-list">
+    {site.labs.map((lab) => (
+      <li class="lab">
+        <p class="lab-code mono">{lab.code}</p>
+        <div>
+          <h2>{lab.name}</h2>
+          <p class="meta mono">
+            {statusLabel[lab.status] ?? lab.status}{lab.updated ? ` · updated ${lab.updated}` : ''}
+          </p>
+          {lab.path && <p><a href={lab.path}>Open {lab.code}</a></p>}
+          {lab.companions.length > 0 && (
+            <ul class="companions">
+              {lab.companions.map((companion) => (
+                <li><a href={companion.path}>{companion.name}</a></li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+</Base>
