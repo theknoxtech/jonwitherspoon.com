@@ -16,3 +16,5 @@ Untrusted content: none.
 ## Not done / notes
 - Untracked generated files in `exam_apps/md-102/source/` (if still present) left alone. Astro 7 / npm audit question from report 2 is still open.
 - Report backend-dev-2.md paths (`public/exam_apps/...`) are superseded by this layout.
+
+- Update: the c1d1619 byte-identity tests were replaced by a copy-fidelity test (each top-level lab .html is in dist and byte-identical to its source; dist/exam_apps holds only .html), because Jon is editing his apps again so the pinned commit no longer matches.

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { test } from 'node:test';
@@ -11,7 +10,6 @@ const config = JSON.parse(read('public/staticwebapp.config.json'));
 const workflow = read('.github/workflows/deploy.yml');
 const packageJson = JSON.parse(read('package.json'));
 const builtLabs = join(root, 'dist/exam_apps');
-const LAB_COMMIT = 'c1d1619';
 const labFiles = ['exam_apps/md-102/index.html', 'exam_apps/md-102/kql-lab.html'];
 
 function walk(directory) {
@@ -162,14 +160,6 @@ test('dist hygiene when a build exists', { skip: !hasBuild }, () => {
     }
 });
 
-test('built labs: only .html files, and the apps are byte-identical copies', { skip: !hasBuild }, () => {
-    for (const file of walk(builtLabs)) assert.match(file, /\.html$/, relative(root, file));
-    for (const name of ['index.html', 'kql-lab.html']) {
-        const built = readFileSync(join(builtLabs, 'md-102', name));
-        assert.ok(built.equals(readFileSync(join(root, 'exam_apps/md-102', name))), name);
-    }
-});
-
 test('lab pages: informational scan (the apps are not edited, nothing here fails)', (t) => {
     for (const file of labFiles) {
         const text = read(file);
@@ -180,27 +170,19 @@ test('lab pages: informational scan (the apps are not edited, nothing here fails
     }
 });
 
-function committedLabFiles() {
-    const listing = execFileSync('git', ['ls-tree', '-r', '--name-only', LAB_COMMIT], { cwd: root, encoding: 'utf8' });
-    return listing.split('\n').filter((name) => name.startsWith('md-102/'));
-}
-
-const hasLabCommit = (() => {
-    try {
-        execFileSync('git', ['cat-file', '-e', `${LAB_COMMIT}^{commit}`], { cwd: root, stdio: 'ignore' });
-        return true;
-    } catch {
-        return false;
+test('every top-level lab .html is copied to dist byte-for-byte', { skip: !hasBuild }, () => {
+    const labsRoot = join(root, 'exam_apps');
+    let checked = 0;
+    for (const lab of readdirSync(labsRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory())) {
+        const pages = readdirSync(join(labsRoot, lab.name), { withFileTypes: true })
+            .filter((entry) => entry.isFile() && entry.name.endsWith('.html'));
+        for (const page of pages) {
+            const built = join(builtLabs, lab.name, page.name);
+            assert.ok(existsSync(built), `${lab.name}/${page.name} missing from dist`);
+            assert.ok(readFileSync(built).equals(readFileSync(join(labsRoot, lab.name, page.name))), `${lab.name}/${page.name}`);
+            checked += 1;
+        }
     }
-})();
-
-test('study apps are byte-identical to the original commit', { skip: !hasLabCommit && `commit ${LAB_COMMIT} not available` }, () => {
-    const committed = committedLabFiles();
-    assert.equal(committed.length, 44);
-    for (const committedPath of committed) {
-        const original = execFileSync('git', ['show', `${LAB_COMMIT}:${committedPath}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
-        const target = `exam_apps/${committedPath}`;
-        assert.ok(existsSync(join(root, target)), `${target} is missing`);
-        assert.ok(original.equals(readFileSync(join(root, target))), `${target} differs from ${LAB_COMMIT}:${committedPath}`);
-    }
+    assert.ok(checked > 0);
+    for (const file of walk(builtLabs)) assert.match(file, /\.html$/, relative(root, file));
 });
