@@ -298,7 +298,7 @@ const LABS = [
     'An RBAC assignment needs a role, members (admin groups), scope groups and scope tags.',
     'Built-in roles: Help Desk Operator, Policy and Profile Manager, Application Manager, Read Only Operator, Endpoint Security Manager and others.',
     'Wipe vs retire vs delete vs fresh start vs Autopilot Reset, and which removes only company data.']},
-{ id:10, title:'App protection and app configuration policies', d:[4], time:'75 min', uses:'Android emulator or a real phone, lab.user1, GRP-Users-Pilot', topic:'Lab 10: App protection and app configuration',
+{ id:10, title:'App protection and app configuration policies', d:[4], time:'105 min', uses:'Android emulator or a real phone, lab.user1, GRP-Users-Pilot', topic:'Lab 10: App protection and app configuration',
   parts:[
     {t:'Part A: Set up the device', s:[
       'Android Studio emulator with a Google Play image (needs Windows Hypervisor Platform), sign in to the Play Store with a throwaway account.',
@@ -313,7 +313,21 @@ const LABS = [
       'Managed apps works through the app protection channel with no enrollment. Managed devices type needs an enrolled device.']},
     {t:'Part D: Selective wipe and Conditional Access', s:[
       'Apps > App selective wipe > Create wipe request for lab.user1 and the device: the company account and data are removed.',
-      'Create LAB-CA-RequireAPP: GRP-Users-Pilot, Office 365, Device platforms Android and iOS, grant Require app protection policy. Start in Report-only, then On, and test a browser sign-in on the phone.']}
+      'Create LAB-CA-RequireAPP: GRP-Users-Pilot, Office 365, Device platforms Android and iOS, grant Require app protection policy. Start in Report-only, then On, and test a browser sign-in on the phone.']},
+    {t:'Part E: Quiet time (iPhone or emulator)', s:[
+      'Install Outlook or Teams on the phone and sign in as lab.user1.',
+      'Apps > Quiet Time > Policies > Create policy > Days of the week: name LAB-Quiet. Mute notifications all day for today, or use Certain Hours covering the next 30 minutes. Allow user to change settings: No.',
+      'Assign to GRP-Users-Pilot. Learn says edits take up to 24 hours to show, so set the hours before you test. Send yourself a test email and confirm the notification is muted.',
+      'Create a second policy of type Date Range and look at the Start and End fields. Do not assign it. Note that the Non-working time type needs the Working Time API, so skip it.']},
+    {t:'Part F: Policies for Microsoft 365 (look and build)', s:[
+      'Apps > Policies for Microsoft 365 > Create (this is the Cloud Policy service, also at config.office.com). Name LAB-M365-Policy.',
+      'Choose the scope: specific groups, add GRP-Users-Pilot. Note the other scope choices: all users, or anonymous Office for the web users.',
+      'On Configure settings, filter to recommended security baseline policies and pick one Word or Excel setting. Create it and check the Priority on the Policy configurations pane.',
+      'Sign in to Word on a lab PC as lab.user1 later and see the setting roam. The policy applies to users, even on a device that is not domain joined or managed.']},
+    {t:'Part G: iOS app provisioning profiles (look only)', s:[
+      'Apps > iOS app provisioning profiles > Create profile. Read the Basics page: it needs a .mobileprovision file from the Apple Developer website, and the expiration date comes from that file.',
+      'You need an Apple developer account and an enterprise-signed LOB app to finish this for real, so cancel unless you have both.',
+      'Look at the Assignments page: a profile can go to devices whether or not Intune manages them.']}
   ],
   brk:[
     'Remove the Company Portal from the device and open Outlook: the policy cannot be evaluated.',
@@ -325,7 +339,10 @@ const LABS = [
     'Settings areas: data protection, access requirements, conditional launch. Know which blocks copy and paste and which wipes after offline days.',
     'Managed apps vs managed devices app configuration policies.',
     'Selective wipe vs device wipe, and the Conditional Access grant Require app protection policy.',
-    'The three data protection framework levels: basic, enhanced and high.']},
+    'The three data protection framework levels: basic, enhanced and high.',
+    'Quiet time is its own policy area (Apps > Quiet Time > Policies), not an app configuration setting. It mutes Outlook and Teams on iOS/iPadOS and Android.',
+    'The provisioning profile expires after about a year; the signing certificate lasts about three. Intune assigns a new profile while the certificate is still valid.',
+    'Policies for Microsoft 365 apps come from Cloud Policy and apply to users, even on unmanaged devices.']},
 { id:11, title:'Hybrid join with Active Directory, Entra Connect and Autopilot', d:[1], time:'3 hours', uses:'DC01 (Server 2022), W11-HYB, W11-AP2, lab.user1. Do after Labs 1 to 5.', topic:'Lab 11: Hybrid join',
   parts:[
     {t:'Part A: Network and tenant domain', s:[
@@ -405,5 +422,62 @@ const LABS = [
     'Available assignments target user groups. For iOS store apps, Required also creates Available.',
     'Settings catalog > Declarative Device Management > Software Update is how iOS and macOS updates are managed.',
     'Some device restriction settings apply to all enrollment types and others only to supervised or device-enrolled devices. Read the Settings apply to line.',
-    'App protection with selective wipe also runs when you retire an enrolled device, for apps that have an app protection policy.']}
+    'App protection with selective wipe also runs when you retire an enrolled device, for apps that have an app protection policy.']},
+{ id:13, title:'Endpoint security: Defender for Endpoint, firewall, EPM, App Control, exploit protection, FileVault and Hello', d:[3], time:'120 min', uses:'W11-ENTRA, GRP-Dev-Test, an optional Mac (Part F), Defender for Endpoint P1+ and EPM add-on trials (Parts A and C)', topic:'Lab 13: Endpoint security',
+  parts:[
+    {t:'Part A: Connect Defender for Endpoint and onboard with an EDR policy', s:[
+      'Defender portal > Settings > Endpoints > Advanced features: Microsoft Intune connection On, Save preferences. In Intune go to Endpoint security > Microsoft Defender for Endpoint and wait for Connection status Enabled (up to 15 minutes).',
+      'Under Compliance policy evaluation turn on Connect Windows devices to Defender for Endpoint, then Save.',
+      'Endpoint security > Endpoint detection and response > Summary > Create policy: Windows, Endpoint detection and response. Package type Auto from connector, Sample sharing All. Assign to GRP-Dev-Test.',
+      'Wait 15 to 30 minutes. Check the policy Device status, the EDR Onboarding Status tab and Endpoints > Device inventory in the Defender portal.',
+      'Create a Windows compliance policy with Microsoft Defender for Endpoint > Require the device to be at or under the machine risk score = Medium. Read-only step: a Conditional Access policy would then block noncompliant devices.',
+      'No connection or a multi-tenant setup? Download the onboarding package under Settings > Endpoints > Device management > Onboarding and use package type Onboard with the blob.']},
+    {t:'Part B: Firewall policy beyond on', s:[
+      'Endpoint security > Firewall > Create policy > Windows > Windows Firewall: set the Domain, Private and Public profiles on, inbound default block and outbound default allow.',
+      'Create a second policy: Windows > Windows Firewall rules. Add one inbound allow rule for TCP port 8080 for the Private profile and one outbound block rule for a test app.',
+      'Assign both to GRP-Dev-Test. On the device run Get-NetFirewallRule -PolicyStore ActiveStore | Where-Object DisplayName -like "*8080*" and open wf.msc to see the rules.',
+      'Add a rules profile in a second policy with a different rule and confirm both profiles are delivered (rules from separate rules profiles merge).']},
+    {t:'Part C: Endpoint Privilege Management', s:[
+      'Endpoint security > Endpoint Privilege Management > Policies > Create policy > Windows > Windows elevation settings policy: EPM Enabled, Default elevation response Require user confirmation, Validation Business justification. Assign to GRP-Dev-Test.',
+      'Create a Windows elevation rules policy for a signed tool (for example the installer for a text editor): type User confirmed, require the file path, child process behavior Require rule to elevate. Assign it to the same group.',
+      'Signed in as a standard user, right-click the file, choose Run with elevated access and confirm. Then try an unrelated file to see the default response.',
+      'Open Reports > Elevation report and create a rule from an entry with Create a rule with these file details. Change one rule to Deny and test again.']},
+    {t:'Part D: App Control for Business with managed installer', s:[
+      'Endpoint security > App Control for Business > Create policy > Windows. Use Built-in controls: trust Windows components and Store apps, and trust apps installed by a managed installer (the Intune Management Extension). Set the policy to Audit only.',
+      'Assign to a pilot group, then deploy a Win32 app through Intune. Apps installed after the setting are tagged as trusted.',
+      'Run a program the device did not receive from Intune. Review the audit events (Event Viewer > CodeIntegrity, or Advanced hunting if the device is onboarded).',
+      'Change the policy to Enforce and test the same program again: it is blocked.']},
+    {t:'Part E: Exploit protection and attack surface reduction', s:[
+      'On a reference PC open Windows Security > App & browser control > Exploit protection settings. Turn on one app-level mitigation for a test app and export with Export settings, or run Get-ProcessMitigation -RegistryConfigFilePath C:\\xp.xml.',
+      'Endpoint security > Attack surface reduction > Create policy > Windows > Exploit protection: upload the XML and assign to GRP-Dev-Test. Check Application events 1000 and 1002 for crashes and hangs.',
+      'Create an Attack surface reduction rules policy with two ASR rules in Audit and one standard protection rule in Block. Assign to a device group (user groups are not supported for Defender for Endpoint management).',
+      'Move one audit rule to Warn after reviewing the events.']},
+    {t:'Part F: macOS FileVault (needs a Mac, otherwise read the settings only)', s:[
+      'Endpoint security > Disk encryption > Create policy > macOS > FileVault: Enable FileVault Yes, personal key, rotation 6 months, escrow message that points to the Company Portal website, bypass 3 times.',
+      'Assign to a user or device group with the Mac. After the sign out and sign in, FileVault starts and the key is escrowed to Intune.',
+      'Devices > the Mac > Recovery keys > Show Recovery Key (corporate devices only, and it creates an audit entry). Try the Rotate FileVault key action.',
+      'No Mac available? Open the policy settings and note the bypass, deferral and rotation options.']},
+    {t:'Part G: Windows Hello for Business', s:[
+      'Devices > Windows > Windows enrollment > Windows Hello for Business: note the tenant-wide setting (applies only to devices enrolling after the change).',
+      'Endpoint security > Account protection > Create policy > Windows > Account protection: Windows Hello for Business Enabled, Use a Trusted Platform Module Enable, minimum PIN length 6, PIN history 5, biometrics allowed. Assign to GRP-Dev-Test.',
+      'Sign in to the VM, finish the MFA step and create the PIN. Check dsregcmd /status and the User Device Registration log.',
+      'Optional: set Turn on Credential Guard to Enable with UEFI lock only on a test device.']}
+  ],
+  brk:[
+    'Remove the Intune connection toggle in the Defender portal and watch the EDR policy offer only the blob package types.',
+    'Create a second EDR or antivirus policy with a different value for the same setting and check the policy conflict status.',
+    'Create a rules profile with 151 rules or set a port range with the wrong protocol and read the error.',
+    'Remove the elevation settings policy and test whether the elevation rule still works (it does not without EPM enabled).',
+    'Install an app before setting the managed installer and see that it is not tagged.',
+    'Put the same Windows Hello setting in Group Policy and in Intune and see that Group Policy wins.'],
+  exam:[
+    'The Intune connection is enabled in the Defender portal and the status shows in Endpoint security. The compliance toggle for Windows is a separate setting.',
+    'Auto from connector vs Onboard blob in an EDR policy, and that EDR does not configure ASR, firewall or antivirus.',
+    'Machine risk score values (Clear, Low, Medium, High) and that Conditional Access does the blocking.',
+    'Firewall policy: the Windows Firewall profile vs the Windows Firewall rules profile, 150 rules, merge behavior, and which profiles conflict.',
+    'EPM: elevation settings vs elevation rules, default response Not configured = deny, support approved, deny precedence, hash for automatic rules.',
+    'App Control for Business: Audit vs Enforce, supplemental policies, managed installer only tags apps deployed afterwards.',
+    'Exploit protection uses an exported XML and should be tested in audit mode. ASR needs Defender Antivirus as primary and device groups.',
+    'FileVault: Disk encryption node, rotation 1 to 12 months, bypass 1 to 10, keys visible to admins on corporate devices only.',
+    'Windows Hello for Business: tenant-wide policy at enrollment vs Account protection policy later, TPM setting, Group Policy wins.']}
 ];
