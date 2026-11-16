@@ -73,7 +73,7 @@ Run these in a terminal, once for production (your domain) and once for a previe
 
 ```
 curl -sI https://HOST/
-curl -sI https://HOST/work/
+curl -sI https://HOST/portfolio/
 curl -sI https://HOST/exam_apps/md-102/
 curl -sI https://HOST/exam_apps/md-102
 curl -sI https://HOST/exam_apps/md-102/kql-lab.html
@@ -83,7 +83,7 @@ curl -sI http://www.jonwitherspoon.com/
 ```
 
 - [ ] Every response has: `strict-transport-security`, `x-content-type-options: nosniff`, `referrer-policy`, `permissions-policy`, `x-frame-options: DENY`, `content-security-policy`.
-- [ ] The CSP on `/` and `/work/` has **no** `unsafe-inline`.
+- [ ] The CSP on `/` and `/portfolio/` has **no** `unsafe-inline`.
 - [ ] The CSP on the `/exam_apps/...` addresses (with and without the final slash) is the lab one: it contains `script-src 'self' 'unsafe-inline'` and `connect-src 'none'`. Because your apps still load Google Fonts, this CSP also lists `https://fonts.googleapis.com` (in `style-src`) and `https://fonts.gstatic.com` (in `font-src`). The main pages never do.
 - [ ] `/nope` returns status 404 and still has the headers.
 - [ ] The `http://` addresses redirect to `https://`.

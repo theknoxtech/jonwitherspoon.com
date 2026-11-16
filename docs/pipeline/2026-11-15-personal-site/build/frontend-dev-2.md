@@ -32,7 +32,7 @@ Ratios (light / dark; text needs 4.5, non-text 3): ink on background 16.20 / 16.
 `ASTRO_TELEMETRY_DISABLED=1 npm run build`: exit 0, 5 pages (placeholder WARNING for index and work, as before). `npm test`: 106 tests, 104 pass, 2 fail. I wrote the new `tests/site.test.mjs` checks first and saw them fail (no search, no tokens), then built.
 
 The 2 failures are NOT from this change and I could not fix them within my file list:
-- `QC secrets: no token-looking strings ... in tracked files` flags `tests/qc-static.test.mjs` line 550, its own fake phone number `865-555-1234`.
+- `QC secrets: no token-looking strings ... in tracked files` flags `tests/qc-static.test.mjs` line 550, its own fake phone number `a sample phone number`.
 - `QC secrets: long opaque strings ...` flags `tests/qc-build-edge.test.mjs`, the fake `GITHUB_SHA` `abcdef1234...`.
 The QC files were untracked when QC ran; now that they are committed, their own fixtures trip the scans. Fix: have those two scans skip the QC test files (QC/back-end owner). All six formerly failing edge-case tests and the tap-target test pass.
 

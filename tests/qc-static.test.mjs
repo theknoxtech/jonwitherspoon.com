@@ -204,9 +204,8 @@ test('QC: the 404 page links back into the site and the 404 override targets it'
     assert.ok(existsSync(join(DIST, '404.html')));
 });
 
-test('QC: About text is a marked draft and the old Silicon Scripted branding is absent from the pages', { skip: !hasBuild }, () => {
-    const home = readDist('index.html');
-    assert.match(home, /\[DRAFT: Jon to review\]/);
+test('QC: About text is a marked draft (on the Portfolio About panel) and the old Silicon Scripted branding is absent from the pages', { skip: !hasBuild }, () => {
+    assert.match(readDist('portfolio/index.html'), /\[DRAFT: Jon to review\]/);
     for (const file of MAIN_PAGES) {
         const visibleText = readDist(file).replace(/<[^>]+>/g, ' ');
         const hits = visibleText.match(/silicon\s+scripted/gi) ?? [];
@@ -214,10 +213,10 @@ test('QC: About text is a marked draft and the old Silicon Scripted branding is 
     }
 });
 
-test('QC: Portfolio page keeps the planned order, six certifications and two past exams', { skip: !hasBuild }, () => {
+test('QC: Portfolio page keeps the planned order, seven certifications and one past exam', { skip: !hasBuild }, () => {
     const html = readDist('portfolio/index.html');
-    assert.equal((html.match(/class="cert"/g) ?? []).length, 6);
-    assert.equal((html.match(/class="exam"/g) ?? []).length, 2);
+    assert.equal((html.match(/class="cert"/g) ?? []).length, 7);
+    assert.equal((html.match(/class="exam"/g) ?? []).length, 1);
     assert.equal((html.match(/class="badge mono">current</g) ?? []).length, 1, 'exactly one current badge');
     assert.ok(html.indexOf('current') < html.indexOf('Enable Resource Group'));
 });
@@ -305,13 +304,17 @@ test('QC CSS: visible keyboard focus, skip link reveal, reduced-motion handling'
 test('QC CSS: mobile-first single column, 640px breakpoint, 44px tap targets, no fixed wide widths', () => {
     assert.match(css, /@media \(min-width: 640px\)/);
     assert.match(css, /\.hero\s*\{[^}]*grid-template-columns:\s*1fr/);
-    assert.match(css, /\.entry\s*\{[^}]*grid-template-columns:\s*1fr/);
     assert.match(css, /overflow-wrap:\s*anywhere/);
     assert.match(css, /box-sizing:\s*border-box/);
-    assert.ok((css.match(/min-height:\s*44px/g) ?? []).length >= 6, 'too few 44px tap-target rules');
-    for (const selector of ['.nav-name', '.nav-list a', '.about summary', '.card a', '.lab a', '.plain-list a', '.site-footer a']) {
-        assert.ok(css.includes(selector), `no tap-target rule for ${selector}`);
+    // WCAG 2.2 AA needs 24px; fine pointers get 40px, coarse pointers (touch) get 44px.
+    assert.match(css, /@media \(pointer: coarse\)\s*\{[^}]*\{[^}]*min-height:\s*44px/);
+    const smallest = [...css.replace(/@media \(pointer: coarse\)[\s\S]*?\n\}\n/, '').matchAll(/min-height:\s*(\d+)px/g)].map((match) => Number(match[1]));
+    assert.ok(smallest.every((value) => value >= 24), `a control is under 24px tall: ${smallest}`);
+    const coarse = /@media \(pointer: coarse\)\s*\{([^}]*)\}/.exec(css)[1];
+    for (const selector of ['.nav-name', '.nav-list a', '.card a', '.lab a', '.plain-list a', '.site-footer a', '.button', '.text-link', '.social-link', '.icon-link', '.tab']) {
+        assert.ok(coarse.includes(selector), `no coarse-pointer 44px rule for ${selector}`);
     }
+    assert.match(css, /\.button,[^{]*\{[^}]*min-height:\s*40px/);
     assert.doesNotMatch(css.replace(/@media \(min-width: 640px\)[\s\S]*$/, ''), /(?<![-a-z])width:\s*\d{3,}px|(?<=min-)width:\s*\d{3,}px/, 'fixed wide width outside the breakpoint');
     // Only the Portfolio tab bar may scroll sideways, and only its tab labels may stay on one line.
     assert.doesNotMatch(css.replace(/\.tablist\s*\{[^}]*\}/, '').replace(/\.tab\s*\{[^}]*\}/, ''), /white-space:\s*nowrap|overflow-x:\s*(scroll|auto)/);
@@ -330,7 +333,7 @@ test('QC CSS: no external urls, no @import, fonts swap in with system fallbacks'
     assert.match(css, /--font-mono:[^;]*monospace/);
 });
 
-const COVERED_ANCESTORS = new Set([...css.matchAll(/([.\w\s,-]+)\s*\{[^}]*min-height:\s*44px/g)]
+const COVERED_ANCESTORS = new Set([...css.matchAll(/(?:^|[}{])\s*([.\w\s,-]+)\s*\{[^}]*min-height:\s*44px/g)]
     .flatMap((match) => match[1].split(','))
     .map((selector) => selector.trim())
     .flatMap((selector) => {

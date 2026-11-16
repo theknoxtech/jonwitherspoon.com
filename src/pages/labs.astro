@@ -50,7 +50,7 @@ const labs = site.labs.map((lab) => {
           {lab.companions.length > 0 && (
             <ul class="companions">
               {lab.companions.map((companion) => (
-                <li><a class="button button-secondary" href={companion.path}>{companion.name}</a></li>
+                <li><a class="text-link" href={companion.path}>{companion.name}</a></li>
               ))}
             </ul>
           )}

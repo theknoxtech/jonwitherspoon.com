@@ -137,6 +137,7 @@
             "order": 3
         }
     ],
+    "articles": [],
     "certifications": [
         {
             "issuer": "Microsoft",
@@ -144,6 +145,14 @@
             "earned": "2022-06-25",
             "verifyLabel": "Verify on Microsoft Learn",
             "verifyUrl": "https://learn.microsoft.com/en-us/users/jonwitherspoon-9260/credentials?tab=credentials-tab"
+        },
+        {
+            "issuer": "Microsoft",
+            "name": "Microsoft Certified: Identity and Access Administrator Associate",
+            "earned": "2026-07-29",
+            "description": "Covers the Microsoft Entra ID identity platform: Conditional Access policy design, identity governance, PIM, entitlement management, and multi-tenant identity federation. Applied in production work configuring MFA enforcement, geo-blocking, and automated user lifecycle management across M365 environments.",
+            "verifyLabel": "Verify on Microsoft Learn",
+            "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/JonWitherspoon-9260/AFCED976DD341750?sharingId=76B3F23CC8D338C8"
         },
         {
             "issuer": "Microsoft",
@@ -183,13 +192,6 @@
     ],
     "pastExamsNote": "Exams passed where the associated certification has since expired or the program has been retired. The knowledge and hands-on experience behind each one remains active in daily practice.",
     "pastExams": [
-        {
-            "name": "Microsoft Identity and Access Administrator (SC-300)",
-            "issuer": "Microsoft",
-            "passed": "2022-06-04",
-            "format": "Online, proctored by PVUE",
-            "description": "Covered the full Microsoft Entra ID identity platform: Conditional Access policy design, identity governance, PIM, entitlement management, and multi-tenant identity federation. Directly applied in production work configuring MFA enforcement, geo-blocking, and automated user lifecycle management across M365 environments."
-        },
         {
             "name": "TS: Windows 7, Configuring (70-680)",
             "issuer": "Microsoft",

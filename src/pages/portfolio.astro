@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import ProfileCard from '../components/ProfileCard.astro';
 import site from '../data/site.json';
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -50,17 +51,10 @@ const tabs = [
   section="portfolio"
   withTabs
 >
-  <section class="hero" aria-labelledby="page-title">
-    <img class="avatar" src={profile.avatar} width="96" height="96" alt={`Portrait of ${profile.name}`} />
-    <div>
-      <h1 id="page-title">{profile.name}</h1>
-      <p class="role-line mono">{profile.roleLine}</p>
-      <p class="meta">{profile.location}</p>
-      <div class="button-row">
-        {socialLinks.map((link) => <a class="button button-secondary" href={link.href} rel="noopener noreferrer">{link.label}</a>)}
-      </div>
-    </div>
-  </section>
+  <header class="page-header">
+    <h1 id="page-title">Portfolio</h1>
+    <ProfileCard showRole extraLinks={socialLinks.filter((link) => link.label === 'Credly' || link.label === 'Microsoft Learn')} />
+  </header>
 
   <div class="tabs-wrapper">
     <div class="tablist" role="tablist" aria-label="Portfolio sections" data-tablist>
@@ -95,34 +89,32 @@ const tabs = [
     <ol class="entries">
       {site.experience.map((role) => (
         <li class="entry">
+          <h3>
+            {isPlaceholder(role.title) ? <span class="placeholder">{role.title}</span> : role.title}
+            {role.current && <span class="badge mono">current</span>}
+          </h3>
+          <p class="meta">
+            {role.company},{' '}
+            {isPlaceholder(role.location) ? <span class="placeholder">{role.location}</span> : role.location}
+          </p>
           <p class="entry-dates mono">
             {isPlaceholder(role.start) ? <span class="placeholder">{role.start}</span> : formatDate(role.start)}
             to {role.end === 'present' ? 'present' : formatDate(role.end)}
           </p>
-          <div>
-            <h3>
-              {isPlaceholder(role.title) ? <span class="placeholder">{role.title}</span> : role.title}
-              {role.current && <span class="badge mono">current</span>}
-            </h3>
-            <p class="meta">
-              {role.company},{' '}
-              {isPlaceholder(role.location) ? <span class="placeholder">{role.location}</span> : role.location}
-            </p>
-            <ul class="bullets">
-              {(role.bullets ?? []).map((bullet) => (
-                <li>{isPlaceholder(bullet) ? <span class="placeholder">{bullet}</span> : bullet}</li>
+          <ul class="bullets">
+            {(role.bullets ?? []).map((bullet) => (
+              <li>{isPlaceholder(bullet) ? <span class="placeholder">{bullet}</span> : bullet}</li>
+            ))}
+          </ul>
+          {(role.technologies ?? []).length > 0 && (
+            <ul class="chips mono">
+              {(role.technologies ?? []).map((technology) => (
+                <li class={isPlaceholder(technology) ? 'chip-placeholder' : `chip chip-${chipTint(technology)}`}>
+                  {isPlaceholder(technology) ? <span class="placeholder">{technology}</span> : technology}
+                </li>
               ))}
             </ul>
-            {(role.technologies ?? []).length > 0 && (
-              <ul class="chips mono">
-                {(role.technologies ?? []).map((technology) => (
-                  <li class={isPlaceholder(technology) ? 'chip-placeholder' : `chip chip-${chipTint(technology)}`}>
-                    {isPlaceholder(technology) ? <span class="placeholder">{technology}</span> : technology}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          )}
         </li>
       ))}
     </ol>
@@ -138,7 +130,7 @@ const tabs = [
           <ul class="chips mono">
             {(project.tags ?? []).map((tag) => <li class={`chip chip-${chipTint(tag)}`}>{tag}</li>)}
           </ul>
-          <p class="card-action"><a class="button button-secondary" href={project.url} rel="noopener noreferrer">{project.linkLabel ?? 'Repository'}</a></p>
+          <p class="card-action"><a class="text-link" href={project.url} rel="noopener noreferrer">{project.linkLabel ?? 'Repository'}<span class="visually-hidden"> for {project.title}</span></a></p>
         </li>
       ))}
     </ul>
@@ -153,6 +145,7 @@ const tabs = [
           <p class="meta mono">{cert.issuer}</p>
           <h3>{cert.name}</h3>
           <p class="meta mono">{cert.earned ? `Earned ${formatDate(cert.earned)}` : 'Date not listed'}</p>
+          {cert.description && <p>{cert.description}</p>}
           {cert.verifyUrl && <p><a href={cert.verifyUrl} rel="noopener noreferrer">{cert.verifyLabel}</a></p>}
         </li>
       ))}

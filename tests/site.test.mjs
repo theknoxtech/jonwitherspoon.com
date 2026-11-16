@@ -70,13 +70,13 @@ test('portfolio page lists the current role first, with a visible placeholder', 
     const html = readPage('portfolio/index.html');
     const roles = [...html.matchAll(/class="entry[^"]*"/g)];
     assert.ok(roles.length >= 5, 'expected five experience entries');
-    const firstEntryStart = html.indexOf('class="entry');
-    const firstCompany = html.indexOf('Critical Network Solutions');
-    assert.ok(firstCompany > 0 && firstCompany > firstEntryStart - 2000);
+    const experience = html.slice(html.indexOf('id="panel-experience"'), html.indexOf('id="panel-projects"'));
+    assert.ok(experience.indexOf('Critical Network Solutions') > 0, 'current role must be in the Experience panel');
+    assert.doesNotMatch(experience, /class="entry-dates[^"]*"[^>]*>\s*<span class="placeholder">[^<]*<\/span>[\s\S]{0,40}to present[\s\S]*Enable Resource Group[\s\S]*class="badge[^"]*">current/, 'order');
     const order = ['Critical Network Solutions', 'Enable Resource Group', 'Southeastern Computer Associates', 'DWK Lifesciences', 'K12'];
     let lastIndex = -1;
     for (const company of order) {
-        const index = html.indexOf(company, lastIndex + 1);
+        const index = experience.indexOf(company, lastIndex + 1);
         assert.ok(index > lastIndex, `${company} is missing or out of order`);
         lastIndex = index;
     }
@@ -86,9 +86,14 @@ test('portfolio page lists the current role first, with a visible placeholder', 
 
 test('portfolio page has certifications with verify links, past exams, education', () => {
     const html = readPage('portfolio/index.html');
-    assert.ok(countMatches(html, /class="cert"/g) === 6, 'expected six certifications');
+    assert.equal(countMatches(html, /class="cert"/g), 7, 'expected seven certifications');
+    assert.equal(countMatches(html, /class="exam"/g), 1, 'expected one past exam');
     assert.match(html, /Verify on/);
-    assert.match(html, /SC-300/);
+    const sc300 = html.slice(html.indexOf('Identity and Access Administrator Associate'));
+    assert.ok(sc300.length > 0, 'SC-300 certification missing');
+    assert.match(sc300.slice(0, sc300.indexOf('</li>')), /Earned 29 Jul 2026/);
+    assert.match(sc300.slice(0, sc300.indexOf('</li>')), /href="https:\/\/learn\.microsoft\.com\/api\/credentials\/share\/en-us\/JonWitherspoon-9260\/AFCED976DD341750\?sharingId=76B3F23CC8D338C8"/);
+    assert.doesNotMatch(html, /Microsoft Identity and Access Administrator \(SC-300\)/, 'duplicate past-exam entry');
     assert.match(html, /Western Governors University/);
 });
 
@@ -97,11 +102,10 @@ test('projects page shows four projects', () => {
     assert.equal(countMatches(html, /class="card"/g), 4);
 });
 
-test('home shows avatar, three featured projects, Now block', () => {
+test('home shows the profile card with avatar, three featured projects and the study-labs strip', () => {
     const html = readPage('index.html');
-    assert.match(html, /<img[^>]+src="\/avatar\.jpg"[^>]+width="96"[^>]+height="96"[^>]+alt="/);
+    assert.match(html, /<img class="avatar" src="\/avatar\.jpg" width="80" height="80" alt="/);
     assert.equal(countMatches(html, /class="card"/g), 3);
-    assert.match(html, /Now/);
     assert.match(html, /href="\/exam_apps\/md-102\/"/);
 });
 
@@ -197,26 +201,63 @@ test('Budgetry is gone from every built page, the stylesheet and the script', ()
     assert.doesNotMatch(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'), /budgetry/i);
 });
 
-test('home has coloured primary and glass secondary buttons, status chips use tints', () => {
+test('home has one primary button, a text link, no About button, and at most two buttons in the hero', () => {
     const html = readPage('index.html');
-    assert.match(html, /<a class="button button-primary" href="\/projects\/">View projects<\/a>/);
-    assert.match(html, /<a class="button button-secondary" href="\/portfolio\/">Portfolio<\/a>/);
-    assert.match(html, /class="button button-secondary"[^>]*>Open MD-102 lab</);
-    assert.match(html, /href="\/portfolio\/#experience"/);
-    assert.match(readPage('projects/index.html'), /class="button button-secondary"[^>]*>Latest release</);
+    const hero = html.slice(html.indexOf('<section class="hero"'), html.indexOf('</section>'));
+    assert.match(hero, /<a class="button button-primary" href="\/projects\/">View projects<\/a>/);
+    assert.match(hero, /<a class="text-link" href="\/portfolio\/#about">About me<\/a>/);
+    assert.ok(countMatches(hero, /class="button[ "]/g) <= 2, 'at most two buttons in the hero');
+    assert.doesNotMatch(html, /<summary>About<\/summary>|class="button[^"]*"[^>]*>About</);
+    assert.ok(countMatches(html, /class="button[ "]/g) <= 2, 'few buttons on Home');
+    assert.match(readPage('projects/index.html'), /class="text-link"[^>]*>Latest release/);
     assert.match(readPage('labs/index.html'), /class="status status-live"/);
     assert.match(readPage('labs/index.html'), /class="status status-planned"/);
     assert.match(html, /class="chip chip-(blue|teal|amber|rose)"/);
 });
 
-test('home follows the liquid-glass layout: hero badge, greeting, featured card, latest grid, topics, study labs', () => {
+test('home layout: compact hero with profile card, Articles (empty state), A few projects, Study labs strip', () => {
     const html = readPage('index.html');
-    assert.match(html, /<p class="hero-badge mono">Systems Administrator<\/p>/);
     assert.match(html, /<h1 id="page-title">Hi, I(&#39;|')m Jon<\/h1>/);
-    assert.match(html, /<article class="card-featured">/);
-    assert.equal(countMatches(html, /<li class="card">/g), 3);
-    assert.ok(countMatches(html, /class="chip chip-[a-z]+ topic-link" href="\/projects\/\?tag=/g) >= 5, 'topic pills');
-    assert.match(html, /<div class="glass-cta">[\s\S]*Study labs[\s\S]*href="\/labs\/"/);
+    assert.match(html, /<aside class="profile-card" aria-label="Profile">/);
+    assert.match(html, /<h2[^>]*>(?:<span[^>]*>[^<]*<\/span> )?Articles<\/h2>/);
+    assert.match(html, /<p class="empty-state">Articles are on the way\.<\/p>/);
+    assert.doesNotMatch(html, /class="article-card"/, 'no fake posts');
+    assert.match(html, /A few projects/);
+    assert.match(html, /<section class="lab-strip"[\s\S]*Study labs[\s\S]*href="\/labs\/"/);
+    assert.ok(html.indexOf('Articles') < html.indexOf('A few projects') && html.indexOf('A few projects') < html.indexOf('Study labs'), 'section order');
+    assert.doesNotMatch(html, /Browse by topic|topic-link|>Now<|Featured project|class="glass-cta"/);
+    assert.doesNotMatch(html, /\/blog\//, 'no blog route');
+    assert.ok(!existsSync(join(DIST, 'blog')));
+    assert.equal((html.match(/<h1[\s>]/g) ?? []).length, 1);
+});
+
+test('profile card shows current role as one line, location, and small icon+label links (not buttons)', () => {
+    for (const file of ['index.html', 'portfolio/index.html']) {
+        const html = readPage(file);
+        const card = html.slice(html.indexOf('<aside class="profile-card"'), html.indexOf('</aside>'));
+        assert.match(card, /Now:/);
+        assert.match(card, /Knoxville, TN/);
+        assert.match(card, /class="social-link"[^>]*>(?:<span class="icon"[^>]*>[\s\S]*?<\/span>)?(GitHub)</);
+        assert.match(card, /class="social-link"[^>]*>(?:<span class="icon"[^>]*>[\s\S]*?<\/span>)?(LinkedIn)</);
+        assert.doesNotMatch(card, /class="button/);
+    }
+    const portfolio = readPage('portfolio/index.html');
+    assert.match(portfolio, /class="social-link"[^>]*>Credly</);
+    assert.match(portfolio, /class="social-link"[^>]*>Microsoft Learn</);
+});
+
+test('project chips and filters come from the tags in site.json (change a tag there and they follow)', () => {
+    const site = JSON.parse(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'));
+    const tags = [...new Set(site.projects.flatMap((project) => project.tags))];
+    const projects = readPage('projects/index.html');
+    const filters = [...projects.matchAll(/data-tag="([^"]+)"/g)].map((match) => match[1]).sort();
+    assert.deepEqual(filters, tags.map((tag) => tag.toLowerCase()).sort());
+    for (const tag of tags) assert.ok(projects.includes(`>${tag.replace('&', '&amp;')}</li>`) || projects.includes(`>${tag}</`), `chip for ${tag}`);
+});
+
+test('articles section is driven by site.json articles (empty array in this build)', () => {
+    const site = JSON.parse(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'));
+    assert.deepEqual(site.articles, []);
 });
 
 test('header has monogram, icon links with text labels and a search button hidden until JS; dialog is present', () => {
@@ -249,18 +290,39 @@ test('search-index.json lists the four projects and the labs, same-origin urls o
     assert.ok(entries.some((entry) => entry.title.includes('MD-102') && entry.url === '/exam_apps/md-102/'));
 });
 
-test('footer has brand block, Navigation and Topics lists, social icons, copyright, build stamp and old-site link', () => {
+test('footer is one compact row: brand, three nav links, icon links, copyright, build stamp, old-site link; no Topics column', () => {
     for (const file of Object.values(MAIN_PAGES)) {
         const html = readPage(file);
-        assert.match(html, /<footer class="site-footer">/);
-        assert.match(html, /<nav aria-label="Footer">/);
-        assert.match(html, /Navigation<\/p>/);
-        assert.match(html, /Topics<\/p>/);
-        assert.match(html, /class="footer-social"/);
-        assert.match(html, /&copy; 2026 Jon Witherspoon|© 2026 Jon Witherspoon/);
-        assert.match(html, /built \d{4}-\d{2}-\d{2} · (local|[0-9a-f]{7})/);
-        assert.match(html, /href="https:\/\/siliconscripted\.com"/);
+        const footer = html.slice(html.indexOf('<footer class="site-footer">'), html.indexOf('</footer>'));
+        assert.ok(footer.length > 0, `${file} footer`);
+        assert.match(footer, /<p class="footer-brand">/);
+        assert.match(footer, /<nav aria-label="Footer">/);
+        assert.equal(countMatches(footer, /<ul class="footer-list">[\s\S]*?<\/ul>/g), 1);
+        for (const label of ['Portfolio', 'Projects', 'Labs']) assert.match(footer, new RegExp(`<a href="/${label.toLowerCase()}/">${label}</a>`));
+        assert.match(footer, /class="footer-social"/);
+        assert.match(footer, /&copy; 2026 Jon Witherspoon|© 2026 Jon Witherspoon/);
+        assert.match(footer, /built \d{4}-\d{2}-\d{2} · (local|[0-9a-f]{7})/);
+        assert.match(footer, /href="https:\/\/siliconscripted\.com"/);
+        assert.doesNotMatch(footer, /Topics|Navigation<|footer-grid/);
     }
+});
+
+test('footer CSS is slim: one flex row, small text, no tall padding', () => {
+    const css = readFileSync(new URL('../src/styles/site.css', import.meta.url), 'utf8');
+    const rule = /\.site-footer \{([^}]*)\}/.exec(css.slice(css.indexOf('.footer-brand') - 1200))[1];
+    assert.match(rule, /display:\s*flex/);
+    assert.match(rule, /padding-top:\s*0\.25rem/);
+    assert.match(rule, /font-size:\s*0\.8125rem/);
+});
+
+test('experience timeline has no date pills: dates are plain monospace text under the role', () => {
+    const css = readFileSync(new URL('../src/styles/site.css', import.meta.url), 'utf8');
+    const dates = /\.entry-dates \{([^}]*)\}/.exec(css)[1];
+    assert.doesNotMatch(dates, /border-radius|background/);
+    const html = readPage('portfolio/index.html');
+    const entry = /<li class="entry">([\s\S]*?)<\/li><li class="entry">/.exec(html)[1];
+    assert.ok(entry.indexOf('<h3>') < entry.indexOf('entry-dates mono'), 'dates come after the role heading');
+    assert.ok(entry.indexOf('class="meta"') < entry.indexOf('entry-dates mono'), 'dates come under the company line');
 });
 
 test('no page links to /work/ and the nav says Portfolio', () => {
@@ -290,11 +352,10 @@ test('portfolio page: six tabs in order with ARIA wiring, six panels present, ta
     assert.match(html, /\[DRAFT: Jon to review\]/);
     assert.match(html, /href="\/projects\/">See all projects</);
     assert.match(html, /<details class="past-exams">/);
-    for (const label of ['LinkedIn', 'GitHub', 'Credly', 'Microsoft Learn']) assert.match(html, new RegExp(`class="button button-secondary"[^>]*>${label}<`));
     const css = readDistCss();
     assert.match(css, /\.tabs-wrapper\{[^}]*display:none/);
     assert.match(css, /\.has-tabs \.tabs-wrapper\{[^}]*display:block/);
-    assert.match(css, /\.tab\{[^}]*min-height:44px/);
+    assert.match(css, /\.tab\{[^}]*min-height:40px/);
 });
 
 test('tabs.js implements arrow, Home and End keys, roving tabindex and the URL hash', () => {
@@ -302,9 +363,11 @@ test('tabs.js implements arrow, Home and End keys, roving tabindex and the URL h
     for (const needle of ['ArrowRight', 'ArrowLeft', 'Home', 'End', 'tabIndex', 'aria-selected', 'hashchange', 'location.hash', 'has-tabs']) assert.ok(script.includes(needle), needle);
 });
 
-test('the draft note on the About text is visible without opening the About section', () => {
-    const html = readPage('index.html');
-    assert.ok(html.indexOf('[DRAFT: Jon to review]') < html.indexOf('<details'), 'draft note must sit outside <details>');
+test('the draft note sits in the About panel on /portfolio/, which is visible without JavaScript', () => {
+    const html = readPage('portfolio/index.html');
+    const about = html.slice(html.indexOf('id="panel-about"'), html.indexOf('id="panel-skills"'));
+    assert.match(about, /\[DRAFT: Jon to review\]/);
+    assert.doesNotMatch(about, /hidden/);
 });
 
 test('contrast: text, buttons, chips, badges and controls meet WCAG AA in light and dark', () => {
