@@ -39,6 +39,14 @@ Re-read at the start of every stage; update at the end of every stage.
 
 - Jon's feedback overrides earlier choices: rounded cards, more colour, coloured buttons, modern look similar to the old site but not overkill, contrasting with the lab pages (fonts stay IBM Plex); Budgetry removed; search for projects and labs. The earlier decision "no JavaScript on the site" is reversed for search only: one small external script file, no inline script, content fully visible without JS.
 
+## RESUME NOTE (written 2026-11-16 before Jon restarted the chat to update the plugin)
+
+- Branch `plan/personal-site`, last commit 612aba4. Stage 3 (prototype revision 3). Prompt 1 (prototype review) is still open: Jon keeps sending change requests; he has not approved hardening yet.
+- UNCOMMITTED and UNVERIFIED work in the tree (a front-end developer was mid-way): batch 5 from Jon's latest feedback: hero buttons "View projects" + "Portfolio" in one row; Systems Engineer II title; plain text links on Home project cards; every GitHub link labelled "See it on GitHub" (Winnow also "Latest release"); buttons on /projects/; Study labs strip buttons that are the links, planned labs as non-link pills; /labs/ KQL Lab as a button; new planned lab AZ-104; MD-102 `currentFor` = "Current for the October 2026 exam update" (Recon 04: study guide says skills measured as of October 27, 2026); data restructured so every button is an entry in a `links` list; docs/editing-guide.md (plain-language editing documentation) was requested. Also docs/setup-guide.md was rewritten for Cloudflare DNS (apex only in Azure, DNS only grey cloud, proxied placeholder www with a redirect rule). To resume: run `ASTRO_TELEMETRY_DISABLED=1 npm run build && npm test` three times, read `build/frontend-dev-5.md` if it exists, check the editing guide exists, then commit and show Jon.
+- Jon's answers so far for the prototype review: registrar = Cloudflare (answered). Still open: approve/change/stop; his app's preset exam date (2026-11-21) and unvalidated backup restore (he decides); GitHub repo name and visibility (recommended `jonwitherspoon.com`, public); blog build (not authorized yet; Home has an empty Articles section driven by `articles` in site.json).
+- Open content from Jon: Critical Network Solutions start month, location, bullets, technologies (title is Systems Engineer II); repo URLs for Teams, OneDrive and other projects that only link to his GitHub profile; draft About text review.
+- HARD RULES: never modify, rebuild or edit anything under `exam_apps/`; "move" means move or copy only; commit his app edits when he asks (he asks each time); do not run fix scripts against his files.
+
 ## Log
 
 - 2026-11-15: an orchestrator restore command emptied 44 md-102 files (PATH lost, shell truncated targets). All restored from c1d1619 and verified identical (0 differing, 0 empty). Backend dev had rebuilt md-102 without Jon asking; that work was discarded and the dev stopped.
