@@ -20,7 +20,7 @@
     "experience": [
         {
             "company": "Critical Network Solutions",
-            "title": "[TO SUPPLY: job title]",
+            "title": "Systems Engineer II",
             "start": "[TO SUPPLY: start month, YYYY-MM]",
             "end": "present",
             "location": "[TO SUPPLY: location or Remote]",
@@ -98,8 +98,10 @@
             "tags": ["C#", "Windows Event Log", "Remote Support"],
             "status": "active",
             "date": "2026-09-04",
-            "url": "https://github.com/theknoxtech/winnow/releases/latest",
-            "linkLabel": "Latest release",
+            "links": [
+                { "label": "See it on GitHub", "url": "https://github.com/theknoxtech/winnow" },
+                { "label": "Latest release", "url": "https://github.com/theknoxtech/winnow/releases/latest" }
+            ],
             "featured": true,
             "order": 1
         },
@@ -109,8 +111,9 @@
             "tags": ["PowerShell", "WMI", "ConnectWise Automate", "Dell BIOS Provider"],
             "status": "active",
             "date": "2026-01-01",
-            "url": "https://github.com/theknoxtech/Dell-TPM-and-BitLocker-Activation",
-            "linkLabel": "Repository",
+            "links": [
+                { "label": "See it on GitHub", "url": "https://github.com/theknoxtech/Dell-TPM-and-BitLocker-Activation" }
+            ],
             "featured": true,
             "order": 1
         },
@@ -120,8 +123,9 @@
             "tags": ["PowerShell", "Windows Shell API", "OneDrive"],
             "status": "active",
             "date": "2026-01-01",
-            "url": "https://github.com/theknoxtech",
-            "linkLabel": "GitHub profile",
+            "links": [
+                { "label": "See it on GitHub", "url": "https://github.com/theknoxtech" }
+            ],
             "featured": true,
             "order": 2
         },
@@ -131,8 +135,9 @@
             "tags": ["PowerShell", "Bash", "ConnectWise Automate", "macOS", "Windows"],
             "status": "active",
             "date": "2026-01-01",
-            "url": "https://github.com/theknoxtech",
-            "linkLabel": "GitHub profile",
+            "links": [
+                { "label": "See it on GitHub", "url": "https://github.com/theknoxtech" }
+            ],
             "featured": true,
             "order": 3
         }
@@ -220,17 +225,23 @@
             "name": "Endpoint Administrator practice app",
             "status": "live",
             "updated": "2026-11-15",
-            "path": "/exam_apps/md-102/",
-            "companions": [
-                { "name": "KQL Lab", "path": "/exam_apps/md-102/kql-lab.html" }
+            "currentFor": "Current for the October 2026 exam update",
+            "links": [
+                { "label": "MD-102", "path": "/exam_apps/md-102/" },
+                { "label": "KQL Lab", "path": "/exam_apps/md-102/kql-lab.html" }
             ]
         },
         {
             "code": "SC-300",
             "name": "Identity and Access Administrator practice app",
             "status": "planned",
-            "updated": null,
-            "companions": []
+            "links": []
+        },
+        {
+            "code": "AZ-104",
+            "name": "Microsoft Azure Administrator",
+            "status": "planned",
+            "links": []
         }
     ]
 }

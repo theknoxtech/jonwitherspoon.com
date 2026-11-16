@@ -109,7 +109,11 @@ test('QC edge: a lab folder copies only its top-level .html files (not .md, .sh,
 
 const optionalFieldCases = {
     'lab without updated (null)': (site) => { delete site.labs[0].updated; },
-    'lab without path (planned entry shape on a live lab)': (site) => { delete site.labs[0].path; },
+    'lab without links (a live lab with no buttons)': (site) => { delete site.labs[0].links; },
+    'lab with an empty links list': (site) => { site.labs[0].links = []; },
+    'project without links': (site) => { delete site.projects[0].links; },
+    'project with an empty links list': (site) => { site.projects[0].links = []; },
+    'lab without currentFor': (site) => { delete site.labs[0].currentFor; },
     'certification without verifyUrl and verifyLabel': (site) => { delete site.certifications[0].verifyUrl; delete site.certifications[0].verifyLabel; },
     'certification without earned': (site) => { delete site.certifications[0].earned; },
     'education without areas': (site) => { delete site.education.areas; },
@@ -122,16 +126,16 @@ for (const [label, change] of Object.entries(optionalFieldCases)) {
     });
 }
 
-test('QC edge site.json: a new lab entry shaped as the setup guide describes (no companions, no status, no updated) builds', { skip }, () => {
+test('QC edge site.json: a new lab entry with only code and name (and one with one link) builds', { skip }, () => {
     withCopy('guidelab', ({ status, output }) => {
         assert.equal(status, 0, output.split('\n').filter((line) => /Error|TypeError|Cannot/.test(line)).join('\n'));
-    }, { siteChange: (site) => { site.labs.push({ code: 'AZ-104', name: 'Azure Administrator', path: '/exam_apps/az-104/' }); } });
+    }, { siteChange: (site) => { site.labs.push({ code: 'AZ-900', name: 'Azure Fundamentals' }); site.labs.push({ code: 'AZ-104', name: 'Azure Administrator', links: [{ label: 'AZ-104', path: '/exam_apps/az-104/' }] }); } });
 });
 
-test('QC edge site.json: a planned lab without a companions list builds', { skip }, () => {
+test('QC edge site.json: a planned lab without a links list builds', { skip }, () => {
     withCopy('nocompanions', ({ status, output }) => {
         assert.equal(status, 0, output.split('\n').filter((line) => /Error|TypeError|Cannot/.test(line)).join('\n'));
-    }, { siteChange: (site) => { delete site.labs[1].companions; } });
+    }, { siteChange: (site) => { delete site.labs[1].links; } });
 });
 
 test('QC edge site.json: an experience entry without technologies builds', { skip }, () => {
@@ -176,14 +180,14 @@ test('QC edge: the build stamp shows the first 7 characters of GITHUB_SHA, or "l
 test('QC placeholder guard: warns and exits 0 by default, naming the files', { skip }, () => {
     withCopy('warn', ({ status, output }) => {
         assert.equal(status, 0, output);
-        assert.match(output, /WARNING: 2 page\(s\) still contain "\[TO SUPPLY": index\.html, portfolio\/index\.html/);
+        assert.match(output, /WARNING: 1 page\(s\) still contain "\[TO SUPPLY": portfolio\/index\.html/);
     });
 });
 
 test('QC placeholder guard: FAIL_ON_PLACEHOLDER=1 fails the build with a non-zero exit and names the files', { skip }, () => {
     withCopy('fail', ({ status, output }) => {
         assert.notEqual(status, 0, 'build should fail');
-        assert.match(output, /2 page\(s\) still contain "\[TO SUPPLY": index\.html, portfolio\/index\.html/);
+        assert.match(output, /1 page\(s\) still contain "\[TO SUPPLY": portfolio\/index\.html/);
         assert.doesNotMatch(output, /WARNING:/);
     }, { extraEnv: { FAIL_ON_PLACEHOLDER: '1' } });
 });

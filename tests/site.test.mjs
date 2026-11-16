@@ -72,7 +72,6 @@ test('portfolio page lists the current role first, with a visible placeholder', 
     assert.ok(roles.length >= 5, 'expected five experience entries');
     const experience = html.slice(html.indexOf('id="panel-experience"'), html.indexOf('id="panel-projects"'));
     assert.ok(experience.indexOf('Critical Network Solutions') > 0, 'current role must be in the Experience panel');
-    assert.doesNotMatch(experience, /class="entry-dates[^"]*"[^>]*>\s*<span class="placeholder">[^<]*<\/span>[\s\S]{0,40}to present[\s\S]*Enable Resource Group[\s\S]*class="badge[^"]*">current/, 'order');
     const order = ['Critical Network Solutions', 'Enable Resource Group', 'Southeastern Computer Associates', 'DWK Lifesciences', 'K12'];
     let lastIndex = -1;
     for (const company of order) {
@@ -177,7 +176,8 @@ test('every project card and lab row exposes lowercase data-search text', () => 
     assert.match(cards[0][1], /active/);
     const labs = readPage('labs/index.html');
     const rows = [...labs.matchAll(/<li class="lab" data-search="([^"]+)"/g)];
-    assert.equal(rows.length, 2);
+    assert.equal(rows.length, 3);
+    assert.match(rows[0][1], /october 2026/);
     assert.match(rows[0][1], /md-102/);
     assert.match(rows[0][1], /kql lab/);
     assert.match(rows[0][1], /live/);
@@ -201,18 +201,62 @@ test('Budgetry is gone from every built page, the stylesheet and the script', ()
     assert.doesNotMatch(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'), /budgetry/i);
 });
 
-test('home has one primary button, a text link, no About button, and at most two buttons in the hero', () => {
+test('home hero has two same-size buttons in one row: View projects (primary) and Portfolio; no About button or link', () => {
     const html = readPage('index.html');
     const hero = html.slice(html.indexOf('<section class="hero"'), html.indexOf('</section>'));
-    assert.match(hero, /<a class="button button-primary" href="\/projects\/">View projects<\/a>/);
-    assert.match(hero, /<a class="text-link" href="\/portfolio\/#about">About me<\/a>/);
-    assert.ok(countMatches(hero, /class="button[ "]/g) <= 2, 'at most two buttons in the hero');
-    assert.doesNotMatch(html, /<summary>About<\/summary>|class="button[^"]*"[^>]*>About</);
-    assert.ok(countMatches(html, /class="button[ "]/g) <= 2, 'few buttons on Home');
-    assert.match(readPage('projects/index.html'), /class="text-link"[^>]*>Latest release/);
-    assert.match(readPage('labs/index.html'), /class="status status-live"/);
-    assert.match(readPage('labs/index.html'), /class="status status-planned"/);
-    assert.match(html, /class="chip chip-(blue|teal|amber|rose)"/);
+    const row = /<div class="button-row">([\s\S]*?)<\/div>/.exec(hero)[1];
+    assert.match(row, /<a class="button button-primary" href="\/projects\/">View projects<\/a>\s*<a class="button button-secondary" href="\/portfolio\/">Portfolio<\/a>/);
+    assert.equal(countMatches(hero, /class="button[ "]/g), 2);
+    assert.doesNotMatch(html, /About me|<summary>About<\/summary>|>About</);
+    assert.match(hero, /<p class="role-line mono">Systems Engineer II at Critical Network Solutions<\/p>/);
+    assert.match(html, /<meta name="description" content="[^"]*Systems Engineer II at Critical Network Solutions/);
+    assert.match(readPage('portfolio/index.html'), /<meta name="description" content="[^"]*Systems Engineer II at Critical Network Solutions/);
+});
+
+test('home project cards use plain text links with the same labels as site.json; Winnow has two', () => {
+    const html = readPage('index.html');
+    const section = html.slice(html.indexOf('id="latest-heading"'), html.indexOf('<section class="lab-strip"'));
+    const cards = section.split('<li class="card">').slice(1);
+    assert.equal(cards.length, 3);
+    for (const card of cards) {
+        assert.doesNotMatch(card, /class="button/, 'no button styling inside home cards');
+        assert.match(card, /class="text-link"[^>]*>See it on GitHub</);
+    }
+    const winnow = cards.find((card) => card.includes('Winnow'));
+    assert.match(winnow, /class="text-link"[^>]*>Latest release</);
+    assert.match(winnow, /href="https:\/\/github\.com\/theknoxtech\/winnow\/releases\/latest"/);
+});
+
+test('every project link reads "See it on GitHub" (plus "Latest release" for Winnow) and is a button on /projects/', () => {
+    const site = JSON.parse(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'));
+    for (const project of site.projects) assert.ok(project.links.some((link) => link.label === 'See it on GitHub'), project.title);
+    const html = readPage('projects/index.html');
+    assert.equal(countMatches(html, /class="button button-secondary"[^>]*>See it on GitHub</g), 4);
+    assert.equal(countMatches(html, /class="button button-secondary"[^>]*>Latest release</g), 1);
+    assert.doesNotMatch(html, /GitHub profile|>Repository</);
+    assert.ok(!('url' in site.projects[0]) && !('linkLabel' in site.projects[0]), 'old url/linkLabel fields are gone');
+});
+
+test('study labs strip: one button per lab with a link (the button is the link); labs without links are status pills', () => {
+    const html = readPage('index.html');
+    const strip = html.slice(html.indexOf('<section class="lab-strip"'), html.indexOf('</section>', html.indexOf('<section class="lab-strip"')));
+    assert.match(strip, /<a class="button button-secondary" href="\/exam_apps\/md-102\/">MD-102<\/a>/);
+    assert.equal(countMatches(strip, /<a /g), 1, 'only the MD-102 button is a link');
+    assert.match(strip, /<span class="chip chip-amber mono">SC-300 planned<\/span>/);
+    assert.match(strip, /<span class="chip chip-amber mono">AZ-104 planned<\/span>/);
+    assert.doesNotMatch(strip, /All labs|Open MD-102/);
+});
+
+test('labs page: every lab link is a button to its page, same style and size; AZ-104 is planned without a button; currentFor shows', () => {
+    const html = readPage('labs/index.html');
+    assert.match(html, /<a class="button button-primary" href="\/exam_apps\/md-102\/">MD-102<\/a>/);
+    assert.match(html, /<a class="button button-primary" href="\/exam_apps\/md-102\/kql-lab\.html">KQL Lab<\/a>/);
+    assert.doesNotMatch(html, /class="companions"|class="text-link"/);
+    assert.match(html, /Current for the October 2026 exam update/);
+    const az = html.slice(html.indexOf('AZ-104'));
+    assert.match(az.slice(0, az.indexOf('</li>')), /Microsoft Azure Administrator/);
+    assert.doesNotMatch(az.slice(0, az.indexOf('</li>')), /<a /);
+    assert.match(az.slice(0, az.indexOf('</li>')), /status status-planned/);
 });
 
 test('home layout: compact hero with profile card, Articles (empty state), A few projects, Study labs strip', () => {
@@ -231,17 +275,18 @@ test('home layout: compact hero with profile card, Articles (empty state), A few
     assert.equal((html.match(/<h1[\s>]/g) ?? []).length, 1);
 });
 
-test('profile card shows current role as one line, location, and small icon+label links (not buttons)', () => {
+test('profile card shows location and small icon+label links (not buttons); portfolio card shows the current role line', () => {
     for (const file of ['index.html', 'portfolio/index.html']) {
         const html = readPage(file);
         const card = html.slice(html.indexOf('<aside class="profile-card"'), html.indexOf('</aside>'));
-        assert.match(card, /Now:/);
         assert.match(card, /Knoxville, TN/);
         assert.match(card, /class="social-link"[^>]*>(?:<span class="icon"[^>]*>[\s\S]*?<\/span>)?(GitHub)</);
         assert.match(card, /class="social-link"[^>]*>(?:<span class="icon"[^>]*>[\s\S]*?<\/span>)?(LinkedIn)</);
         assert.doesNotMatch(card, /class="button/);
     }
     const portfolio = readPage('portfolio/index.html');
+    const card = portfolio.slice(portfolio.indexOf('<aside class="profile-card"'), portfolio.indexOf('</aside>'));
+    assert.match(card, /Systems Engineer II at Critical Network Solutions/);
     assert.match(portfolio, /class="social-link"[^>]*>Credly</);
     assert.match(portfolio, /class="social-link"[^>]*>Microsoft Learn</);
 });
@@ -281,7 +326,8 @@ test('search-index.json lists the four projects and the labs, same-origin urls o
     const raw = readFileSync(join(DIST, 'search-index.json'), 'utf8');
     const entries = JSON.parse(raw);
     assert.equal(entries.filter((entry) => entry.kind === 'project').length, 4);
-    assert.equal(entries.filter((entry) => entry.kind === 'lab').length, 2);
+    assert.equal(entries.filter((entry) => entry.kind === 'lab').length, 3);
+    assert.ok(entries.find((entry) => entry.title.includes('MD-102')).description.includes('October 2026'));
     for (const entry of entries) {
         assert.ok(entry.title && typeof entry.description === 'string' && Array.isArray(entry.tags), JSON.stringify(entry));
         assert.match(entry.url, /^(\/(?!\/)|https:\/\/)/, entry.url);

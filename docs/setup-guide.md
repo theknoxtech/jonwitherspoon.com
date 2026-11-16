@@ -6,7 +6,7 @@ You will use three things:
 
 - **GitHub** stores the site's files and runs the automatic build (*GitHub Actions*).
 - **Azure Static Web Apps** (SWA) hosts the finished site. The Free plan is enough.
-- **Your domain registrar** (where you bought jonwitherspoon.com) points the domain at Azure.
+- **Cloudflare** holds the DNS for jonwitherspoon.com (the address book that points the domain at Azure).
 
 ## 1. Create the GitHub repository
 
@@ -52,20 +52,46 @@ To look at the site on your laptop, run `npm run build && npm run preview` and o
 
 
 - [ ] Open a pull request from `dev` into `main`. The workflow builds the site and publishes a **preview** web address (shown in a comment on the pull request). Free plan allows 3 previews at once; previews are public.
-- [ ] Open the preview and check the pages: Home, Work, Projects, Labs, MD-102 lab, KQL lab, and a missing page.
+- [ ] Open the preview and check the pages: Home, Portfolio, Projects, Labs, MD-102 lab, KQL lab, and a missing page.
 - [ ] Production refuses to deploy while any `[TO SUPPLY ...]` placeholder text remains on the site. Fill in every placeholder in `src/data/site.json` first (the build prints which pages still have them).
 - [ ] Merge the pull request into `main`. That deploys to the live site address Azure shows on the app's Overview page (ends in `azurestaticapps.net`).
 
-## 6. Custom domains
+## 6. Custom domains (Azure and Cloudflare)
 
-Azure lets the Free plan have two custom domains. Use `jonwitherspoon.com` (the *apex*, no "www") as the main address and `www.jonwitherspoon.com` as the second.
+Plan: only the *apex* `jonwitherspoon.com` (no "www") is an Azure custom domain. Cloudflare sends `www.jonwitherspoon.com` to the apex, so www never reaches Azure. This leaves one of the two free-plan domain slots spare.
 
-- [ ] In the Static Web App: Custom domains > Add. Start with `www.jonwitherspoon.com`. Azure shows a **CNAME** record to create at your registrar (a CNAME says "this name is an alias of that name"). Create it and wait for validation.
-- [ ] Add `jonwitherspoon.com` (apex). Azure asks you to prove you own it with a **TXT** record, then point the apex at the app. An apex cannot normally be a CNAME, so you need one of:
-  - an **ALIAS** or **ANAME** record (also called CNAME flattening) if your registrar offers it, or
-  - move DNS hosting to **Azure DNS** (about $0.50 a month), which handles this natively.
-- [ ] Azure issues the HTTPS certificate by itself once the records are right. This can take minutes to an hour.
-- [ ] The site has no automatic www-to-apex redirect. If you want one, use your registrar's "URL forwarding", but only if it forwards over HTTPS.
+Confidence: the Azure and Cloudflare steps follow their documentation. Microsoft has no Cloudflare-specific page, and what happens if you turn the Cloudflare proxy on is not documented (low confidence), so the steps below keep the apex on DNS only.
+
+**Azure (apex only)**
+
+- [ ] In the Static Web App: Custom domains > Add > custom domain on other DNS. Enter `jonwitherspoon.com` and choose **TXT** validation. Azure shows a code; keep the page open.
+
+**Cloudflare DNS (apex)**
+
+- [ ] Cloudflare > the zone > DNS > Records. Add a **TXT** record: name `@`, content = the code from Azure.
+- [ ] Add a **CNAME** record: name `@`, target = your app's `*.azurestaticapps.net` address (shown on the Azure Overview page; no `https://`). Cloudflare "flattens" a CNAME at the apex, which is allowed.
+- [ ] Set the CNAME to **DNS only** (grey cloud), not Proxied. Azure must see the real record to verify the domain and to renew the certificate later.
+- [ ] Wait until Azure shows the domain as validated (usually minutes, up to 72 hours). Azure then issues the HTTPS certificate by itself.
+
+**Cloudflare www redirect**
+
+- [ ] DNS > Records: add an **A** record, name `www`, IPv4 `192.0.2.1`, **Proxied** (orange cloud). This is a placeholder that goes nowhere; it only exists so the redirect can run. Using `192.0.2.1` is a common Cloudflare pattern (medium confidence); follow the dashboard's prompt if it says otherwise.
+- [ ] Rules > Redirect Rules > Create rule, using the template "Redirect from WWW to root" (wildcard pattern): request URL `https://www.*`, target `https://${1}`, status **301**, **preserve query string**. Deploy it.
+
+**Cloudflare settings to leave OFF** (they inject script into pages and would break the strict CSP)
+
+- [ ] Rocket Loader: off.
+- [ ] Web Analytics automatic beacon injection: off.
+- [ ] Email Address Obfuscation (Scrape Shield): off.
+- [ ] Auto Minify: off (retired by Cloudflare in 2024; switch off any leftover).
+- [ ] Mirage and Zaraz: leave off unless you need them.
+- [ ] Cloudflare's own HSTS: leave off, because the site already sends HSTS and two sources would conflict.
+
+**If you later turn the proxy on for the apex (orange cloud)**
+
+- [ ] Set SSL/TLS mode to **Full (strict)**, never Flexible (Flexible can cause redirect loops).
+- [ ] Expect Azure's certificate renewal to need checking: renewal needs the domain to resolve to the app over the public internet, and a proxied record resolves to Cloudflare instead (low confidence). Re-check in Azure after a few weeks.
+- [ ] Re-run all the checks in section 7.
 
 ## 7. Checks after deploying
 
@@ -79,14 +105,17 @@ curl -sI https://HOST/exam_apps/md-102
 curl -sI https://HOST/exam_apps/md-102/kql-lab.html
 curl -sI https://HOST/nope
 curl -sI http://jonwitherspoon.com/
-curl -sI http://www.jonwitherspoon.com/
+curl -sI https://www.jonwitherspoon.com/
 ```
 
 - [ ] Every response has: `strict-transport-security`, `x-content-type-options: nosniff`, `referrer-policy`, `permissions-policy`, `x-frame-options: DENY`, `content-security-policy`.
 - [ ] The CSP on `/` and `/portfolio/` has **no** `unsafe-inline`.
 - [ ] The CSP on the `/exam_apps/...` addresses (with and without the final slash) is the lab one: it contains `script-src 'self' 'unsafe-inline'` and `connect-src 'none'`. Because your apps still load Google Fonts, this CSP also lists `https://fonts.googleapis.com` (in `style-src`) and `https://fonts.gstatic.com` (in `font-src`). The main pages never do.
 - [ ] `/nope` returns status 404 and still has the headers.
-- [ ] The `http://` addresses redirect to `https://`.
+- [ ] `curl -sI http://jonwitherspoon.com/` redirects to `https://`.
+- [ ] `curl -sI https://www.jonwitherspoon.com/` returns `301` with a `location` header pointing to `https://jonwitherspoon.com/`.
+- [ ] The headers on the apex still include `content-security-policy` and `strict-transport-security` (only one HSTS header, not two).
+- [ ] View the page source of the live site (browser: view-source) and confirm no script or beacon added by Cloudflare appears.
 - [ ] Open the live site once in a browser with the developer tools Network tab open: nothing loads from Google or any other outside host on the main pages (the two lab apps load Google Fonts, which is allowed on the lab addresses only).
 
 ## 8. Rolling back
@@ -107,16 +136,16 @@ Do this if the token may have leaked, or every year as housekeeping.
 Your study apps are yours; the site only hosts them. No configuration change is needed: the build copies the top-level HTML files of every `exam_apps/<code>/` folder into the site, and one header rule, `/exam_apps*`, covers every lab.
 
 - [ ] Create `exam_apps/<code>/` (for example `exam_apps/sc-300/`) with its `index.html` beside its `source/` folder, as in `exam_apps/md-102/`. The folder name is the web address, `/exam_apps/<code>/`. Only `.html` files directly in that folder are published; `source/`, scripts and notes are not.
-- [ ] Add an entry to `labs[]` in `src/data/site.json`. Required: `code` and `name`. `path` (for example `/exam_apps/az-104/`) gives the Open button. Optional: `status` (`live`, `in progress` or `planned`; if missing, a lab with a path shows as live and one without shows as planned), `updated`, `description`, and `companions` (a list of `{name, path}`). A minimal entry:
+- [ ] Add an entry to `labs[]` in `src/data/site.json` (see `docs/editing-guide.md`). Required: `code` and `name`. Every button is one entry in the lab's `links` list, each with a `label` and a `path` (for example `/exam_apps/az-104/`). Optional: `status` (`live`, `in-progress` or `planned`; if missing, a lab with links shows as live and one without shows as planned), `updated`, `description` and `currentFor`. A minimal entry:
 
 ```
 {
     "code": "AZ-104",
     "name": "Azure Administrator practice app",
-    "path": "/exam_apps/az-104/",
     "status": "live",
-    "description": "Practice questions for AZ-104.",
-    "companions": []
+    "links": [
+        { "label": "AZ-104", "path": "/exam_apps/az-104/" }
+    ]
 }
 ```
 

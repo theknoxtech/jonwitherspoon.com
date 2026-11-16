@@ -8,16 +8,19 @@ export function GET() {
     description: project.description,
     tags: project.tags ?? [],
     status: project.status ?? '',
-    url: project.url,
+    url: (project.links ?? [])[0]?.url ?? '/projects/',
   }));
-  const labs = site.labs.map((lab) => ({
-    kind: 'lab',
-    title: `${lab.code} ${lab.name}`,
-    description: lab.description ?? '',
-    tags: (lab.companions ?? []).map((companion) => companion.name),
-    status: lab.status ?? (lab.path ? 'live' : 'planned'),
-    url: lab.path ?? '/labs/',
-  }));
+  const labs = site.labs.map((lab) => {
+    const links = (lab.links ?? []).filter((link) => link.path);
+    return {
+      kind: 'lab',
+      title: `${lab.code} ${lab.name}`,
+      description: [lab.description, lab.currentFor].filter(Boolean).join(' '),
+      tags: links.map((link) => link.label),
+      status: lab.status ?? (links.length > 0 ? 'live' : 'planned'),
+      url: links[0]?.path ?? '/labs/',
+    };
+  });
   return new Response(JSON.stringify([...projects, ...labs]), {
     headers: { 'Content-Type': 'application/json' },
   });

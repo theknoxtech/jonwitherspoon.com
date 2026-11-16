@@ -631,7 +631,7 @@ test('QC setup guide (criterion 14): covers every step in plan section 5, in pla
         'first deploy': /first deploy/i,
         'apex and www domains': /apex[\s\S]*www|www[\s\S]*apex/i,
         'DNS TXT and ALIAS/ANAME/flattening or Azure DNS': /TXT[\s\S]*(ALIAS|ANAME|flatten)|Azure DNS/i,
-        'registrar forwarding over HTTPS': /forward/i,
+        'www redirect to the apex over HTTPS': /forward|redirect/i,
         'curl header checks': /curl -sI/,
         'http redirects to https': /http:\/\//,
         'add a lab': /exam_apps\/<code>/,
