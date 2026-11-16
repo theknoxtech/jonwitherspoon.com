@@ -49,6 +49,8 @@ Re-read at the start of every stage; update at the end of every stage.
 
 ## Log
 
+- 2026-11-16: Jon approved the blog plan `docs/plans/in-progress/2026-11-16-blog.md` (nav "Articles", inline images and optional banner image in v1). Build runs on this branch as prototype revision 4. Prototype approval for hardening is still NOT given.
+
 - 2026-11-16: resumed. Uncommitted batch 5 built and tested 3 times: 130 of 130 pass, no failures. Added docs/editing-guide.md, fixed setup-guide section 10 (links list) and the "Work" page name. exam_apps/ verified identical to 612aba4 (read-only check). Prompt 1 still open.
 
 - 2026-11-15: an orchestrator restore command emptied 44 md-102 files (PATH lost, shell truncated targets). All restored from c1d1619 and verified identical (0 differing, 0 empty). Backend dev had rebuilt md-102 without Jon asking; that work was discarded and the dev stopped.
