@@ -19,7 +19,7 @@ Object.assign(L, {
   delivery: ML + 'intune/device-updates/windows/delivery-optimization',
   fota: ML + 'intune/device-updates/android/android-fota-deployments',
   oemconfig: ML + 'intune/device-configuration/oemconfig',
-  ent: ML + 'intune/device-enrollment/apple/automated-device-enrollment-enrollment-time-grouping',
+  ent: ML + 'intune/device-enrollment/setup-time-grouping',
   vpp: ML + 'intune/app-management/deployment/apple-business-manager-apps',
   mgp: ML + 'intune/app-management/deployment/add-managed-google-play',
   customCompl: ML + 'intune/device-security/compliance/custom-settings',
@@ -55,7 +55,7 @@ add(D1, T15, "Conditional Access must require compliant devices, but a pilot use
 add(D1, T15, "Users may open Microsoft 365 only from Windows devices that have BitLocker turned on. What do you create first?",
   ["A device compliance policy that requires BitLocker"],
   ["A device configuration profile that enables BitLocker", "A Conditional Access policy that blocks all Windows devices", "An app protection policy for Windows with encryption on"],
-  "Compliance policies evaluate a device against a requirement, and then Conditional Access uses the result. A configuration profile can turn BitLocker on, but it does not mark a device compliant or not.", L.rbac);
+  "Compliance policies evaluate a device against a requirement, and then Conditional Access uses the result. A configuration profile can turn BitLocker on, but it does not mark a device compliant or not.", ML + 'intune/device-security/compliance/overview');
 add(D2, T21, "You run an Autopilot Reset on a Windows 11 device. Which two items are kept afterwards? (Select two)",
   ["The Wi-Fi connection details", "The Microsoft Entra join and Intune enrollment"],
   ["Personal files saved by the user", "Apps the user installed themselves", "The user's custom region and keyboard changes"],

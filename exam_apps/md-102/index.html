@@ -1,4 +1,15 @@
-<title>MD-102 Practice Lab</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>MD-102 Practice Lab</title><style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><script>
+if (typeof claude === 'undefined') {
+  window.claude = { use: async function (name) {
+    if (name !== 'downloads') return null;
+    return { save: async function (o) {
+      var blob = new Blob([o.data], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = o.filename;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    } };
+  } };
+}
+</script></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -936,7 +947,7 @@ Object.assign(L, {
   delivery: ML + 'intune/device-updates/windows/delivery-optimization',
   fota: ML + 'intune/device-updates/android/android-fota-deployments',
   oemconfig: ML + 'intune/device-configuration/oemconfig',
-  ent: ML + 'intune/device-enrollment/apple/automated-device-enrollment-enrollment-time-grouping',
+  ent: ML + 'intune/device-enrollment/setup-time-grouping',
   vpp: ML + 'intune/app-management/deployment/apple-business-manager-apps',
   mgp: ML + 'intune/app-management/deployment/add-managed-google-play',
   customCompl: ML + 'intune/device-security/compliance/custom-settings',
@@ -972,7 +983,7 @@ add(D1, T15, "Conditional Access must require compliant devices, but a pilot use
 add(D1, T15, "Users may open Microsoft 365 only from Windows devices that have BitLocker turned on. What do you create first?",
   ["A device compliance policy that requires BitLocker"],
   ["A device configuration profile that enables BitLocker", "A Conditional Access policy that blocks all Windows devices", "An app protection policy for Windows with encryption on"],
-  "Compliance policies evaluate a device against a requirement, and then Conditional Access uses the result. A configuration profile can turn BitLocker on, but it does not mark a device compliant or not.", L.rbac);
+  "Compliance policies evaluate a device against a requirement, and then Conditional Access uses the result. A configuration profile can turn BitLocker on, but it does not mark a device compliant or not.", ML + 'intune/device-security/compliance/overview');
 add(D2, T21, "You run an Autopilot Reset on a Windows 11 device. Which two items are kept afterwards? (Select two)",
   ["The Wi-Fi connection details", "The Microsoft Entra join and Intune enrollment"],
   ["Personal files saved by the user", "Apps the user installed themselves", "The user's custom region and keyboard changes"],
@@ -5005,6 +5016,147 @@ add(D3, N26, "What does the Use security keys for sign-in setting do?",
   ["Enables the Windows Hello security key as a sign-in credential for tenant PCs"],
   ["Requires a security key for every user's Microsoft Entra sign-in in the tenant", "Registers FIDO2 keys on their behalf for users who have no methods yet", "Replaces the PIN with the key on devices that do not have a TPM chip"],
   "It can be set in the tenant-wide policy and in account protection settings.", K.whfbTenant);
+/* ===== Practice-assessment gaps (Nov 15). Every fact below was checked on Learn: provisioning-packages/provision-pcs-for-initial-deployment, intune/device-management/actions/fresh-start, troubleshoot-app-protection-policy-deployment, quickstart-create-assign-policy, add-microsoft-365-windows, overview-office-customization-tool, deployment-guide-for-visio, app-management/configuration/overview and configure-managed-apps, ref-settings-android, vulnerability-remediation-agent (+ manage-), import-custom-admx-templates, microsoft-tunnel/monitor. ===== */
+const N28a = "Removing preinstalled apps from new PCs";
+const N28b = "App protection: assignment and conditional launch";
+const N28c = "Microsoft 365 Apps with Visio";
+const N28d = "App configuration policies: managed apps";
+const N28e = "Vulnerability Remediation Agent: reading suggestions";
+const N28f = "Custom ADMX templates in Intune";
+const N28g = "Microsoft Tunnel server logs";
+const K28 = {
+  wcd: ML + 'windows/configuration/provisioning-packages/provision-pcs-for-initial-deployment',
+  wcdWhat: ML + 'windows/configuration/provisioning-packages/provisioning-packages',
+  fresh: ML + 'intune/device-management/actions/fresh-start',
+  appTs: ML + 'troubleshoot/mem/intune/app-protection-policies/troubleshoot-app-protection-policy-deployment',
+  appQs: ML + 'intune/app-management/protection/quickstart-create-assign-policy',
+  appAnd: ML + 'intune/app-management/protection/ref-settings-android',
+  appIos: ML + 'intune/app-management/protection/ref-settings-ios',
+  m365: ML + 'intune/app-management/deployment/add-microsoft-365-windows',
+  oct: ML + 'microsoft-365-apps/admin-center/overview-office-customization-tool',
+  visio: ML + 'microsoft-365-apps/deploy/deployment-guide-for-visio',
+  acpOv: ML + 'intune/app-management/configuration/overview',
+  acpMa: ML + 'intune/app-management/configuration/configure-managed-apps',
+  appMgmt: ML + 'intune/app-management/overview',
+  vra: ML + 'intune/copilot/agents/vulnerability-remediation-agent',
+  vraUse: ML + 'intune/copilot/agents/manage-vulnerability-remediation-agent',
+  admx: ML + 'intune/device-configuration/settings-catalog/import-custom-admx-templates',
+  tunMon: ML + 'intune/device-security/microsoft-tunnel/monitor'
+};
+
+/* 1. Removing preinstalled apps */
+add(D2, N28a, "Five new unmanaged Windows 11 PCs ship with OEM trial apps. You want to remove the apps with the least effort by using a tool that applies to every PC from one package. Which tool should you use?",
+  ["Windows Configuration Designer"],
+  ["Sysprep, which generalizes an image so it can be captured and deployed to other PCs", "User State Migration Tool, which moves user files and settings between computers", "Windows System Image Manager, which builds unattend answer files for setup"],
+  "The Windows Configuration Designer desktop wizard has a Remove preinstalled software option in the Set up device step. The package it builds is applied during setup. Sysprep, USMT and Windows SIM do not remove apps.", K28.wcd);
+add(D2, N28a, "Which Windows Configuration Designer wizard step lets you remove preinstalled software from new desktop PCs?",
+  ["Set up device"],
+  ["Account management, where you pick how the PC joins a directory", "Add applications, where you list the apps to install on the PC", "Set up network, where you add the Wi-Fi profile for first connection"],
+  "The Set up device step also covers the device name, the product key for an edition upgrade and shared use.", K28.wcd);
+add(D2, N28a, "A Windows 11 PC is already managed by Intune and still has OEM apps from the factory. Which Intune device action removes those preinstalled apps?",
+  ["Fresh Start"],
+  ["Autopilot Reset, which returns a device to a ready-to-use state for the next user", "Wipe with Retain enrollment state and user data turned on", "Collect diagnostics, which gathers logs and sends them to Intune"],
+  "Fresh Start removes apps from managed Windows devices, mainly the OEM apps that ship on a new PC. It needs a role with the Remote tasks Clean PC permission, such as Help Desk Operator.", K28.fresh);
+
+/* 2. App protection: assignment and conditional launch */
+add(D4, N28b, "An app protection policy is assigned to a group that holds 500 Android devices. Users report that none of the policy settings apply. What should you change?",
+  ["Assign the policy to a group of users"],
+  ["Turn on Target to apps on all device types so the policy reaches every device", "Change Target policy to from All Microsoft apps to All public apps", "Enroll the devices in Intune as Android device administrator devices"],
+  "App protection policies must be assigned to user groups, not device groups. If a user is not targeted, the policy is not applied.", K28.appTs);
+add(D4, N28b, "Which statement about assigning an app protection policy is correct?",
+  ["You can only apply it to groups that contain users"],
+  ["You can apply it to a device group when the devices are enrolled in Intune", "You can apply it to either user groups or device groups on Android", "You can apply it to a device group when the app uses the Intune App SDK"],
+  "The quickstart states that app protection policies apply to groups that contain users, not groups that contain devices.", K28.appQs);
+add(D4, N28b, "A user is in the targeted group, but a status report shows no app protection policy for the user. Before changing settings, which Intune report should you open first?",
+  ["Apps, Monitor, App protection status"],
+  ["Devices, Monitor, Assignment failures", "Reports, Device compliance, Noncompliant devices", "Endpoint security, Antivirus, Unhealthy endpoints"],
+  "The investigation flow starts at Apps, Monitor, App protection status. A newly targeted user can take up to 24 hours to appear in reports.", K28.appTs);
+add(D4, N28b, "You are building an app protection policy that must protect company data when a device is rooted or jailbroken. Which two actions can you choose for this conditional launch setting?",
+  ["Block access", "Wipe data"],
+  ["Warn", "Reset PIN", "Encrypt organizational data"],
+  "For Jailbroken/rooted devices the actions are Block access and Wipe data. Reset PIN belongs to the Max PIN attempts setting, and Warn is offered for settings such as Min OS version.", K28.appAnd);
+
+/* 3. Microsoft 365 Apps with Visio */
+add(D4, N28c, "You deploy Microsoft 365 Apps to enrolled Windows 11 devices by using Intune. Visio must be part of the same deployment. Where do you add Visio in the app suite settings?",
+  ["Select other Office apps (license required)"],
+  ["Select Office apps, the list of standard Microsoft 365 apps", "Languages, where you add extra language packs to the suite", "Properties, where you add the owner and information URL for the app"],
+  "The configuration designer lists licensed apps such as Visio Online Plan 2 and the Project Online desktop client under Select other Office apps (license required).", K28.m365);
+add(D4, N28c, "Which tool is recommended for building the configuration XML that installs Microsoft 365 Apps together with Visio?",
+  ["Office Customization Tool in the Microsoft 365 Apps admin center"],
+  ["Windows Configuration Designer with the provisioning package wizard", "An Intune app configuration policy for Microsoft Visio", "An Intune device configuration profile that uses the Custom template"],
+  "The Office Customization Tool (config.office.com) builds the file. You can then paste it into the Intune app by choosing Enter XML data.", K28.oct);
+add(D4, N28c, "Which Intune app type is built to install the Microsoft 365 Apps suite and can also include Visio?",
+  ["Microsoft 365 Apps, under Windows 10 and later"],
+  ["Windows app (Win32), by using the Visio setup file only", "Line-of-business app, by using an MSI that contains Visio", "Web link, by using the Visio sign-in page"],
+  "Intune has a dedicated Microsoft 365 Apps app type. Visio and Project are optional extras you must own licenses for.", K28.m365);
+add(D4, N28c, "Visio Plan 2 must be installed for a group of users. Who receives the Visio license?",
+  ["The users who run Visio"],
+  ["Only the administrator who creates the Intune app", "The Windows devices that receive the app", "The Entra group that is assigned to the app"],
+  "You assign Visio licenses to the users in the Microsoft 365 admin center. The admin who builds the deployment does not need one.", K28.visio);
+
+/* 4. App configuration policies: managed apps */
+add(D4, N28d, "An Android phone is not enrolled in Intune. You need to push settings to a protected app on it. Which type of app configuration policy applies?",
+  ["Managed apps"],
+  ["Managed devices, which depends on the OS management channel on enrolled devices", "Compliance policy, which reports whether the device meets rules", "Enrollment restriction, which limits the platforms that can enroll"],
+  "Managed apps delivers configuration through the MAM channel. Enrollment state does not matter, but the app must use the Intune App SDK or be wrapped.", K28.acpOv);
+add(D4, N28d, "For which apps can you use the Managed apps type of app configuration policy?",
+  ["Apps built with the Intune App SDK or wrapped"],
+  ["Any app that is deployed from Managed Google Play", "Any app that is pinned to the management profile on iOS", "Any app that is listed in the Windows Package Manager"],
+  "Managed apps are the apps that support app protection policies. The Managed devices type is the one that depends on how the app is deployed to the enrolled device.", K28.acpOv);
+add(D4, N28d, "Which two devices can receive a Managed apps app configuration policy?",
+  ["An iPhone that is not enrolled in Intune", "An Android phone that is not enrolled in Intune"],
+  ["A Mac that is enrolled in Intune", "A Linux workstation that is enrolled in Intune", "A Windows server that is joined to Active Directory"],
+  "App configuration policies cover Android and iOS/iPadOS apps. macOS is listed as not supported in the app management capabilities table.", K28.appMgmt);
+add(D4, N28d, "On Windows, which app is supported by a Managed apps app configuration policy?",
+  ["Microsoft Edge for Windows"],
+  ["Microsoft Outlook for Windows", "Any Win32 app that is deployed by Intune", "Microsoft Teams for Windows"],
+  "Learn states that, at this time, the only supported app for Managed apps on Windows is Microsoft Edge for Windows.", K28.acpMa);
+
+/* 5. Vulnerability Remediation Agent: reading suggestions */
+add(D5, N28e, "The Vulnerability Remediation Agent shows two suggestions. One lists 5 CVEs on 30 exposed devices, the other 1 CVE on 900 exposed devices. Which two columns on the Suggestions tab help you rank them?",
+  ["Impact", "Exposed devices"],
+  ["Status", "Last applied", "Remediation type"],
+  "Impact is the exposure score from Defender Vulnerability Management, and Exposed devices is the count of affected devices. Status and Last applied track your own remediation work.", K28.vraUse);
+add(D5, N28e, "On the Vulnerability Remediation Agent Suggestions tab, an admin selects Mark as applied. What happens?",
+  ["Status becomes Applied and the agent changes nothing on devices"],
+  ["The agent deploys the suggested update policy to the exposed devices", "The agent runs a Windows Update ring with expedited quality updates", "The agent removes the CVEs from Defender Vulnerability Management"],
+  "Mark as applied records that an admin attests to finishing the remediation steps. The agent does not change devices.", K28.vraUse);
+add(D5, N28e, "Which service supplies the CVE data that the Vulnerability Remediation Agent analyzes?",
+  ["Microsoft Defender Vulnerability Management"],
+  ["Microsoft Purview Compliance Manager", "Microsoft Entra ID Protection risk detections", "Windows Update for Business reports"],
+  "The agent collects CVEs from Defender Vulnerability Management and prioritizes them by factors such as CVSS scores, exposure impact and device count.", K28.vra);
+add(D5, N28e, "For an operating system vulnerability, which remediation might the Vulnerability Remediation Agent recommend?",
+  ["Deploy a quality update policy or an expedited update ring"],
+  ["Replace the device with a new Autopilot deployment profile", "Create an app protection policy for the browser", "Add the device to an enrollment restriction group"],
+  "For OS vulnerabilities it commonly recommends a quality update policy or expedited quality updates. For apps it suggests a newer app version or an Intune profile.", K28.vraUse);
+
+/* 6. Custom ADMX templates */
+add(D2, N28f, "Windows 11 devices are Entra joined and enrolled in Intune. A Microsoft Edge policy exists in on-premises Group Policy but not in the settings catalog. You need to manage it centrally with the least effort. What should you do?",
+  ["Import the ADMX and ADML files into Intune and create a profile from them"],
+  ["Deploy a PowerShell script that writes the registry value to each device", "Create a custom profile with a hand-built OMA-URI setting for the policy", "Export the setting from a domain controller and deploy it as a compliance policy"],
+  "Use Devices, Configuration, Import ADMX to upload the template files, then create a profile that uses the imported settings.", K28.admx);
+add(D2, N28f, "Which two files do you upload when you import a custom administrative template into Intune?",
+  ["An ADMX file", "An ADML file for one language"],
+  ["A Group Policy backup (GPO) file", "A JSON settings export from Group Policy analytics", "A provisioning package (PPKG) file"],
+  "You can add only one language file per ADMX file. The ADMX holds the settings and the ADML holds the display text.", K28.admx);
+add(D2, N28f, "An imported ADMX file fails with the error NamespaceMissing: Microsoft.Policies.Windows. What should you do?",
+  ["Upload Windows.admx first, then retry"],
+  ["Remove the ADML file and upload the ADMX alone", "Change the policy to a user scope in the profile", "Convert the combo box settings to text boxes"],
+  "Some templates depend on Windows.admx as a prerequisite. It must be uploaded before the file that references it.", K28.admx);
+
+/* 7. Microsoft Tunnel server logs */
+add(D2, N28g, "On a Linux Tunnel Gateway server you must see session connect and disconnect details and watch the monitoring task as it writes. Access logging must stay off. Which two log views do you use?",
+  ["mstunnel_monitor entries with the follow option", "ocserv entries that contain OCSERV_TELEMETRY"],
+  ["ocserv-access entries with the follow option", "mstunnel-agent entries for the agent container", "mst-cli server restart output after each failure"],
+  "journalctl -t mstunnel_monitor -f follows the monitoring task. OCSERV_TELEMETRY lines record connect and disconnect operations. The ocserv-access tag needs access logging, which is off by default.", K28.tunMon);
+add(D2, N28g, "How do you turn on Tunnel access logging, including DNS connections?",
+  ["Set TRACE_SESSIONS=2 in /etc/mstunnel/env.sh and restart the server with mst-cli"],
+  ["Set TRACE_SESSIONS=1 in /etc/mstunnel/env.sh and restart the server with mst-cli", "Turn on Verbose logging in the Tunnel site settings in the admin center", "Edit the ocserv configuration file and reload the Podman network"],
+  "TRACE_SESSIONS=1 enables access logs, and 2 adds DNS connection logging. Restart with mst-cli server restart. Access logs can reduce performance.", K28.tunMon);
+add(D2, N28g, "Which journalctl tag shows the Microsoft Tunnel agent logs?",
+  ["mstunnel-agent"],
+  ["mstunnel_monitor, which shows the monitoring task logs", "ocserv, which shows the tunnel server logs", "ocserv-access, which shows access logs when enabled"],
+  "Tags: mstunnel-agent is the agent, mstunnel_monitor is the monitoring task, ocserv is the server and ocserv-access is the access log.", K28.tunMon);
 /* ===== Removing MSI Office when deploying Microsoft 365 Apps (Nov 15). Facts: Learn intune/app-management/deployment/add-microsoft-365-windows and microsoft-365-apps/deploy/upgrade-from-msi-version. ===== */
 const M1 = ML + 'intune/app-management/deployment/add-microsoft-365-windows';
 const M2 = ML + 'microsoft-365-apps/deploy/upgrade-from-msi-version';
@@ -5048,6 +5200,128 @@ add(D4, T4c, "What happens to a user's documents and settings when MSI Office is
   ["They are kept"],
   ["They are removed and restored from OneDrive after the install", "Only the documents are kept, and settings are reset to default", "They are kept only if the user signs in during the removal"],
   "User settings, preferences and documents are retained, even if all Office products are uninstalled.", M2);
+
+/* ===== Link fixes (Nov 15): five questions pointed at the RBAC overview page. Q57 also rewritten: Learn's current iOS compliance settings page has no "Enhanced jailbreak detection" setting. ===== */
+function PL(id, l, extra) { const q = Q.find(x => x.id === id); q.l = l; if (extra) Object.assign(q, extra); }
+const CMP = ML + 'intune/device-security/compliance/overview';
+PL(18, CMP);
+PL(55, CMP);
+PL(20, ML + 'intune/device-security/identity-protection/configure-tenant-wide-policy');
+PL(180, ML + 'intune/device-security/compliance/ref-android-enterprise-settings');
+PL(57, ML + 'intune/device-security/compliance/ref-ios-ipados-settings', {
+  q: "Which iOS/iPadOS compliance setting marks jailbroken devices as not compliant?",
+  c: ["Jailbroken devices set to Block"],
+  w: ["Require a passcode on the device", "Restricted apps list for iOS", "Minimum OS version requirement"],
+  e: "Jailbroken devices is in the Device health section of the iOS/iPadOS compliance policy. Block marks them as not compliant, and Conditional Access can then act on that status."
+});
+(function () { const q = Q.find(x => /only from Windows devices that have BitLocker turned on/.test(x.q)); q.l = CMP; })();
+PL(23, ML + 'intune/device-configuration/endpoint-security/account-protection#manage-local-groups-on-windows-devices');
+PL(120, ML + 'intune/device-configuration/endpoint-security/account-protection#manage-local-groups-on-windows-devices');
+PL(65, ML + 'intune/device-security/microsoft-defender/configure-integration');
+PL(40, ML + 'intune/device-configuration/settings-catalog/');
+
+/* interchangeable steps: device preparation policy and assigning apps/scripts can be done in either order */
+(function(){
+  const q = Q.find(x => x.type === 'order' && /Autopilot device preparation \(user-driven, Microsoft Entra join\)/.test(x.q));
+  q.swap = [[4, 5]];
+  q.e = "The Learn tutorial lists assigning apps and scripts (Step 5) before creating the policy (Step 6), but the two can be done in either order: the policy only needs the device group, and apps and scripts you pick in the policy install during deployment. Steps 1 to 6 are required; Step 7 (corporate identifiers or device association) is optional. Device preparation needs no hardware hash and no deployment profile, and it supports Entra join only. The device group must be an assigned security group with the Intune Provisioning Client service principal as owner.";
+})();
+/* more interchangeable steps, matching what the explanations already say */
+(function(){
+  function SW(re, groups){ const q = Q.find(x => x.type === 'order' && re.test(x.q)); if (!q) throw new Error('no seq ' + re); q.swap = groups; }
+  SW(/Autopilot user-driven Microsoft Entra hybrid join/, [[3, 4]]);
+  SW(/Entra hybrid joined and then enroll/, [[1, 2, 3]]);
+  SW(/enroll a corporate Windows PC automatically when the user joins/, [[0, 1]]);
+  SW(/cloud-only user-driven Windows Autopilot/, [[2, 3]]);
+  SW(/connect Microsoft Defender for Endpoint to/, [[2, 3]]);
+})();
+
+/* link repair from a full Learn check (v41): old URL -> working URL */
+(function(){
+  const R = {
+    'intune/app-management/deployment/enterprise-app-catalog-apps': 'intune/app-management/deployment/add-enterprise-catalog-app',
+    'intune/app-management/protection/app-wrapping-tool': 'intune/developer/app-sdk/integration-methods',
+    'intune/app-management/protection/apps-selective-wipe': 'intune/app-management/protection/wipe-corporate-data',
+    'intune/device-configuration/oemconfig': 'intune/device-configuration/templates/configure-oemconfig-android',
+    'intune/device-configuration/supervised-mode': 'intune/device-enrollment/apple/enable-supervised-mode',
+    'intune/device-enrollment/apple/apple-mdm-push-certificate-get': 'intune/device-enrollment/apple/create-mdm-push-certificate',
+    'intune/device-enrollment/apple/automated-device-enrollment-ios': 'intune/device-enrollment/apple/setup-automated-ios',
+    'intune/device-enrollment/monitor/troubleshoot-windows-enrollment-errors': 'intune/device-enrollment/monitor-reports',
+    'intune/app-management/deployment/add-android-store': 'intune/app-management/deployment/add-store-android',
+    'intune/app-management/deployment/add-line-of-business': 'intune/app-management/deployment/add-lob-windows',
+    'intune/app-management/deployment/add-microsoft-store-app': 'intune/app-management/deployment/add-microsoft-store',
+    'intune/app-management/deployment/add-office365': 'intune/app-management/deployment/add-microsoft-365-windows',
+    'intune/app-management/deployment/apple-business-manager-apps': 'intune/app-management/deployment/manage-vpp-apple',
+    'intune/app-management/deployment/assign': 'intune/app-management/deployment/assign-groups',
+    'intune/device-management/inventory-and-status/device-sync-refresh': 'intune/device-configuration/troubleshoot-device-profiles#policy-refresh-intervals',
+    'intune/device-management/monitoring/review-logs-using-azure-monitor': 'intune/governance/integrate-azure-monitor',
+    'intune/device-management/monitoring/tenant-status': 'intune/governance/tenant-status',
+    'intune/device-management/tools/troubleshoot-device': 'intune/fundamentals/it-pro-support/help-desk-operators',
+    'intune/device-security/endpoint-security/antivirus-policy': 'intune/device-configuration/endpoint-security/antivirus',
+    'intune/device-security/endpoint-security/attack-surface-reduction-policy': 'intune/device-configuration/endpoint-security/attack-surface-reduction',
+    'intune/device-security/endpoint-security/firewall-policy': 'intune/device-configuration/endpoint-security/firewall',
+    'intune/device-updates/android/android-fota-deployments': 'intune/device-updates/android/manage-fota',
+    'intune/device-updates/apple/software-updates-ios-ipados': 'intune/device-updates/apple/',
+    'intune/device-updates/apple/software-updates-macos': 'intune/device-updates/apple/',
+    'intune/device-updates/windows/delivery-optimization': 'intune/device-configuration/templates/configure-delivery-optimization-windows',
+    'intune/fundamentals/role-based-access-control/role-based-access-control': 'intune/fundamentals/role-based-access-control/overview'
+  };
+  let n = 0;
+  Q.forEach(q => { if (!q.l) return; const k = q.l.replace(ML, ''); if (R[k]) { q.l = ML + R[k]; n++; } });
+  if (n < 30) throw new Error('link repair applied to only ' + n);
+})();
+
+/* the Vulnerability Remediation Agent question no longer offers retired agents as wrong answers */
+(function(){
+  const q = Q.find(x => x.id === 154);
+  if (!q || q.c[0] !== 'Vulnerability Remediation Agent') throw new Error('id 154 changed');
+  q.w = ["Conditional Access Optimization Agent", "Phishing Triage Agent", "Threat Intelligence Briefing Agent"];
+  q.e = "The Vulnerability Remediation Agent ranks vulnerabilities from Defender and recommends fixes, and an admin approves the action. The other three are Security Copilot agents for other products, not Intune agents.";
+})();
+
+/* Domain tags re-aligned to the MD-102 skills outline (Oct 27, 2026). Topic rules first, then single questions. */
+(function(){
+  const byTopic = {
+    'Apps > Monitor: what each report shows': 4,
+    'Devices > Monitor: what each report shows': 5,
+    'Compliance and Conditional Access': 1,
+    'Device actions: what each one does': 2,
+    'App protection: Microsoft Tunnel for MAM': 2
+  };
+  const appProtTopics = /^App protection: (choose the settings|cut, copy|conditional launch|order of conditional|Windows MAM)/;
+  const byId = {
+    1: {}, // placeholder so the map is easy to extend
+    2: [157, 171, 172, 297, 302, 393, 394, 395, 396, 397, 398, 399, 168, 680],
+    3: [299, 300, 400, 401, 402, 403, 404, 405],
+    4: [163, 421, 422, 424, 425],
+    5: [431],
+    D1: [279, 286]
+  };
+  const to = {};
+  byId[2].forEach(i => to[i] = 2);
+  byId[3].forEach(i => to[i] = 3);
+  byId[4].forEach(i => to[i] = 4);
+  byId[5].forEach(i => to[i] = 5);
+  byId.D1.forEach(i => to[i] = 1);
+  [718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732].forEach(i => to[i] = 2);   // EPM
+  [747, 748, 749, 750, 751, 752, 753].forEach(i => to[i] = 1);                                          // Windows Hello for Business
+  [458, 459, 460].forEach(i => to[i] = 2);                                                              // Collect diagnostics is a remote action
+  Q.forEach(q => {
+    if (byTopic[q.t]) q.d = byTopic[q.t];
+    else if (appProtTopics.test(q.t)) q.d = 4;
+    if (to[q.id]) q.d = to[q.id];
+  });
+})();
+
+/* retired features removed from the quiz (ids stay stable, the questions are spliced out like Lab questions) */
+(function(){
+  [94, 436, 437, 438].forEach(id => {
+    const i = Q.findIndex(q => q.id === id);
+    if (i < 0) throw new Error('retired question id not found ' + id);
+    if (!/agent/i.test(Q[i].q)) throw new Error('unexpected question at id ' + id + ': ' + Q[i].q);
+    Q.splice(i, 1);
+  });
+})();
 /* ---- Retire every question that was written from the lab guide.
    The bank is built only from Microsoft documentation. Ids are kept, so saved progress still lines up. ---- */
 for (let i = Q.length - 1; i >= 0; i--) if (/^Lab \d/.test(Q[i].t)) Q.splice(i, 1);
@@ -5185,7 +5459,9 @@ function start(mode, opt){
   else if (mode === 'missed'){ qs = shuffle(Q.filter(q => qStats(q.id).last === false)); label = 'Missed questions'; }
   else if (mode === 'drill'){
     qs = shuffle(Q.filter(q => (!opt.d || q.d === +opt.d) && (!opt.t || q.t === opt.t)));
+    if (opt.w === 'weak') qs = shuffle(qs).map(q => ({q, k:(qStats(q.id).last === false ? -1 : 0) + (qStats(q.id).seen ? 0.5 : 0) + Math.random() * 0.4})).sort((a, b) => a.k - b.k).map(x => x.q);
     label = opt.t ? 'Topic: ' + opt.t : opt.d ? 'Domain ' + opt.d + ' drill' : 'All questions';
+    if (opt.n && opt.n < qs.length){ qs = qs.slice(0, opt.n); label += ' (' + opt.n + ' questions' + (opt.w === 'weak' ? ', missed and unseen first' : '') + ')'; }
   }
   if (!qs.length) return;
   S = {mode, label, items:qs.map(buildItem), i:0, instant, limit, left:limit, checked:false, started:Date.now(), endless:mode === 'seqloop', pickId:opt.id || ''};
@@ -5204,8 +5480,14 @@ function tick(){
 const fmt = s => { s = Math.max(0, s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
 
 /* ---------- answering ---------- */
+/* a step is right at position i if it matches, or if both positions sit in the same interchangeable group (q.swap = [[4,5]]) */
+function stepOk(q, t, i){
+  if (t === q.steps[i]) return true;
+  const j = q.steps.indexOf(t);
+  return j >= 0 && (q.swap || []).some(g => g.indexOf(i) >= 0 && g.indexOf(j) >= 0);
+}
 function grade(it){
-  if (it.type === 'order') return it.seq.length === it.q.steps.length && it.seq.every((t, i) => t === it.q.steps[i]);
+  if (it.type === 'order') return it.seq.length === it.q.steps.length && it.seq.every((t, i) => stepOk(it.q, t, i));
   const want = it.opts.map((o, i) => o.ok ? i : -1).filter(i => i >= 0).sort().join(',');
   const got = it.picked.slice().sort().join(',');
   return want === got;
@@ -5276,6 +5558,8 @@ function homeView(){
     '<section class="panel mode"><h2>Missed questions</h2><p>Replay every question you last got wrong until none are left.</p><div class="meta">' + missed + ' waiting</div><div><button class="btn" data-act="start" data-mode="missed"' + (missed ? '' : ' disabled') + '>Replay missed</button></div></section>' +
   '</div>' +
   '<section class="panel stack sec"><h2>Study one area</h2>' +
+    '<div class="row"><label for="selCount" class="note">Questions</label><select id="selCount">' + [10, 20, 30, 50, 100, 0].map(n => '<option value="' + n + '"' + ((store.drillN || 0) === n ? ' selected' : '') + '>' + (n ? n : 'All in the area') + '</option>').join('') + '</select><span class="note">A random set each time, if the area has more than this.</span></div>' +
+    '<div class="row"><label for="selPick" class="note">Choose</label><select id="selPick"><option value="rand"' + (store.drillP === 'rand' ? ' selected' : '') + '>A random mix</option><option value="weak"' + (store.drillP === 'weak' ? ' selected' : '') + '>Missed and unseen first</option></select></div>' +
     '<div class="row"><label for="selDomain" class="note">Domain</label><select id="selDomain"><option value="">All domains</option>' + DIDS.map(d => '<option value="' + d + '">' + d + '. ' + esc(DOM[d].short) + ' (' + DOM[d].range + ')</option>').join('') + '</select>' +
     '<button class="btn ghost sm" data-act="drillDomain">Drill domain</button></div>' +
     '<div class="row"><label for="selTopic" class="note">Topic</label><select id="selTopic">' + topOpts + '</select><button class="btn ghost sm" data-act="drillTopic">Drill topic</button></div>' +
@@ -5291,7 +5575,7 @@ function orderBody(it){
     '<div class="ord"><div class="col pool"><h3>Available steps</h3><ol>' + (avail.length ? avail.map(t => '<li><button class="stepb" data-act="oadd" data-t="' + esc(t) + '">' + esc(t) + '</button></li>').join('') : '<li class="empty">All steps are in your sequence.</li>') + '</ol></div>' +
     '<div class="col seq"><h3>Your sequence</h3><ol>' + (it.seq.length ? it.seq.map((t, i) => '<li class="step"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span><span class="ctl"><button data-act="oup" data-i="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button><button data-act="odown" data-i="' + i + '" aria-label="Move down"' + (i === it.seq.length - 1 ? ' disabled' : '') + '>↓</button><button data-act="orm" data-i="' + i + '" aria-label="Remove step">✕</button></span></li>').join('') : '<li class="empty">Pick steps from the left.</li>') + '</ol></div></div>';
   }
-  const yours = it.seq.map((t, i) => '<li class="step ' + (t === q.steps[i] ? 'ok' : 'no2') + '"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('');
+  const yours = it.seq.map((t, i) => '<li class="step ' + (stepOk(q, t, i) ? 'ok' : 'no2') + '"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('');
   const right = q.steps.map((t, i) => '<li class="step ok"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '<span class="why">' + esc(q.notes[i]) + '</span></span></li>').join('');
   return '<div class="ord"><div class="col"><h3>Your sequence</h3><ol>' + (yours || '<li class="empty">You left this empty.</li>') + '</ol></div><div class="col"><h3>Correct sequence</h3><ol>' + right + '</ol></div></div>';
 }
@@ -5358,7 +5642,7 @@ function resultView(){
   const skipped = R.planned - R.total;
   const rows = topics.map(x => '<tr><td>' + esc(x.t) + '<br><span class="chip d' + x.d + '">Domain ' + x.d + '</span></td><td class="n">' + x.r + '/' + x.n + '</td><td class="n">' + pct(x.r, x.n) + '%</td><td><button class="btn ghost sm" data-act="drillT" data-t="' + esc(x.t) + '">Drill</button></td></tr>').join('');
   const review = wrong.map(i => {
-    if (i.type === 'order') return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">Sequence · ' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p><div class="ord"><div class="col"><h3>Your order</h3><ol>' + (i.seq.map((t, k) => '<li class="step ' + (t === i.q.steps[k] ? 'ok' : 'no2') + '"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') || '<li class="empty">No steps chosen.</li>') + '</ol></div><div class="col"><h3>Correct order</h3><ol>' + i.q.steps.map((t, k) => '<li class="step ok"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') + '</ol></div></div><p class="note">' + esc(i.q.e) + '</p></div>';
+    if (i.type === 'order') return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">Sequence · ' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p><div class="ord"><div class="col"><h3>Your order</h3><ol>' + (i.seq.map((t, k) => '<li class="step ' + (stepOk(i.q, t, k) ? 'ok' : 'no2') + '"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') || '<li class="empty">No steps chosen.</li>') + '</ol></div><div class="col"><h3>Correct order</h3><ol>' + i.q.steps.map((t, k) => '<li class="step ok"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') + '</ol></div></div><p class="note">' + esc(i.q.e) + '</p></div>';
     const ch = i.picked.map(k => esc(i.opts[k].t)).join('; ');
     const co = i.opts.filter(o => o.ok).map(o => esc(o.t)).join('; ');
     return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p>' + vis(i.q) +
@@ -5452,7 +5736,7 @@ const WEEKS = [
   {when:'Dec 15 – Dec 21', title:'Operations, analytics and Copilot', d:5, items:[
     'Remediations: exit code 0 vs 1, schedule, run on demand',
     'Endpoint analytics scores: startup performance, work from anywhere, application reliability',
-    'Security Copilot in Intune and agents: know which agents were retired and when',
+    'Security Copilot in Intune: what Copilot and the Vulnerability Remediation Agent do, and who approves actions',
     'Device cleanup rules, naming templates, Collect diagnostics',
     'Take a second full mock exam and compare Domain scores to the baseline'],
    ref:[['Security Copilot agents in Intune','https://learn.microsoft.com/intune/copilot/agents/']]},
@@ -5485,8 +5769,7 @@ const FACTS = [
   'Advanced Analytics needs a license on top of Intune Plan 1 or 2, and Windows devices must be enrolled and onboarded to endpoint analytics. Tunnel for MAM extends Tunnel to unenrolled Android and iOS devices.',
   'Cloud Policy for Microsoft 365 Apps: scopes are all users, specific Entra groups (several per configuration now) or anonymous Office for the web users. Policies apply to users; devices in a group are ignored.',
   'Update ring deferral: quality 0 to 30 days, feature 0 to 365 days. Apple updates use DDM software update in the settings catalog. Android Zebra firmware uses FOTA deployments.',
-  'Endpoint protection template: new policies for Windows only (the macOS template is deprecated; use the settings catalog or endpoint security policies). Enterprise App Catalog and Remediations: Windows only.',
-  'Retired agents: Device Offboarding Agent (removed June 1, 2026), Change Review Agent and Policy Configuration Agent (retired Aug 31, 2026).'
+  'Endpoint protection template: new policies for Windows only (the macOS template is deprecated; use the settings catalog or endpoint security policies). Enterprise App Catalog and Remediations: Windows only.'
 ];
 [['Lab 1 (automatic enrollment, restrictions, device limits) on the Labs tab'],['Lab 9 Part C (RBAC and scope tags) on the Labs tab'],['Lab 2 (Autopilot and ESP) and Lab 3 (provisioning packages) on the Labs tab','Lab 11 (hybrid join), if you have a server VM'],['Lab 5 (profiles and baselines) and Lab 7 (update rings) on the Labs tab'],['Lab 4 (compliance and Conditional Access) and Lab 8 (LAPS, BitLocker, Defender) on the Labs tab'],[],['Lab 6 (app deployment and filters) and Lab 10 (app protection) on the Labs tab'],['Lab 9 Parts A, B and D (scripts, remediations, device actions) on the Labs tab'],[]].forEach((a, i) => { WEEKS[i].items.push.apply(WEEKS[i].items, a); });
 const DAY = 86400000, fmtD = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -5641,8 +5924,8 @@ document.addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'start') start(b.dataset.mode);
   else if (a === 'seqloop') start('seqloop', {id:$('#selSeq').value});
-  else if (a === 'drillDomain') start('drill', {d:$('#selDomain').value});
-  else if (a === 'drillTopic') start('drill', {t:$('#selTopic').value});
+  else if (a === 'drillDomain'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {d:$('#selDomain').value, n, w}); }
+  else if (a === 'drillTopic'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {t:$('#selTopic').value, n, w}); }
   else if (a === 'drillT'){ tab = 'practice'; location.hash = 'practice'; start('drill', {t:b.dataset.t}); }
   else if (a === 'oadd'){ const it = S.items[S.i]; if (!S.checked && !it.seq.includes(b.dataset.t)){ it.seq.push(b.dataset.t); render(); } }
   else if (a === 'orm'){ const it = S.items[S.i]; it.seq.splice(+b.dataset.i, 1); render(); }
@@ -5706,3 +5989,4 @@ document.addEventListener('keydown', e => {
 route();
 setInterval(countdown, 3600000);
 </script>
+</body></html>

@@ -1,5 +1,5 @@
 cd "$(dirname "$0")"
-cat h.js q1.js q2.js q3.js q4.js q5.js q6.js q7.js q8.js q9.js q10.js q11.js q12.js q13.js q14.js q15.js labs.js q16.js q17.js q18.js q19.js q21.js q22.js q23.js q24.js q25.js q26.js q27.js q20.js > all.js
+cat h.js q1.js q2.js q3.js q4.js q5.js q6.js q7.js q8.js q9.js q10.js q11.js q12.js q13.js q14.js q15.js labs.js q16.js q17.js q18.js q19.js q21.js q22.js q23.js q24.js q25.js q26.js q28.js q27.js q20.js > all.js
 python3 - <<'PY'
 s=open('app.html',encoding='utf-8').read(); d=open('all.js',encoding='utf-8').read()
 open('index.html','w',encoding='utf-8').write(s.replace('/*__DATA__*/',d))

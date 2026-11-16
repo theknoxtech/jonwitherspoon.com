@@ -102,6 +102,17 @@ select{font:14px var(--font);background:var(--surface);color:var(--ink);border:1
 .tbl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
 .tbl td.n,.tbl th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .scroll{overflow-x:auto}
+.mock{border:1px solid var(--line);border-radius:8px;background:var(--surface);margin:12px 0;overflow-x:auto}
+.mock .cap{font:500 11.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line)}
+.mock table{width:100%;border-collapse:collapse;font-size:14px}
+.mock td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mock tr:last-child td{border-bottom:0}
+.mock tr.h td{font-weight:700;background:var(--soft)}
+.mock td.l{width:50%}
+.mock td.v span{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:2px 9px;background:var(--bg)}
+.mock tr.dim td{color:var(--muted)}
+.mock tr.dim td.v span{opacity:.7;border-style:dashed}
+.mock .i1{padding-left:28px}.mock .i2{padding-left:44px}
 .rev{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
 .ord{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:16px 0}
 .ord h3{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
@@ -218,6 +229,12 @@ window.addEventListener('pagehide', persistRun);
 
 const $ = (s, r) => (r || document).querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const vis = q => {
+  if (!q.v) return '';
+  return '<div class="mock" role="img" aria-label="Mock-up of app protection policy settings"><div class="cap">' + esc(q.vc || 'Policy settings as configured (mock-up)') + '</div><table>' +
+    q.v.map(r => r[0] === '#' ? '<tr class="h"><td colspan="2">' + esc(r[1]) + '</td></tr>' :
+      '<tr' + (r[3] ? ' class="dim"' : '') + '><td class="l i' + (r[2] || 0) + '">' + esc(r[0]) + '</td><td class="v"><span>' + esc(r[1]) + '</span></td></tr>').join('') + '</table></div>';
+};
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pct = (r, t) => t ? Math.round(100 * r / t) : 0;
 
@@ -298,7 +315,9 @@ function start(mode, opt){
   else if (mode === 'missed'){ qs = shuffle(Q.filter(q => qStats(q.id).last === false)); label = 'Missed questions'; }
   else if (mode === 'drill'){
     qs = shuffle(Q.filter(q => (!opt.d || q.d === +opt.d) && (!opt.t || q.t === opt.t)));
+    if (opt.w === 'weak') qs = shuffle(qs).map(q => ({q, k:(qStats(q.id).last === false ? -1 : 0) + (qStats(q.id).seen ? 0.5 : 0) + Math.random() * 0.4})).sort((a, b) => a.k - b.k).map(x => x.q);
     label = opt.t ? 'Topic: ' + opt.t : opt.d ? 'Domain ' + opt.d + ' drill' : 'All questions';
+    if (opt.n && opt.n < qs.length){ qs = qs.slice(0, opt.n); label += ' (' + opt.n + ' questions' + (opt.w === 'weak' ? ', missed and unseen first' : '') + ')'; }
   }
   if (!qs.length) return;
   S = {mode, label, items:qs.map(buildItem), i:0, instant, limit, left:limit, checked:false, started:Date.now(), endless:mode === 'seqloop', pickId:opt.id || ''};
@@ -317,8 +336,14 @@ function tick(){
 const fmt = s => { s = Math.max(0, s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
 
 /* ---------- answering ---------- */
+/* a step is right at position i if it matches, or if both positions sit in the same interchangeable group (q.swap = [[4,5]]) */
+function stepOk(q, t, i){
+  if (t === q.steps[i]) return true;
+  const j = q.steps.indexOf(t);
+  return j >= 0 && (q.swap || []).some(g => g.indexOf(i) >= 0 && g.indexOf(j) >= 0);
+}
 function grade(it){
-  if (it.type === 'order') return it.seq.length === it.q.steps.length && it.seq.every((t, i) => t === it.q.steps[i]);
+  if (it.type === 'order') return it.seq.length === it.q.steps.length && it.seq.every((t, i) => stepOk(it.q, t, i));
   const want = it.opts.map((o, i) => o.ok ? i : -1).filter(i => i >= 0).sort().join(',');
   const got = it.picked.slice().sort().join(',');
   return want === got;
@@ -389,6 +414,8 @@ function homeView(){
     '<section class="panel mode"><h2>Missed questions</h2><p>Replay every question you last got wrong until none are left.</p><div class="meta">' + missed + ' waiting</div><div><button class="btn" data-act="start" data-mode="missed"' + (missed ? '' : ' disabled') + '>Replay missed</button></div></section>' +
   '</div>' +
   '<section class="panel stack sec"><h2>Study one area</h2>' +
+    '<div class="row"><label for="selCount" class="note">Questions</label><select id="selCount">' + [10, 20, 30, 50, 100, 0].map(n => '<option value="' + n + '"' + ((store.drillN || 0) === n ? ' selected' : '') + '>' + (n ? n : 'All in the area') + '</option>').join('') + '</select><span class="note">A random set each time, if the area has more than this.</span></div>' +
+    '<div class="row"><label for="selPick" class="note">Choose</label><select id="selPick"><option value="rand"' + (store.drillP === 'rand' ? ' selected' : '') + '>A random mix</option><option value="weak"' + (store.drillP === 'weak' ? ' selected' : '') + '>Missed and unseen first</option></select></div>' +
     '<div class="row"><label for="selDomain" class="note">Domain</label><select id="selDomain"><option value="">All domains</option>' + DIDS.map(d => '<option value="' + d + '">' + d + '. ' + esc(DOM[d].short) + ' (' + DOM[d].range + ')</option>').join('') + '</select>' +
     '<button class="btn ghost sm" data-act="drillDomain">Drill domain</button></div>' +
     '<div class="row"><label for="selTopic" class="note">Topic</label><select id="selTopic">' + topOpts + '</select><button class="btn ghost sm" data-act="drillTopic">Drill topic</button></div>' +
@@ -404,7 +431,7 @@ function orderBody(it){
     '<div class="ord"><div class="col pool"><h3>Available steps</h3><ol>' + (avail.length ? avail.map(t => '<li><button class="stepb" data-act="oadd" data-t="' + esc(t) + '">' + esc(t) + '</button></li>').join('') : '<li class="empty">All steps are in your sequence.</li>') + '</ol></div>' +
     '<div class="col seq"><h3>Your sequence</h3><ol>' + (it.seq.length ? it.seq.map((t, i) => '<li class="step"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span><span class="ctl"><button data-act="oup" data-i="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button><button data-act="odown" data-i="' + i + '" aria-label="Move down"' + (i === it.seq.length - 1 ? ' disabled' : '') + '>↓</button><button data-act="orm" data-i="' + i + '" aria-label="Remove step">✕</button></span></li>').join('') : '<li class="empty">Pick steps from the left.</li>') + '</ol></div></div>';
   }
-  const yours = it.seq.map((t, i) => '<li class="step ' + (t === q.steps[i] ? 'ok' : 'no2') + '"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('');
+  const yours = it.seq.map((t, i) => '<li class="step ' + (stepOk(q, t, i) ? 'ok' : 'no2') + '"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('');
   const right = q.steps.map((t, i) => '<li class="step ok"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '<span class="why">' + esc(q.notes[i]) + '</span></span></li>').join('');
   return '<div class="ord"><div class="col"><h3>Your sequence</h3><ol>' + (yours || '<li class="empty">You left this empty.</li>') + '</ol></div><div class="col"><h3>Correct sequence</h3><ol>' + right + '</ol></div></div>';
 }
@@ -434,7 +461,7 @@ function qView(){
   '<div class="qhead"><div class="row"><span class="chip d' + it.q.d + '">Domain ' + it.q.d + '</span><span class="note">' + esc(it.q.t) + '</span></div>' +
     '<div class="row mono note"><span>' + (S.i + 1) + ' / ' + n + '</span>' + (S.limit ? '<span id="clock">' + fmt(S.left) + '</span>' : '') + '</div></div>' +
   '<div class="bar"><i style="width:' + Math.round(100 * (S.i + (S.checked ? 1 : 0)) / n) + '%"></i></div>' +
-  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' +
+  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' + vis(it.q) +
     (multi ? '<p class="hint">Select ' + it.q.c.length + '</p>' : '') +
     '<div class="opts" role="' + (multi ? 'group' : 'radiogroup') + '">' + opts + '</div>' + fb +
     '<div class="actions">' + act + '<button class="btn ghost" data-act="end">End and score</button><button class="btn ghost" data-act="gohome">Save and go home</button></div></section>';
@@ -451,7 +478,7 @@ function qOrderView(){
   '<div class="qhead"><div class="row"><span class="chip d' + it.q.d + '">Domain ' + it.q.d + '</span><span class="note">Sequence · ' + esc(it.q.t) + '</span></div>' +
     '<div class="row mono note"><span>' + (S.endless ? 'Round ' + (S.i + 1) : (S.i + 1) + ' / ' + n) + '</span>' + (S.limit ? '<span id="clock">' + fmt(S.left) + '</span>' : '') + '</div></div>' +
   (S.endless ? '' : (S.endless ? '' : '<div class="bar"><i style="width:' + Math.round(100 * (S.i + (S.checked ? 1 : 0)) / n) + '%"></i></div>')) +
-  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' +
+  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' + vis(it.q) +
     '<p class="note"><b>Use ' + (it.pool.length > it.q.steps.length ? 'exactly ' + it.q.steps.length + ' of the ' + it.pool.length + ' steps' : 'all ' + it.q.steps.length + ' steps') + '.</b> ' + it.seq.length + ' of ' + it.q.steps.length + ' placed.</p>' + orderBody(it) + fb +
     '<div class="actions">' + act + (it.seq.length && !S.checked ? '<button class="btn ghost" data-act="oclear">Clear</button>' : '') + '<button class="btn ghost" data-act="end">End and score</button><button class="btn ghost" data-act="gohome">Save and go home</button></div></section>';
 }
@@ -471,10 +498,10 @@ function resultView(){
   const skipped = R.planned - R.total;
   const rows = topics.map(x => '<tr><td>' + esc(x.t) + '<br><span class="chip d' + x.d + '">Domain ' + x.d + '</span></td><td class="n">' + x.r + '/' + x.n + '</td><td class="n">' + pct(x.r, x.n) + '%</td><td><button class="btn ghost sm" data-act="drillT" data-t="' + esc(x.t) + '">Drill</button></td></tr>').join('');
   const review = wrong.map(i => {
-    if (i.type === 'order') return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">Sequence · ' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p><div class="ord"><div class="col"><h3>Your order</h3><ol>' + (i.seq.map((t, k) => '<li class="step ' + (t === i.q.steps[k] ? 'ok' : 'no2') + '"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') || '<li class="empty">No steps chosen.</li>') + '</ol></div><div class="col"><h3>Correct order</h3><ol>' + i.q.steps.map((t, k) => '<li class="step ok"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') + '</ol></div></div><p class="note">' + esc(i.q.e) + '</p></div>';
+    if (i.type === 'order') return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">Sequence · ' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p><div class="ord"><div class="col"><h3>Your order</h3><ol>' + (i.seq.map((t, k) => '<li class="step ' + (stepOk(i.q, t, k) ? 'ok' : 'no2') + '"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') || '<li class="empty">No steps chosen.</li>') + '</ol></div><div class="col"><h3>Correct order</h3><ol>' + i.q.steps.map((t, k) => '<li class="step ok"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') + '</ol></div></div><p class="note">' + esc(i.q.e) + '</p></div>';
     const ch = i.picked.map(k => esc(i.opts[k].t)).join('; ');
     const co = i.opts.filter(o => o.ok).map(o => esc(o.t)).join('; ');
-    return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p>' +
+    return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p>' + vis(i.q) +
       '<p class="ans"><span>YOU</span>' + ch + '</p><p class="ans"><span>CORRECT</span>' + co + '</p>' +
       '<p class="note" style="margin-top:6px">' + esc(i.q.e) + (i.q.l ? ' <a href="' + esc(i.q.l) + '" target="_blank" rel="noopener">Learn</a>' : '') + '</p></div>';
   }).join('');
@@ -565,7 +592,7 @@ const WEEKS = [
   {when:'Dec 15 – Dec 21', title:'Operations, analytics and Copilot', d:5, items:[
     'Remediations: exit code 0 vs 1, schedule, run on demand',
     'Endpoint analytics scores: startup performance, work from anywhere, application reliability',
-    'Security Copilot in Intune and agents: know which agents were retired and when',
+    'Security Copilot in Intune: what Copilot and the Vulnerability Remediation Agent do, and who approves actions',
     'Device cleanup rules, naming templates, Collect diagnostics',
     'Take a second full mock exam and compare Domain scores to the baseline'],
    ref:[['Security Copilot agents in Intune','https://learn.microsoft.com/intune/copilot/agents/']]},
@@ -598,8 +625,7 @@ const FACTS = [
   'Advanced Analytics needs a license on top of Intune Plan 1 or 2, and Windows devices must be enrolled and onboarded to endpoint analytics. Tunnel for MAM extends Tunnel to unenrolled Android and iOS devices.',
   'Cloud Policy for Microsoft 365 Apps: scopes are all users, specific Entra groups (several per configuration now) or anonymous Office for the web users. Policies apply to users; devices in a group are ignored.',
   'Update ring deferral: quality 0 to 30 days, feature 0 to 365 days. Apple updates use DDM software update in the settings catalog. Android Zebra firmware uses FOTA deployments.',
-  'Endpoint protection template: new policies for Windows only (the macOS template is deprecated; use the settings catalog or endpoint security policies). Enterprise App Catalog and Remediations: Windows only.',
-  'Retired agents: Device Offboarding Agent (removed June 1, 2026), Change Review Agent and Policy Configuration Agent (retired Aug 31, 2026).'
+  'Endpoint protection template: new policies for Windows only (the macOS template is deprecated; use the settings catalog or endpoint security policies). Enterprise App Catalog and Remediations: Windows only.'
 ];
 [['Lab 1 (automatic enrollment, restrictions, device limits) on the Labs tab'],['Lab 9 Part C (RBAC and scope tags) on the Labs tab'],['Lab 2 (Autopilot and ESP) and Lab 3 (provisioning packages) on the Labs tab','Lab 11 (hybrid join), if you have a server VM'],['Lab 5 (profiles and baselines) and Lab 7 (update rings) on the Labs tab'],['Lab 4 (compliance and Conditional Access) and Lab 8 (LAPS, BitLocker, Defender) on the Labs tab'],[],['Lab 6 (app deployment and filters) and Lab 10 (app protection) on the Labs tab'],['Lab 9 Parts A, B and D (scripts, remediations, device actions) on the Labs tab'],[]].forEach((a, i) => { WEEKS[i].items.push.apply(WEEKS[i].items, a); });
 const DAY = 86400000, fmtD = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -754,8 +780,8 @@ document.addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'start') start(b.dataset.mode);
   else if (a === 'seqloop') start('seqloop', {id:$('#selSeq').value});
-  else if (a === 'drillDomain') start('drill', {d:$('#selDomain').value});
-  else if (a === 'drillTopic') start('drill', {t:$('#selTopic').value});
+  else if (a === 'drillDomain'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {d:$('#selDomain').value, n, w}); }
+  else if (a === 'drillTopic'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {t:$('#selTopic').value, n, w}); }
   else if (a === 'drillT'){ tab = 'practice'; location.hash = 'practice'; start('drill', {t:b.dataset.t}); }
   else if (a === 'oadd'){ const it = S.items[S.i]; if (!S.checked && !it.seq.includes(b.dataset.t)){ it.seq.push(b.dataset.t); render(); } }
   else if (a === 'orm'){ const it = S.items[S.i]; it.seq.splice(+b.dataset.i, 1); render(); }
