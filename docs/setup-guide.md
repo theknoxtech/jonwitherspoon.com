@@ -46,7 +46,10 @@ Both:
 - [ ] Name: `AZURE_STATIC_WEB_APPS_API_TOKEN`. Value: the token. Save.
 - [ ] Never paste the token anywhere else (not in files, chats or commits).
 
-## 5. First deploy
+## 5. Try it locally, then first deploy
+
+To look at the site on your laptop, run `npm run build && npm run preview` and open http://localhost:4321. Use this rather than `npm run dev`, because the lab pages are copied at build time and the dev server does not serve them. The Projects and Labs pages have a search box, powered by one small file, `public/search.js`.
+
 
 - [ ] Open a pull request from `dev` into `main`. The workflow builds the site and publishes a **preview** web address (shown in a comment on the pull request). Free plan allows 3 previews at once; previews are public.
 - [ ] Open the preview and check the pages: Home, Work, Projects, Labs, MD-102 lab, KQL lab, and a missing page.
@@ -104,6 +107,18 @@ Do this if the token may have leaked, or every year as housekeeping.
 Your study apps are yours; the site only hosts them. No configuration change is needed: the build copies the top-level HTML files of every `exam_apps/<code>/` folder into the site, and one header rule, `/exam_apps*`, covers every lab.
 
 - [ ] Create `exam_apps/<code>/` (for example `exam_apps/sc-300/`) with its `index.html` beside its `source/` folder, as in `exam_apps/md-102/`. The folder name is the web address, `/exam_apps/<code>/`. Only `.html` files directly in that folder are published; `source/`, scripts and notes are not.
-- [ ] Add an entry to `labs[]` in `src/data/site.json` (title, link `/exam_apps/<code>/`, short description) so it shows on the Labs page.
+- [ ] Add an entry to `labs[]` in `src/data/site.json`. Required: `code` and `name`. `path` (for example `/exam_apps/az-104/`) gives the Open button. Optional: `status` (`live`, `in progress` or `planned`; if missing, a lab with a path shows as live and one without shows as planned), `updated`, `description`, and `companions` (a list of `{name, path}`). A minimal entry:
+
+```
+{
+    "code": "AZ-104",
+    "name": "Azure Administrator practice app",
+    "path": "/exam_apps/az-104/",
+    "status": "live",
+    "description": "Practice questions for AZ-104.",
+    "companions": []
+}
+```
+
 - [ ] Run `npm run build`; the output lists each lab file copied. Then `npm run preview` and open `/exam_apps/<code>/` in a browser. Check that it loads and that progress saves.
 - [ ] After deploying, run the `curl -sI` checks from section 7 for the new address and confirm the lab CSP is present.

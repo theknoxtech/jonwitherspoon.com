@@ -14,4 +14,5 @@
 - Jon: "No it is still broken. I was launching it by openign the index.html. The index.html was not in the source folder either. I dont know what you did but you need to get it fixed right now".
 - Jon: "it opens now. I dont know why it wasnt in the other folder. But it has to be the way it is written". Then "yes" to: move the whole original md-102 folder into exam_apps/md-102 unchanged, remove the duplicate copies, add a build step that copies only the top-level HTML pages into the site.
 - Jon: "include the md-102 edits on commit" (committed as 89eda90).
+- Prototype review (answer to prompt 1, "change it"): "the theme is horrendous. Can we add some modernization to it. I don't like the squard cards, I want more color, I like colored buttons. Similar to the other site but not overkill. The fonts are fine. You could make it contrast with the lab pages. Budgetry needs to go away. There needs to be a search feature for projects and labs."
 - Reading the old site at ~/Personal Src/siliconscripted.com: "yes".

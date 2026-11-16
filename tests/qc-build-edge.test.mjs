@@ -29,8 +29,10 @@ function build(directory, extraEnv = {}) {
     const env = { ...process.env, ASTRO_TELEMETRY_DISABLED: '1', ...extraEnv };
     delete env.FAIL_ON_PLACEHOLDER;
     delete env.GITHUB_SHA;
+    // Nothing from the outer npm run may point a throwaway build back at the real project.
+    for (const name of Object.keys(env)) if (name.startsWith('npm_') || name === 'INIT_CWD') delete env[name];
     Object.assign(env, extraEnv);
-    const result = spawnSync(process.execPath, [astroBin, 'build'], { cwd: directory, env, encoding: 'utf8', timeout: 120000 });
+    const result = spawnSync(process.execPath, [astroBin, 'build', '--root', directory, '--outDir', join(directory, 'dist')], { cwd: directory, env, encoding: 'utf8', timeout: 120000 });
     return { status: result.status, output: `${result.stdout}\n${result.stderr}` };
 }
 
@@ -56,6 +58,10 @@ function walkNames(directory) {
 }
 
 const skip = !canBuild;
+
+// Guard: no throwaway build may write into the real dist/. Snapshot first, compare in the last test.
+const realProjectsPage = join(root, 'dist/projects/index.html');
+const realPageBefore = existsSync(realProjectsPage) ? readFileSync(realProjectsPage, 'utf8') : null;
 
 test('QC edge: build with NO exam_apps folder at all succeeds and publishes no exam_apps', { skip }, () => {
     withCopy('noapps', ({ status, output }, directory) => {
@@ -144,7 +150,7 @@ test('QC edge site.json: a project without featured or order builds and does not
     withCopy('nofeatured', ({ status, output }, directory) => {
         assert.equal(status, 0, output.split('\n').filter((line) => /Error|TypeError|Cannot/.test(line)).join('\n'));
         assert.equal((readFileSync(join(directory, 'dist/index.html'), 'utf8').match(/class="card"/g) ?? []).length, 3);
-    }, { siteChange: (site) => { delete site.projects[4].featured; delete site.projects[4].order; } });
+    }, { siteChange: (site) => { delete site.projects[3].featured; delete site.projects[3].order; } });
 });
 
 test('QC edge: a missing avatar file does not stop the build (no guard), and the page then points at a missing file', { skip }, (t) => {
@@ -170,14 +176,14 @@ test('QC edge: the build stamp shows the first 7 characters of GITHUB_SHA, or "l
 test('QC placeholder guard: warns and exits 0 by default, naming the files', { skip }, () => {
     withCopy('warn', ({ status, output }) => {
         assert.equal(status, 0, output);
-        assert.match(output, /WARNING: 2 page\(s\) still contain "\[TO SUPPLY": index\.html, work\/index\.html/);
+        assert.match(output, /WARNING: 2 page\(s\) still contain "\[TO SUPPLY": index\.html, portfolio\/index\.html/);
     });
 });
 
 test('QC placeholder guard: FAIL_ON_PLACEHOLDER=1 fails the build with a non-zero exit and names the files', { skip }, () => {
     withCopy('fail', ({ status, output }) => {
         assert.notEqual(status, 0, 'build should fail');
-        assert.match(output, /2 page\(s\) still contain "\[TO SUPPLY": index\.html, work\/index\.html/);
+        assert.match(output, /2 page\(s\) still contain "\[TO SUPPLY": index\.html, portfolio\/index\.html/);
         assert.doesNotMatch(output, /WARNING:/);
     }, { extraEnv: { FAIL_ON_PLACEHOLDER: '1' } });
 });
@@ -232,4 +238,9 @@ test('QC edge: running the build twice gives the same file list (rebuild is repe
     } finally {
         removeCopy(directory);
     }
+});
+
+test('QC edge: the throwaway builds left the real dist/ untouched', () => {
+    const after = existsSync(realProjectsPage) ? readFileSync(realProjectsPage, 'utf8') : null;
+    assert.equal(after, realPageBefore, 'dist/projects/index.html changed while the edge-case builds ran');
 });

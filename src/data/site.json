@@ -1,11 +1,14 @@
 {
     "profile": {
         "name": "Jonathan Witherspoon",
+        "shortName": "Jon",
         "roleLine": "Systems Administrator · Infrastructure Engineer · Mentor",
         "intro": "I build and run infrastructure, and I automate the repetitive parts of it. I am the person who gets the call when things break and the one who makes sure they break less often.",
         "location": "Knoxville, TN",
         "github": "https://github.com/theknoxtech",
         "linkedin": "https://www.linkedin.com/in/witherspoon84/",
+        "credly": "https://www.credly.com/users/jonathan-witherspoon/badges",
+        "learn": "https://learn.microsoft.com/en-us/users/jonwitherspoon-9260/credentials",
         "avatar": "/avatar.jpg",
         "aboutDraftNote": "[DRAFT: Jon to review]",
         "about": [
@@ -123,17 +126,6 @@
             "order": 2
         },
         {
-            "title": "Budgetry",
-            "description": "Self-hosted personal finance application with Plaid API integration, OAuth 2.0 authentication, and an AI layer for categorization and insight generation.",
-            "tags": ["Python", "Plaid API", "OAuth 2.0", "Docker", "AI"],
-            "status": "active",
-            "date": "2026-01-01",
-            "url": "https://github.com/theknoxtech",
-            "linkLabel": "GitHub profile",
-            "featured": true,
-            "order": 3
-        },
-        {
             "title": "Microsoft Teams Install & Uninstall Automation",
             "description": "PowerShell and Bash scripts to standardize Microsoft Teams deployment and removal across Windows and macOS endpoints.",
             "tags": ["PowerShell", "Bash", "ConnectWise Automate", "macOS", "Windows"],
@@ -142,7 +134,7 @@
             "url": "https://github.com/theknoxtech",
             "linkLabel": "GitHub profile",
             "featured": true,
-            "order": 4
+            "order": 3
         }
     ],
     "certifications": [

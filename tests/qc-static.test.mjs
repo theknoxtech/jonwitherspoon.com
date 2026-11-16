@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(root, 'dist');
 const hasBuild = existsSync(DIST);
-const MAIN_PAGES = ['index.html', 'work/index.html', 'projects/index.html', 'labs/index.html', '404.html'];
+const MAIN_PAGES = ['index.html', 'portfolio/index.html', 'projects/index.html', 'labs/index.html', '404.html'];
 const read = (path) => readFileSync(join(root, path), 'utf8');
 const readDist = (path) => readFileSync(join(DIST, path), 'utf8');
 
@@ -187,17 +187,18 @@ test('QC: no duplicate ids and every aria-labelledby points at an existing id', 
 test('QC: JavaScript-free markup (no script, handlers, javascript: urls, forms, iframes, noscript, module preloads)', { skip: !hasBuild }, () => {
     for (const file of MAIN_PAGES) {
         const html = readDist(file);
-        assert.doesNotMatch(html, /<script|<noscript|<form|<iframe|<object|<embed|<base\b/i, `${file}: forbidden element`);
+        assert.doesNotMatch(html, /<noscript|<form|<iframe|<object|<embed|<base\b/i, `${file}: forbidden element`);
+        assert.doesNotMatch(html.replace(/<script\s+src="\/(search|tabs)\.js"[^>]*><\/script>/g, ''), /<script/i, `${file}: script other than /search.js`);
         assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${file}: inline event handler`);
         assert.doesNotMatch(html, /javascript:/i, `${file}: javascript: url`);
         assert.doesNotMatch(html, /modulepreload|type="module"/i, `${file}: module script hint`);
     }
-    assert.deepEqual(walk(DIST).filter((file) => file.endsWith('.js')), [], 'main build should emit no .js files');
+    assert.deepEqual(walk(DIST).filter((file) => file.endsWith('.js')).map((file) => relative(DIST, file)), ['search.js', 'tabs.js'], 'main build should emit only search.js and tabs.js');
 });
 
 test('QC: the 404 page links back into the site and the 404 override targets it', { skip: !hasBuild }, () => {
     const html = readDist('404.html');
-    for (const link of ['/', '/work/', '/projects/', '/labs/']) assert.ok(html.includes(`href="${link}"`), link);
+    for (const link of ['/', '/portfolio/', '/projects/', '/labs/']) assert.ok(html.includes(`href="${link}"`), link);
     assert.match(html, /<nav[^>]*aria-label="Main"/);
     assert.deepEqual(JSON.parse(readDist('staticwebapp.config.json')).responseOverrides['404'], { rewrite: '/404.html' });
     assert.ok(existsSync(join(DIST, '404.html')));
@@ -213,8 +214,8 @@ test('QC: About text is a marked draft and the old Silicon Scripted branding is 
     }
 });
 
-test('QC: Work page keeps the planned order, six certifications and two past exams', { skip: !hasBuild }, () => {
-    const html = readDist('work/index.html');
+test('QC: Portfolio page keeps the planned order, six certifications and two past exams', { skip: !hasBuild }, () => {
+    const html = readDist('portfolio/index.html');
     assert.equal((html.match(/class="cert"/g) ?? []).length, 6);
     assert.equal((html.match(/class="exam"/g) ?? []).length, 2);
     assert.equal((html.match(/class="badge mono">current</g) ?? []).length, 1, 'exactly one current badge');
@@ -227,7 +228,7 @@ test('QC: placeholders use the CSS class, never an inline style', { skip: !hasBu
             assert.doesNotMatch(match[0], /style=/);
         }
     }
-    assert.match(readDist('work/index.html'), /<span class="placeholder">\[TO SUPPLY/);
+    assert.match(readDist('portfolio/index.html'), /<span class="placeholder">\[TO SUPPLY/);
     const css = readdirSync(join(DIST, '_astro')).filter((name) => name.endsWith('.css'));
     assert.match(readFileSync(join(DIST, '_astro', css[0]), 'utf8'), /\.placeholder\{[^}]*dashed/);
 });
@@ -280,7 +281,25 @@ test('QC CSS: visible keyboard focus, skip link reveal, reduced-motion handling'
     assert.match(css, /\.skip-link:focus\s*\{\s*top:/);
     assert.doesNotMatch(css, /outline:\s*(none|0)/);
     assert.match(css, /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*html\s*\{\s*scroll-behavior: smooth/);
-    assert.doesNotMatch(css, /@keyframes|animation:|transition:/);
+    // Liquid-glass design: the only animation is the slow orb drift, and it lives inside the no-preference block.
+    const motionStart = css.search(/@media \(prefers-reduced-motion: no-preference\)\s*\{/);
+    assert.ok(motionStart > 0, 'no-preference block missing');
+    const outsideMotion = css.slice(0, motionStart);
+    const motionBlock = css.slice(motionStart);
+    assert.doesNotMatch(outsideMotion, /@keyframes|animation|transition/, 'animation or transition outside the no-preference block');
+    for (const keyframes of motionBlock.matchAll(/@keyframes\s+([\w-]+)/g)) assert.match(keyframes[1], /^orb-/, `keyframes ${keyframes[1]} is not an orb animation`);
+    for (const declaration of motionBlock.matchAll(/animation:[^;]*;/g)) {
+        assert.match(declaration[0], /\borb-drift-[abc]\b/, `unexpected animation: ${declaration[0]}`);
+        const seconds = [...declaration[0].matchAll(/(\d+(?:\.\d+)?)s\b/g)].map((match) => Number(match[1]));
+        assert.ok(seconds.length > 0 && seconds.every((value) => value >= 16 && value <= 24), `orb drift must be slow (16-24s): ${declaration[0]}`);
+    }
+    for (const declaration of motionBlock.matchAll(/transition:[^;]*;/g)) {
+        for (const duration of declaration[0].matchAll(/(\d+(?:\.\d+)?)(m?s)\b/g)) {
+            const milliseconds = duration[2] === 's' ? Number(duration[1]) * 1000 : Number(duration[1]);
+            assert.ok(milliseconds <= 300, `transition longer than 300ms: ${declaration[0]}`);
+        }
+        assert.doesNotMatch(declaration[0], /\ball\b/, 'transition: all is too broad');
+    }
 });
 
 test('QC CSS: mobile-first single column, 640px breakpoint, 44px tap targets, no fixed wide widths', () => {
@@ -294,8 +313,14 @@ test('QC CSS: mobile-first single column, 640px breakpoint, 44px tap targets, no
         assert.ok(css.includes(selector), `no tap-target rule for ${selector}`);
     }
     assert.doesNotMatch(css.replace(/@media \(min-width: 640px\)[\s\S]*$/, ''), /(?<![-a-z])width:\s*\d{3,}px|(?<=min-)width:\s*\d{3,}px/, 'fixed wide width outside the breakpoint');
-    assert.doesNotMatch(css, /white-space:\s*nowrap|overflow-x:\s*(scroll|auto)/);
-    assert.doesNotMatch(css, /!important|box-shadow|text-shadow|gradient\(|filter:\s*blur/);
+    // Only the Portfolio tab bar may scroll sideways, and only its tab labels may stay on one line.
+    assert.doesNotMatch(css.replace(/\.tablist\s*\{[^}]*\}/, '').replace(/\.tab\s*\{[^}]*\}/, ''), /white-space:\s*nowrap|overflow-x:\s*(scroll|auto)/);
+    assert.doesNotMatch(css, /!important|text-shadow/);
+    // Glass is allowed: backdrop blur up to 28px, always with the -webkit- twin and an opaque fallback.
+    for (const blur of css.matchAll(/blur\((\d+(?:\.\d+)?)px\)/g)) assert.ok(Number(blur[1]) <= 28, `blur too strong: ${blur[0]}`);
+    assert.doesNotMatch(css, /(?<!backdrop-)filter:/, 'filter (glow/blur on content) is not allowed');
+    assert.ok((css.match(/-webkit-backdrop-filter/g) ?? []).length >= 4, '-webkit- prefix missing');
+    assert.match(css, /@supports not \(\(backdrop-filter: blur\(1px\)\) or \(-webkit-backdrop-filter: blur\(1px\)\)\)/, 'no fallback for browsers without backdrop-filter');
 });
 
 test('QC CSS: no external urls, no @import, fonts swap in with system fallbacks', () => {
@@ -444,7 +469,7 @@ test('QC config (by design, not failed): the lab route CSP differs from the plan
 });
 
 test('QC dist: only expected file types are published (no maps, sources, notes, dotfiles, scripts, package files)', { skip: !hasBuild }, () => {
-    const allowed = /\.(html|css|json|jpg|woff2|txt)$/;
+    const allowed = /\.(html|css|json|jpg|woff2|txt)$|^(search|tabs)\.js$/;
     for (const file of walk(DIST)) {
         const name = relative(DIST, file);
         assert.match(name, allowed, `unexpected file type in dist: ${name}`);
@@ -609,8 +634,8 @@ test('QC setup guide (criterion 14): covers every step in plan section 5, in pla
         'add a lab': /exam_apps\/<code>/,
     };
     for (const [label, pattern] of Object.entries(required)) assert.match(guide, pattern, label);
-    for (const path of ['/work/', '/exam_apps/md-102/', '/exam_apps/md-102', '/exam_apps/md-102/kql-lab.html', '/nope']) {
-        assert.ok(guide.includes(path), `post-deploy check for ${path} missing`);
+    for (const path of [/\/(portfolio|work)\//, '/exam_apps/md-102/', '/exam_apps/md-102', '/exam_apps/md-102/kql-lab.html', '/nope']) {
+        assert.ok(path instanceof RegExp ? path.test(guide) : guide.includes(path), `post-deploy check for ${path} missing`);
     }
     assert.ok((guide.match(/^- \[ \]/gm) ?? []).length >= 20, 'expected checkboxes');
     assert.doesNotMatch(guide, /\bbrew\b|sudo |rm -rf/);
@@ -651,6 +676,8 @@ test('QC secrets: no token-looking strings, private keys or personal phone/addre
         /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}/,
     ];
     for (const file of tracked) {
+        // tests/qc-*.test.mjs hold deliberate fake values (a sample phone number, a fake commit id) used to test the scans themselves.
+        if (/^tests\/qc-[^/]*\.test\.mjs$/.test(file)) continue;
         if (/\.(jpg|woff2)$/.test(file) || file === 'package-lock.json' || !existsSync(join(root, file))) continue;
         const text = readFileSync(join(root, file), 'utf8');
         for (const pattern of secretPatterns) assert.doesNotMatch(text, pattern, `${file}: secret-like text ${pattern}`);
@@ -663,7 +690,9 @@ test('QC secrets: long opaque strings in tracked text files are only the known a
     const plan = read('docs/plans/proposed/2026-11-15-personal-site.md');
     const offenders = [];
     for (const file of tracked) {
-        if (/\.(jpg|woff2)$/.test(file) || file === 'package-lock.json' || file.startsWith('exam_apps/')) continue;
+        // Same reason as above: the QC test files contain deliberate fake values.
+        if (/^tests\/qc-[^/]*\.test\.mjs$/.test(file)) continue;
+        if (/\.(jpg|woff2)$/.test(file) || file === 'package-lock.json' || file.startsWith('exam_apps/') || !existsSync(join(root, file))) continue;
         for (const match of readFileSync(join(root, file), 'utf8').matchAll(/(?<![A-Za-z0-9/._-])[A-Za-z0-9+_]{40,}(?![A-Za-z0-9/._-])/g)) {
             if (/^[0-9a-f]{40}$/.test(match[0]) && plan.includes(match[0])) continue;
             offenders.push(`${file}: ${match[0].slice(0, 12)}...`);

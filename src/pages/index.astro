@@ -4,11 +4,19 @@ import site from '../data/site.json';
 
 const { profile } = site;
 const currentRole = site.experience.find((role) => role.current);
-const featuredProjects = site.projects
-  .filter((project) => project.featured)
-  .sort((a, b) => a.order - b.order || b.date.localeCompare(a.date))
-  .slice(0, 3);
-const studyingLab = site.labs.find((lab) => lab.status === 'live');
+const byOrder = (a, b) => (a.order ?? 999) - (b.order ?? 999) || (b.date ?? '').localeCompare(a.date ?? '');
+const sortedProjects = [...site.projects].sort(byOrder);
+const featuredProject = sortedProjects.find((project) => project.featured) ?? sortedProjects[0];
+const latestProjects = sortedProjects.filter((project) => project !== featuredProject).slice(0, 3);
+const topics = [...new Set(site.projects.flatMap((project) => project.tags ?? []))].sort((a, b) => a.localeCompare(b));
+const badgeText = profile.roleLine.split(' · ')[0];
+const studyingLab = site.labs.find((lab) => lab.status === 'live' && lab.path);
+
+const CHIP_TINTS = ['blue', 'teal', 'amber', 'rose'];
+function chipTint(label: string): string {
+  const total = [...label].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+  return CHIP_TINTS[total % CHIP_TINTS.length];
+}
 ---
 
 <Base
@@ -19,12 +27,17 @@ const studyingLab = site.labs.find((lab) => lab.status === 'live');
   <section class="hero" aria-labelledby="page-title">
     <img class="avatar" src={profile.avatar} width="96" height="96" alt={`Portrait of ${profile.name}`} />
     <div>
-      <h1 id="page-title">{profile.name}</h1>
+      <p class="hero-badge mono">{badgeText}</p>
+      <h1 id="page-title">Hi, I'm {profile.shortName ?? profile.name}</h1>
       <p class="role-line mono">{profile.roleLine}</p>
       <p class="intro">{profile.intro}</p>
+      <div class="button-row">
+        <a class="button button-primary" href="/projects/">View projects</a>
+        <a class="button button-secondary" href="/portfolio/">Portfolio</a>
+      </div>
+      <p class="placeholder about-draft">{profile.aboutDraftNote}</p>
       <details class="about">
         <summary>About</summary>
-        <p class="placeholder">{profile.aboutDraftNote}</p>
         {profile.about.map((paragraph) => <p>{paragraph}</p>)}
       </details>
     </div>
@@ -37,27 +50,72 @@ const studyingLab = site.labs.find((lab) => lab.status === 'live');
       <dd>
         {currentRole?.title.startsWith('[TO SUPPLY') ? <span class="placeholder">{currentRole.title}</span> : currentRole?.title}
         at {currentRole?.company}
+        <a class="button button-secondary" href="/portfolio/#experience">See experience</a>
       </dd>
       {studyingLab && (
         <>
           <dt class="mono">Studying</dt>
-          <dd>{studyingLab.code} (<a href={studyingLab.path}>open the practice lab</a>)</dd>
+          <dd>
+            <span class="now-code">{studyingLab.code}</span>
+            <a class="button button-secondary" href={studyingLab.path}>Open {studyingLab.code} lab</a>
+          </dd>
         </>
       )}
     </dl>
   </section>
 
-  <section class="block" aria-labelledby="featured-heading">
-    <h2 id="featured-heading" class="block-heading"><span class="mono">02 /</span> Featured projects</h2>
-    <ul class="card-list">
-      {featuredProjects.map((project) => (
+  {featuredProject && (
+    <section class="block" aria-labelledby="featured-heading">
+      <h2 id="featured-heading" class="block-heading"><span class="mono">02 /</span> Featured project</h2>
+      <article class="card-featured">
+        <p class="mono featured-label">Featured</p>
+        <h3>{featuredProject.title}</h3>
+        <p>{featuredProject.description}</p>
+        <ul class="chips mono">
+          {(featuredProject.tags ?? []).map((tag) => <li class={`chip chip-${chipTint(tag)}`}>{tag}</li>)}
+        </ul>
+        <p class="card-action"><a class="button button-primary" href={featuredProject.url} rel="noopener noreferrer">{featuredProject.linkLabel ?? 'Repository'}</a></p>
+      </article>
+    </section>
+  )}
+
+  <section class="block" aria-labelledby="latest-heading">
+    <h2 id="latest-heading" class="block-heading"><span class="mono">03 /</span> Latest projects</h2>
+    <ul class="card-list card-list-three">
+      {latestProjects.map((project) => (
         <li class="card">
-          <h3><a href={project.url} rel="noopener noreferrer">{project.title}</a></h3>
+          <h3>{project.title}</h3>
           <p>{project.description}</p>
-          <p class="tags mono">{project.tags.join(' · ')}</p>
+          <ul class="chips mono">
+            {(project.tags ?? []).map((tag) => <li class={`chip chip-${chipTint(tag)}`}>{tag}</li>)}
+          </ul>
+          <p class="card-action"><a class="button button-secondary" href={project.url} rel="noopener noreferrer">{project.linkLabel ?? 'Repository'}</a></p>
         </li>
       ))}
     </ul>
-    <p><a href="/projects/">All projects</a></p>
+    <p class="more"><a class="button button-primary" href="/projects/">All projects</a></p>
+  </section>
+
+  <section class="block" aria-labelledby="topics-heading">
+    <h2 id="topics-heading" class="block-heading"><span class="mono">04 /</span> Browse by topic</h2>
+    <ul class="chips topic-row mono">
+      {topics.map((topic) => (
+        <li><a class={`chip chip-${chipTint(topic)} topic-link`} href={`/projects/?tag=${encodeURIComponent(topic.toLowerCase())}`}>{topic}</a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="block" aria-labelledby="labs-heading">
+    <div class="glass-cta">
+      <h2 id="labs-heading">Study labs</h2>
+      <p>Practice apps I build while studying for certification exams. They run in your browser and keep progress on your device.</p>
+      <ul class="chips mono">
+        {site.labs.map((lab) => {
+          const status = lab.status ?? (lab.path ? 'live' : 'planned');
+          return <li class={`chip ${status === 'live' ? 'chip-teal' : 'chip-amber'}`}>{lab.code} {status}</li>;
+        })}
+      </ul>
+      <p class="card-action"><a class="button button-primary" href="/labs/">Open labs</a></p>
+    </div>
   </section>
 </Base>

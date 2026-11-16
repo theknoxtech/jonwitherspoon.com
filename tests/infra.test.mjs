@@ -149,7 +149,7 @@ test('dist hygiene when a build exists', { skip: !hasBuild }, () => {
     for (const file of files) {
         const name = relative(root, file);
         assert.doesNotMatch(name, /\/(source|kql-source)\/|\.(md|sh)$|\.DS_Store$/, name);
-        if (name.endsWith('.js')) assert.match(name, /^dist\/_astro\//, name);
+        if (name.endsWith('.js')) assert.match(name, /^dist\/(_astro\/|search\.js$|tabs\.js$)/, name);
     }
     const phone = /\(?\d{3}\)?[-. ]\d{3}[-. ]\d{4}/;
     const address = /\d{1,5} [A-Za-z]+ (Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Boulevard|Blvd)\b/;
