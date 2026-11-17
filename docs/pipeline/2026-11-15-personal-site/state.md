@@ -61,3 +61,5 @@ Re-read at the start of every stage; update at the end of every stage.
 - 2026-11-16 rule change (Jon, "relax it"): developers may update existing tests broken by an approved plan change, to match the new behavior only, and list each in their report. Other failing tests, and security scans or reviews, still stop and ask Jon.
 
 - 2026-11-16: blog build (frontend-dev-6) done: 142 of 142 tests, 3 clean runs by orchestrator. Two existing tests updated per the relaxed rule (footer nav 3 to 4; articles section). Dev ran git stash and pop by mistake (restored cleanly). exam_apps/md-102/index.html and source/q28.js show uncommitted wording edits (written 19:37, not by the build; they were clean earlier) -- NOT committed, NOT touched; Jon asked whether they are his. Dev reported 3 of 8 early full runs had one random test failure; not reproduced in 6 later runs. QC (prototype scope) not yet run on the blog.
+
+- 2026-11-17 Decided by Jon: repo `jonwitherspoon.com`, PUBLIC (not yet created or pushed; creating and pushing still needs his go-ahead after the security review). MD-102 app issues: Jon handles in another chat. Theme button wording: open.
