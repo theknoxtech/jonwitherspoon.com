@@ -46,6 +46,19 @@ Both:
 - [ ] Name: `AZURE_STATIC_WEB_APPS_API_TOKEN`. Value: the token. Save.
 - [ ] Never paste the token anywhere else (not in files, chats or commits).
 
+## 4a. The dev site (dev.jonwitherspoon.com)
+
+A push to the `dev` branch builds the site and deploys it to `dev.jonwitherspoon.com`, so you can look at changes before a pull request into `main`. It is a second Static Web App with its own deploy token, because Azure cannot put a custom domain on a preview. Do these steps in order, and add the secret before the first push to `dev`, or that push fails at the Deploy step.
+
+- [ ] In the same resource group, create a second **Static Web App**: plan type **Free**, deployment source **Other**, name for example `swa-jonwitherspoon-dev`.
+- [ ] Open it, choose **Manage deployment token**, and copy the token. It can only replace the dev site.
+- [ ] In the GitHub repository: Settings > Secrets and variables > Actions > **New repository secret**. Name: `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`. Value: the dev token. Save.
+- [ ] In the dev app: Custom domains > Add > custom domain on other DNS. Enter `dev.jonwitherspoon.com` and choose **CNAME** validation.
+- [ ] Cloudflare > the zone > DNS > Records: add a **CNAME** record, name `dev`, target = the dev app's `*.azurestaticapps.net` address (on its Overview page; no `https://`). Set it to **DNS only** (grey cloud), not Proxied.
+- [ ] Back in Azure, wait for the custom domain to show as validated.
+- [ ] Push to `dev`. Open the Static Web App's **Environments** page in Azure and confirm the deploy landed on the production environment, reached at `dev.jonwitherspoon.com`, and not on a separate preview address (one whose name has `-dev.` in it). Azure does not document what happens when the app's production branch differs from the branch that is pushed, so this check matters.
+- [ ] Run the dev checks in section 7.
+
 ## 5. Try it locally, then first deploy
 
 To look at the site on your laptop, run `npm run build && npm run preview` and open http://localhost:4321. Use this rather than `npm run dev`, because the lab pages are copied at build time and the dev server does not serve them. The Projects and Labs pages have a search box, powered by one small file, `public/search.js`.
@@ -115,6 +128,8 @@ curl -sI https://www.jonwitherspoon.com/
 - [ ] `curl -sI https://www.jonwitherspoon.com/` returns `301` with a `location` header pointing to `https://jonwitherspoon.com/`.
 - [ ] The headers on the apex still include `content-security-policy` and `strict-transport-security` (only one HSTS header, not two).
 - [ ] View the page source of the live site (browser: view-source) and confirm no script or beacon added by Cloudflare appears.
+- [ ] Dev site only: `curl -sI https://dev.jonwitherspoon.com/` shows `x-robots-tag: noindex, nofollow`.
+- [ ] Production only: `curl -sI https://jonwitherspoon.com/` shows no `x-robots-tag` header at all.
 - [ ] Open the live site once in a browser with the developer tools Network tab open: nothing loads from Google or any other outside host on the main pages (the two lab apps load Google Fonts, which is allowed on the lab addresses only).
 
 ## 8. Rolling back
@@ -127,7 +142,7 @@ curl -sI https://www.jonwitherspoon.com/
 Do this if the token may have leaked, or every year as housekeeping.
 
 - [ ] Azure portal > the Static Web App > Manage deployment token > **Reset token**. Copy the new one.
-- [ ] Update the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` with the new value.
+- [ ] Update the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` with the new value. (For the dev site, reset the dev app's token the same way and update `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`.)
 - [ ] Re-run the latest workflow to confirm it still deploys.
 
 ## 10. Adding another practice lab later

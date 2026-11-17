@@ -14,12 +14,15 @@ flowchart LR
   E[You merge into main] --> F[Robot builds again<br/>and blocks if anything is unfinished]
   F --> G[Deploys to the live site]
   H[You close the pull request] --> I[Robot removes the preview]
+  J[You push to dev] --> K[Robot builds, adds noindex header]
+  K --> L[Deploys to dev.jonwitherspoon.com]
 ```
 
 In plain words:
 
 - **Pull request into `main`:** the robot builds the site and publishes a temporary preview address. The address appears as a comment on the pull request. Previews are public, and the Free plan keeps 3 at a time.
 - **Push to `main` (a merge):** the robot builds the site and deploys it to the live address. This is the strict run, see "What blocks a deploy".
+- **Push to `dev`:** a separate job builds the site and deploys it to `dev.jonwitherspoon.com` using its own secret, `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`. Unfinished `[TO SUPPLY` text is allowed there, and every response carries `X-Robots-Tag: noindex, nofollow` so search engines skip it. The dev site is public (no login). The production job never runs on a push to `dev` and never sees the dev secret.
 - **Closing a pull request:** the robot removes that pull request's preview.
 
 Only pull requests from this same repository can deploy. Pull requests from forks and from Dependabot (the automatic update bot) never reach the deploy token.
@@ -41,7 +44,7 @@ The run turns red (fails) and nothing is published if:
 - any `[TO SUPPLY` placeholder remains in the built pages (production only; a preview just warns),
 - the scan finds something that looks like a phone number or street address,
 - the build or `npm ci` fails,
-- the secret `AZURE_STATIC_WEB_APPS_API_TOKEN` is missing or wrong.
+- the secret `AZURE_STATIC_WEB_APPS_API_TOKEN` is missing or wrong (for a push to `dev`: `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`).
 
 ## Before you start
 
@@ -53,6 +56,9 @@ The run turns red (fails) and nothing is published if:
 - [ ] **Add the secret.** In the GitHub repository: Settings > Secrets and variables > Actions > **New repository secret**. Name: `AZURE_STATIC_WEB_APPS_API_TOKEN`. Value: the token from Azure (Static Web App > **Manage deployment token**). Save. Do this before the first pull request, or the first run fails at the Deploy step.
 - [ ] **Set the workflow permissions.** Settings > Actions > General > Workflow permissions: choose **Read repository contents permissions**. (The workflow asks for more only where it needs it, and only on the deploy job.)
 - [ ] **Limit which actions can run.** Same page: allow only selected actions. If you see "Require actions to be pinned to a full-length commit SHA", turn it on. The workflow already pins every action to a full SHA, a fixed fingerprint of that action's code. The option may not appear on every plan.
+- [ ] **Set up the dev site.** Follow setup guide section 4a: create the second Static Web App (Free, deployment source **Other**, for example `swa-jonwitherspoon-dev`), add its token as the secret `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`, add the custom domain `dev.jonwitherspoon.com` with **CNAME** validation, and in Cloudflare add a `CNAME` record named `dev` pointing to the dev app's `*.azurestaticapps.net` name, **DNS only**. Add the secret before the first push to `dev`.
+- [ ] **Check the first dev push.** After it runs, confirm it landed on `dev.jonwitherspoon.com` and not on a preview address with `-dev.` in its name (the app's Environments page in Azure shows this).
+- [ ] **Check the headers.** `curl -sI https://dev.jonwitherspoon.com/` must show `x-robots-tag: noindex, nofollow`; `curl -sI https://jonwitherspoon.com/` must not show `x-robots-tag`.
 - [ ] **Turn on Dependabot.** Settings > Code security: turn on Dependabot alerts and Dependabot security updates. `.github/dependabot.yml` already asks for weekly update pull requests against `dev` for npm and for the actions themselves.
 - [ ] **Protect `main`** (public repository). Settings > Rules > Rulesets: require a pull request and block force pushes and deletion on `main`.
 - [ ] **Open the first pull request.** Make sure the workflow file is on `dev`, then open a pull request from `dev` into `main`.
@@ -79,6 +85,7 @@ gh pr status
 | Fails at "Build", message says `[TO SUPPLY` | Only on a push to `main`: placeholder text is left | Fill them in `src/data/site.json` (see `docs/editing-guide.md`) |
 | Fails at "Check dist for phone and address patterns" | The scan matched text that looks like a phone number or address | Find it in the log, remove it from the source, and push again |
 | Fails at "Deploy", mentions the token | Secret missing, misspelt or reset | Re-add `AZURE_STATIC_WEB_APPS_API_TOKEN` (see "Resetting the token") |
+| A push to `dev` fails at "Deploy to the dev site", mentions the token | `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV` missing, misspelt or reset | Re-add it from the dev app's deployment token |
 | Fails at `npm ci` | `package.json` and `package-lock.json` disagree | Run `npm install` locally, commit the updated lock file |
 | No run starts at all | Workflow not on the branch, or Actions disabled | Check `.github/workflows/deploy.yml` exists on the branch; Settings > Actions > General |
 | A Dependabot pull request has no preview | By design | Dependabot pull requests never get the deploy token |
@@ -88,7 +95,7 @@ gh pr status
 Do this if the token may have leaked, or once a year.
 
 - [ ] Azure portal > the Static Web App > Manage deployment token > **Reset token**. Copy the new one.
-- [ ] Update the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` with the new value.
+- [ ] Update the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` with the new value. For the dev site, do the same with the dev app and `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`.
 - [ ] Re-run the latest workflow (Actions tab > the run > **Re-run all jobs**) to confirm it still deploys.
 
 Never paste the token into a file, a chat or a commit.

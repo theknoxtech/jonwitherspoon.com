@@ -272,7 +272,8 @@ Work on the `dev` branch, never directly on `main`.
    git push origin dev
    ```
 
-2. On GitHub, open a pull request from `dev` into `main`. The build runs, and a preview address appears in a comment on the pull request. Check the preview.
-3. Merge the pull request. That publishes the live site.
+2. Look at `dev.jonwitherspoon.com`. The push builds the site and deploys it there (it takes a minute or two). Unfinished `[TO SUPPLY` text is allowed on the dev site, and search engines are told to skip it.
+3. On GitHub, open a pull request from `dev` into `main`. The build runs, and a preview address appears in a comment on the pull request. Check the preview.
+4. Merge the pull request. That publishes the live site.
 
 If the build fails with `[TO SUPPLY`, fill in the text it names (see "Update my current job").

@@ -510,9 +510,9 @@ function jobBlock(name) {
     return next < 0 ? rest : rest.slice(0, next + 1);
 }
 
-test('QC workflow: triggers are push to main and pull_request to main only; never pull_request_target or workflow_run', () => {
+test('QC workflow: triggers are push to main and dev and pull_request to main only; never pull_request_target or workflow_run', () => {
     const triggers = workflow.slice(workflow.indexOf('\non:'), workflow.indexOf('\npermissions:'));
-    assert.match(triggers, /push:\s*\n\s*branches: \[main\]/);
+    assert.match(triggers, /push:\s*\n\s*branches: \[main, dev\]/);
     assert.match(triggers, /pull_request:\s*\n\s*branches: \[main\]/);
     assert.doesNotMatch(workflow, /pull_request_target|workflow_run|workflow_dispatch|issue_comment|schedule:/);
 });
@@ -532,12 +532,12 @@ test('QC workflow: both jobs carry the same-repo and not-dependabot guard', () =
         assert.match(condition, /github\.actor != 'dependabot\[bot\]'/, `${job} dependabot guard`);
     }
     const deployCondition = /\n    if: (.*)\n/.exec(jobBlock('build_and_deploy'))[1];
-    assert.match(deployCondition, /^github\.event_name == 'push' \|\| \(/, 'push runs are not subject to the pull request guard');
+    assert.match(deployCondition, /^\(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| \(/, 'push runs to main are not subject to the pull request guard');
     assert.match(deployCondition, /github\.event\.action != 'closed'/);
 });
 
 test('QC workflow: the placeholder failure switch is set only from "push" events and checked again by a push-only step', () => {
-    assert.equal((workflow.match(/FAIL_ON_PLACEHOLDER/g) ?? []).length, 1);
+    assert.equal((workflow.match(/FAIL_ON_PLACEHOLDER/g) ?? []).length, 2);
     assert.match(workflow, /FAIL_ON_PLACEHOLDER: \$\{\{ github\.event_name == 'push' && '1' \|\| '0' \}\}/);
     const step = workflow.slice(workflow.indexOf('name: Check dist for placeholders'));
     assert.match(step.split('\n').slice(0, 3).join('\n'), /if: github\.event_name == 'push'/);
@@ -547,7 +547,7 @@ test('QC workflow: the placeholder failure switch is set only from "push" events
 test('QC workflow: every uses: is pinned to a 40-character SHA with a version comment and matches the plan', () => {
     const plan = read('docs/plans/in-progress/2026-11-15-personal-site.md');
     const uses = [...workflow.matchAll(/uses: (\S+)@(\S+)(?: # (\S+))?/g)];
-    assert.equal(uses.length, 4);
+    assert.equal(uses.length, 7);
     for (const [, action, reference, comment] of uses) {
         assert.match(reference, /^[0-9a-f]{40}$/, `${action} is not SHA-pinned`);
         assert.ok(comment, `${action}: no version comment`);
@@ -557,8 +557,8 @@ test('QC workflow: every uses: is pinned to a 40-character SHA with a version co
 
 test('QC workflow: the token and secrets are only referenced through secrets.*; no literal credentials; run steps use no github.event data', () => {
     const secretLines = workflow.split('\n').filter((line) => /secrets\./.test(line));
-    for (const line of secretLines) assert.match(line, /(azure_static_web_apps_api_token|repo_token): \$\{\{ secrets\.(AZURE_STATIC_WEB_APPS_API_TOKEN|GITHUB_TOKEN) \}\}$/, line);
-    assert.equal(secretLines.length, 3);
+    for (const line of secretLines) assert.match(line, /(azure_static_web_apps_api_token|repo_token): \$\{\{ secrets\.(AZURE_STATIC_WEB_APPS_API_TOKEN|AZURE_STATIC_WEB_APPS_API_TOKEN_DEV|GITHUB_TOKEN) \}\}$/, line);
+    assert.equal(secretLines.length, 5);
     assert.doesNotMatch(workflow, /[A-Za-z0-9+/]{60,}/);
     assert.doesNotMatch(workflow, /run:[^\n]*\$\{\{/);
     assert.doesNotMatch(workflow, /echo[^\n]*secrets\./);
@@ -567,7 +567,7 @@ test('QC workflow: the token and secrets are only referenced through secrets.*; 
 });
 
 test('QC workflow: the phone/address guard patterns, run as written against dist (including the lab apps), find nothing', { skip: !hasBuild }, () => {
-    const patterns = [...workflow.matchAll(/-e '([^']+)'/g)].map((match) => match[1]);
+    const patterns = [...new Set([...workflow.matchAll(/-e '([^']+)'/g)].map((match) => match[1]))];
     assert.equal(patterns.length, 2);
     const expressions = patterns.map((pattern) => new RegExp(pattern));
     for (const file of walk(DIST).filter((name) => /\.(html|json|xml|txt)$/.test(name))) {
