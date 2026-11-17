@@ -19,7 +19,7 @@ Single-file vanilla-JS study app for the Microsoft MD-102 exam. The question ban
 - `q27.js` is a patch file: `PL()` link fixes, `q.swap` interchangeable ordering steps (zero-based groups), the `R` map of old to new Learn paths, the domain re-tag block, and the retired-feature splice block. Ids stay stable when questions are removed.
 
 ## Domains (Oct 27, 2026 outline) and current bank
-D1 Prepare infrastructure 20-25%, D2 Manage and maintain devices 25-30%, D3 Protect devices 15-20%, D4 Manage and secure applications 15-20%, D5 Optimize endpoint operations 10-15%. Bank: 723 questions (D1 118, D2 150, D3 112, D4 277, D5 66). Tag by exam-outline domain, not by the topic the question was written under; drills filter on `q.d`.
+D1 Prepare infrastructure 20-25%, D2 Manage and maintain devices 25-30%, D3 Protect devices 15-20%, D4 Manage and secure applications 15-20%, D5 Optimize endpoint operations 10-15%. Bank: 724 questions (D1 118, D2 150, D3 112, D4 278, D5 66). Tag by exam-outline domain, not by the topic the question was written under; drills filter on `q.d`.
 
 ## Content rules (do not break)
 - Learn-only quiz: no lab-based questions (the Labs tab stays).

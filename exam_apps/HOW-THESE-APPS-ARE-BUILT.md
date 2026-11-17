@@ -180,4 +180,4 @@ The app keeps everything in one `store` object under a localStorage key (`md102.
 
 ## 12. Keeping this guide current
 
-Update this guide whenever the app changes: a new question file (build order, section 2), a new mode or panel (section 4), a new check or test (section 6), or a path or deploy change (section 10). Current state: bank of 723 questions (118, 150, 112, 277 and 66 across Domains 1 to 5), 13 labs, drill options added in v37 and v38, interchangeable sequence steps in v39.
+Update this guide whenever the app changes: a new question file (build order, section 2), a new mode or panel (section 4), a new check or test (section 6), or a path or deploy change (section 10). Current state: bank of 724 questions (118, 150, 112, 278 and 66 across Domains 1 to 5), 13 labs, drill options added in v37 and v38, interchangeable sequence steps in v39.

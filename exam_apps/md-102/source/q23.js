@@ -319,10 +319,15 @@ addv(D3, N23d, CL([['Max Company Portal version age (days)', '90', 'Warn']]),
   ["1 to 90 days, and Intune reports the age of the build to the policy", "0 to 365 days, and the Company Portal reports its own build age", "30 to 180 days, and the Entra tenant reports the age of the build"],
   "The age of the Company Portal build is determined by Google Play on the device. Actions are Block access, Wipe data or Warn.", AND);
 addv(D3, N23d, CL([['Samsung Knox device attestation', '', 'Block access']]),
-  "Samsung Knox device attestation is set to Block access for every device. What happens on a Google Pixel?",
+  "The action for Samsung Knox device attestation is the plain Block access (not Block access on supported devices), and the policy has no assignment filter. What happens for a user on a Google Pixel?",
   ["The user is blocked; non-Samsung users cannot accept the Knox terms"],
   ["The check is skipped, because only Samsung devices are evaluated by this setting", "The user is warned only, because Pixel devices cannot be blocked by this check", "The user passes, because Google devices satisfy the check on their own hardware"],
-  "Use Managed apps assignment filters to target supported Samsung devices, or Block access on supported devices, which affects only Samsung on Android 15 with One UI 7.0 or above.", AND);
+  "Warn, Block access and Wipe data apply to every targeted device, including other manufacturers. Non-Samsung users cannot accept the Knox terms, so they are blocked. Managed apps assignment filters limit the check to Samsung devices. The separate action Block access on supported devices affects only Samsung devices on Android 15 with One UI 7.0 or above.", AND);
+addv(D3, N23d, CL([['Samsung Knox device attestation', '', 'Block access on supported devices']]),
+  "The action for Samsung Knox device attestation is Block access on supported devices. Which devices can this action block?",
+  ["Samsung devices on Android 15 with One UI 7.0 or above"],
+  ["Any Samsung device on any Android version, because Knox is built into every Samsung phone", "Every Android device in the policy, because the check is evaluated by the Company Portal", "Samsung devices on One UI 7.0 or earlier only, because they need the Knox terms accepted"],
+  "Samsung devices on older OS versions and devices from other manufacturers are not affected by this action.", AND);
 addv(D3, N23d, CL([['Max allowed device threat level', 'Low', 'Block access'], ['Primary MTD service', 'Microsoft Defender for Endpoint', '(no action)']]),
   "Two Mobile Threat Defense connectors are configured. What does Primary MTD service do, and what must also be set?",
   ["It picks which MTD gives the threat level; the Max threat level must be set"],
