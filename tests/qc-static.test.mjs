@@ -545,7 +545,7 @@ test('QC workflow: the placeholder failure switch is set only from "push" events
 });
 
 test('QC workflow: every uses: is pinned to a 40-character SHA with a version comment and matches the plan', () => {
-    const plan = read('docs/plans/proposed/2026-11-15-personal-site.md');
+    const plan = read('docs/plans/in-progress/2026-11-15-personal-site.md');
     const uses = [...workflow.matchAll(/uses: (\S+)@(\S+)(?: # (\S+))?/g)];
     assert.equal(uses.length, 4);
     for (const [, action, reference, comment] of uses) {
@@ -690,7 +690,7 @@ test('QC secrets: no token-looking strings, private keys or personal phone/addre
 });
 
 test('QC secrets: long opaque strings in tracked text files are only the known action SHAs', { skip: tracked === null }, () => {
-    const plan = read('docs/plans/proposed/2026-11-15-personal-site.md');
+    const plan = read('docs/plans/in-progress/2026-11-15-personal-site.md');
     const offenders = [];
     for (const file of tracked) {
         // Same reason as above: the QC test files contain deliberate fake values.

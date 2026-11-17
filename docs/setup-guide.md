@@ -50,7 +50,6 @@ Both:
 
 To look at the site on your laptop, run `npm run build && npm run preview` and open http://localhost:4321. Use this rather than `npm run dev`, because the lab pages are copied at build time and the dev server does not serve them. The Projects and Labs pages have a search box, powered by one small file, `public/search.js`.
 
-
 - [ ] Open a pull request from `dev` into `main`. The workflow builds the site and publishes a **preview** web address (shown in a comment on the pull request). Free plan allows 3 previews at once; previews are public.
 - [ ] Open the preview and check the pages: Home, Portfolio, Projects, Labs, MD-102 lab, KQL lab, and a missing page.
 - [ ] Production refuses to deploy while any `[TO SUPPLY ...]` placeholder text remains on the site. Fill in every placeholder in `src/data/site.json` first (the build prints which pages still have them).

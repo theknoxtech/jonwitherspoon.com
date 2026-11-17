@@ -7,10 +7,10 @@ Re-read at the start of every stage; update at the end of every stage.
 | Request | New jonwitherspoon.com Astro site: career pages moved from old site, GitHub avatar, current role, projects, hosts cert apps (md-102 first), Azure SWA + GitHub Actions |
 | Size | Normal (multi-file new site; not Large because it does not handle secrets or many systems) |
 | Exposure | Public (internet-facing personal site) |
-| Stage | 3 Prototype revision 2 (Jon asked for changes at the prototype review) |
+| Stage | 5 Harden (prototype approved by Jon 2026-11-17; blog, tag colours, theme toggle and footer changes included) |
 | Design round | 2 |
-| Prompt 1 (prototype review) | Changes requested 2026-11-15 (theme, rounded cards, colour, coloured buttons, remove Budgetry, add search) |
-| Plan | `docs/plans/proposed/2026-11-15-personal-site.md` (written, advisor consulted) |
+| Prompt 1 (prototype review) | APPROVED 2026-11-17 |
+| Plan | `docs/plans/in-progress/2026-11-15-personal-site.md` (moved to in-progress 2026-11-17, prototype approved for hardening) |
 | Branch | `plan/personal-site` (cut from `dev`) |
 | Work split | Front-end: src/pages, layouts, styles, site.json, avatar, fonts. Back-end: package/config/workflow/headers/md-102 move/setup guide |
 | QC failed rounds | 0 of 3 |
