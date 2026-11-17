@@ -1,15 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import site from '../data/site.json';
+import { tagColorPicker } from '../lib/tags.js';
 
 const projects = [...site.projects].sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || (b.date ?? '').localeCompare(a.date ?? ''));
 const allTags = [...new Set(projects.flatMap((project) => project.tags ?? []))].sort((a, b) => a.localeCompare(b));
 
-const CHIP_TINTS = ['blue', 'teal', 'amber', 'rose'];
-function chipTint(label: string): string {
-  const total = [...label].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  return CHIP_TINTS[total % CHIP_TINTS.length];
-}
+const tagColor = tagColorPicker(site.tagColors);
 function statusTone(status: string | undefined): string {
   if (status === 'active' || status === 'live') return 'live';
   if (status === 'in-progress') return 'progress';
@@ -38,7 +35,7 @@ function searchText(project: (typeof projects)[number]): string {
     </div>
     <ul class="chips chip-filters mono" aria-label="Filter by tag">
       {allTags.map((tag) => (
-        <li><button class={`chip chip-${chipTint(tag)} chip-button`} type="button" aria-pressed="false" data-tag={tag.toLowerCase()}>{tag}</button></li>
+        <li><button class={`chip chip-${tagColor(tag)} chip-button`} type="button" aria-pressed="false" data-tag={tag.toLowerCase()}>{tag}</button></li>
       ))}
     </ul>
     <p class="search-count mono" data-search-count aria-live="polite"></p>
@@ -50,7 +47,7 @@ function searchText(project: (typeof projects)[number]): string {
         <h2>{project.title}</h2>
         <p>{project.description}</p>
         <ul class="chips mono">
-          {(project.tags ?? []).map((tag) => <li class={`chip chip-${chipTint(tag)}`}>{tag}</li>)}
+          {(project.tags ?? []).map((tag) => <li class={`chip chip-${tagColor(tag)}`}>{tag}</li>)}
         </ul>
         <p class="card-action">
           {(project.links ?? []).map((link) => <a class="button button-secondary" href={link.url} rel="noopener noreferrer" aria-label={`${link.label}: ${project.title}`}>{link.label}</a>)}

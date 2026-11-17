@@ -51,18 +51,6 @@ export function findUnsafeMarkup(markdown) {
     return problems;
 }
 
-const CHIP_TINTS = ['blue', 'teal', 'amber', 'rose'];
-
-/**
- * Picks a stable chip colour from a tag's letters, so a tag looks the same on every page.
- * @param {string} label
- * @returns {string}
- */
-export function chipTint(label) {
-    const total = [...label].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-    return CHIP_TINTS[total % CHIP_TINTS.length];
-}
-
 /**
  * Stops the build with a clear message when a published article breaks a site rule.
  * @param {{ id: string, filePath?: string, body?: string }} entry

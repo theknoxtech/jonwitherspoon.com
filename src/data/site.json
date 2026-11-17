@@ -194,6 +194,7 @@
             "verifyUrl": null
         }
     ],
+    "tagColors": {},
     "pastExamsNote": "Exams passed where the associated certification has since expired or the program has been retired. The knowledge and hands-on experience behind each one remains active in daily practice.",
     "pastExams": [
         {

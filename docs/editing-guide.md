@@ -69,6 +69,27 @@ Tags are the `"tags"` list on a project. Edit the words:
 
 The little tag chips and the filter buttons on the Projects page are built from these words, so changing them here changes them everywhere. Search also uses them.
 
+Each tag gets a colour by itself, and a tag has the same colour everywhere it shows. To pick a colour yourself, see "Change the colour of a tag" below.
+
+## Change the colour of a tag
+
+Near the bottom of `src/data/site.json` there is a line `"tagColors": {},`. It is empty, so every tag has an automatic colour. To choose a colour for a tag, write the tag and the colour between the curly brackets:
+
+```json
+"tagColors": {
+    "PowerShell": "blue",
+    "C#": "teal"
+},
+```
+
+- Write the tag exactly as it appears on the site, with the same capital letters. `"PowerShell"` will not match `powershell`.
+- The colour must be one of these ten words, in lowercase: `blue`, `teal`, `amber`, `rose`, `green`, `purple`, `orange`, `pink`, `sky`, `slate`.
+- Put a comma after every line except the last one.
+- The same tag gets the same colour on projects and on articles, on every page.
+- Tags you do not list keep an automatic colour, and it does not change.
+
+If you type a colour that is not on the list, the build stops and tells you which tag and which colour is wrong.
+
 ## Add a lab and its buttons
 
 Copy this into the `labs` list:

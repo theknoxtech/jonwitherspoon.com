@@ -428,8 +428,7 @@ test('contrast: text, buttons, chips, badges and controls meet WCAG AA in light 
         ['accent-text', 'background'], ['accent-text', 'surface'], ['ink', 'hero-tint'], ['ink', 'hero-tint-end'], ['ink-muted', 'hero-tint-end'], ['accent-text', 'hero-tint-end'], ['accent-two', 'hero-tint-end'], ['ink-muted', 'hero-tint'],
         ['accent-text', 'hero-tint'], ['button-text', 'button-fill'], ['button-text', 'button-hover'],
         ['accent-text', 'tint'], ['accent-two', 'tint'], ['accent-two', 'background'], ['accent-two', 'surface'], ['accent-two', 'hero-tint'], ['ink', 'tint'],
-        ['chip-blue-text', 'chip-blue-fill'], ['chip-teal-text', 'chip-teal-fill'],
-        ['chip-amber-text', 'chip-amber-fill'], ['chip-rose-text', 'chip-rose-fill'],
+        ...['blue', 'teal', 'amber', 'rose', 'green', 'purple', 'orange', 'pink', 'sky', 'slate'].map((name) => [`chip-${name}-text`, `chip-${name}-fill`]),
         ['status-live-text', 'status-live-fill'], ['status-progress-text', 'status-progress-fill'],
         ['status-planned-text', 'status-planned-fill'],
     ];

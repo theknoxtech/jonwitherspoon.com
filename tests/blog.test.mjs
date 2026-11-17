@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { TAG_COLOR_NAMES } from '../src/lib/tags.js';
 import { findImagesWithoutAlt, findUnsafeMarkup, publishedArticles } from '../src/lib/articles.js';
 
 const REPO_ROOT = fileURLToPath(new URL('../', import.meta.url));
@@ -15,14 +16,15 @@ const FIXTURE_CONFIG = 'tests/fixtures/astro.fixture.config.mjs';
  * Builds the site with BLOG_DIR pointing at one fixture folder, the output and Astro's cache
  * (content data store, image cache) in the OS temp folder, so nothing is written to dist/,
  * public/, src/content/ or the real cache, and no fixture article can leak into a real build.
+ * tagColorsJson, when given, replaces site.json's tagColors for that build only.
  */
-function buildFixture(name) {
+function buildFixture(name, tagColorsJson) {
     const outDir = mkdtempSync(join(tmpdir(), `blog-${name}-`));
     const cacheDir = mkdtempSync(join(tmpdir(), `blog-cache-${name}-`));
     const result = spawnSync(process.execPath, [ASTRO_BIN, 'build', '--config', FIXTURE_CONFIG, '--outDir', outDir], {
         cwd: REPO_ROOT,
         encoding: 'utf8',
-        env: { ...process.env, BLOG_DIR: `tests/fixtures/blog/${name}`, BLOG_CACHE_DIR: cacheDir, ASTRO_TELEMETRY_DISABLED: '1' },
+        env: { ...process.env, BLOG_DIR: `tests/fixtures/blog/${name}`, BLOG_CACHE_DIR: cacheDir, ...(tagColorsJson && { TAG_COLORS_JSON: tagColorsJson }), ASTRO_TELEMETRY_DISABLED: '1' },
     });
     return { outDir, status: result.status, output: `${result.stdout}\n${result.stderr}` };
 }
@@ -191,4 +193,25 @@ test('raw script, a missing picture description, a banner without coverAlt and a
         assert.match(build.output, message, `${name} message`);
         assert.match(build.output, file, `${name} names the file`);
     }
+});
+
+test('a build with a chosen tag colour paints that tag the same on every page it appears on', () => {
+    const build = buildFixture('normal', '{"PowerShell":"purple","OneDrive":"green"}');
+    assert.equal(build.status, 0, build.output);
+    for (const file of ['index.html', 'projects/index.html', 'portfolio/index.html', 'articles/index.html', 'articles/hello-world/index.html']) {
+        const html = readFileSync(join(build.outDir, file), 'utf8');
+        assert.match(html, /class="chip chip-purple[^"]*"[^>]*>PowerShell</, `${file} PowerShell`);
+        assert.doesNotMatch(html, /chip-(blue|teal|amber|rose|green) [^>]*>PowerShell</, `${file} no automatic PowerShell`);
+    }
+    const projects = readFileSync(join(build.outDir, 'projects/index.html'), 'utf8');
+    assert.match(projects, /class="chip chip-green[^"]*"[^>]*>OneDrive</);
+    assert.match(projects, /class="chip chip-amber chip-button"[^>]*>Bash</, 'unlisted tags keep their automatic colour');
+});
+
+test('a bad colour in tagColors fails the build, naming the tag, the colour and the valid names', () => {
+    const build = buildFixture('normal', '{"PowerShell":"purle"}');
+    assert.notEqual(build.status, 0, 'the build must fail');
+    assert.match(build.output, /PowerShell/);
+    assert.match(build.output, /purle/);
+    for (const name of TAG_COLOR_NAMES) assert.ok(build.output.includes(name), `lists ${name}`);
 });

@@ -62,6 +62,18 @@
     --chip-amber-text: #92400e;
     --chip-rose-fill: #ffe4e6;
     --chip-rose-text: #9f1239;
+    --chip-green-fill: #d1fae5;
+    --chip-green-text: #065f46;
+    --chip-purple-fill: #f3e8ff;
+    --chip-purple-text: #6b21a8;
+    --chip-orange-fill: #fed7aa;
+    --chip-orange-text: #7c2d12;
+    --chip-pink-fill: #fbcfe8;
+    --chip-pink-text: #831843;
+    --chip-sky-fill: #e0f2fe;
+    --chip-sky-text: #075985;
+    --chip-slate-fill: #e2e8f0;
+    --chip-slate-text: #1e293b;
     --status-live-fill: #dcfce7;
     --status-live-text: #166534;
     --status-progress-fill: #fef3c7;
@@ -114,6 +126,18 @@
         --chip-amber-text: #fde68a;
         --chip-rose-fill: #4a1d33;
         --chip-rose-text: #fecdd3;
+        --chip-green-fill: #0d3b2c;
+        --chip-green-text: #a7f3d0;
+        --chip-purple-fill: #3b1d5e;
+        --chip-purple-text: #e9d5ff;
+        --chip-orange-fill: #4d2208;
+        --chip-orange-text: #fed7aa;
+        --chip-pink-fill: #6b1d4a;
+        --chip-pink-text: #fbcfe8;
+        --chip-sky-fill: #0c3a5a;
+        --chip-sky-text: #bae6fd;
+        --chip-slate-fill: #2b3345;
+        --chip-slate-text: #e2e8f0;
         --status-live-fill: #0f3d2a;
         --status-live-text: #86efac;
         --status-progress-fill: #3d2f0c;
@@ -665,6 +689,12 @@ main { padding-top: 2rem; padding-bottom: 2rem; }
 .chip-teal { background: var(--chip-teal-fill); color: var(--chip-teal-text); }
 .chip-amber { background: var(--chip-amber-fill); color: var(--chip-amber-text); }
 .chip-rose { background: var(--chip-rose-fill); color: var(--chip-rose-text); }
+.chip-green { background: var(--chip-green-fill); color: var(--chip-green-text); }
+.chip-purple { background: var(--chip-purple-fill); color: var(--chip-purple-text); }
+.chip-orange { background: var(--chip-orange-fill); color: var(--chip-orange-text); }
+.chip-pink { background: var(--chip-pink-fill); color: var(--chip-pink-text); }
+.chip-sky { background: var(--chip-sky-fill); color: var(--chip-sky-text); }
+.chip-slate { background: var(--chip-slate-fill); color: var(--chip-slate-text); }
 
 .chip-button {
     padding: 0.25rem 1rem;
