@@ -205,7 +205,7 @@ test('home hero has two same-size buttons in one row: View projects (primary) an
     const html = readPage('index.html');
     const hero = html.slice(html.indexOf('<section class="hero"'), html.indexOf('</section>'));
     const row = /<div class="button-row">([\s\S]*?)<\/div>/.exec(hero)[1];
-    assert.match(row, /<a class="button button-primary" href="\/projects\/">View projects<\/a>\s*<a class="button button-secondary" href="\/portfolio\/">Portfolio<\/a>/);
+    assert.match(row, /<a class="button button-primary" href="\/projects\/">View projects<\/a>\s*<a class="button button-primary" href="\/portfolio\/">Portfolio<\/a>/);
     assert.equal(countMatches(hero, /class="button[ "]/g), 2);
     assert.doesNotMatch(html, /About me|<summary>About<\/summary>|>About</);
     assert.match(hero, /<p class="role-line mono">Systems Engineer II at Critical Network Solutions<\/p>/);
@@ -338,7 +338,7 @@ test('search-index.json lists the four projects and the labs, same-origin urls o
     assert.ok(entries.some((entry) => entry.title.includes('MD-102') && entry.url === '/exam_apps/md-102/'));
 });
 
-test('footer is one compact row: brand, four nav links, icon links, copyright, build stamp, old-site link; no Topics column', () => {
+test('footer is one compact row: brand, four nav links, icon links, copyright, build stamp, no old-site link; no Topics column', () => {
     for (const file of Object.values(MAIN_PAGES)) {
         const html = readPage(file);
         const footer = html.slice(html.indexOf('<footer class="site-footer">'), html.indexOf('</footer>'));
@@ -350,7 +350,7 @@ test('footer is one compact row: brand, four nav links, icon links, copyright, b
         assert.match(footer, /class="footer-social"/);
         assert.match(footer, /&copy; 2026 Jon Witherspoon|© 2026 Jon Witherspoon/);
         assert.match(footer, /built \d{4}-\d{2}-\d{2} · (local|[0-9a-f]{7})/);
-        assert.match(footer, /href="https:\/\/siliconscripted\.com"/);
+        assert.doesNotMatch(footer, /siliconscripted\.com|Previous site/);
         assert.doesNotMatch(footer, /Topics|Navigation<|footer-grid/);
     }
 });
@@ -464,10 +464,10 @@ test('main pages have one h1, a title, a description and the right canonical', (
     }
 });
 
-test('footer has build stamp and old-site link; skip link and nav exist', () => {
+test('footer has build stamp and no old-site link; skip link and nav exist', () => {
     const html = readPage('index.html');
     assert.match(html, /built \d{4}-\d{2}-\d{2} · (local|[0-9a-f]{7})/);
-    assert.match(html, /href="https:\/\/siliconscripted\.com"/);
+    assert.doesNotMatch(html, /siliconscripted\.com|Previous site/);
     assert.match(html, /class="skip-link"/);
     assert.match(html, /href="https:\/\/github\.com\/theknoxtech"/);
     assert.match(html, /href="https:\/\/www\.linkedin\.com\/in\/witherspoon84\/"/);
