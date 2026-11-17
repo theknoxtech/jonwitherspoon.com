@@ -12,9 +12,9 @@ const tagColorsOverride = {
     },
 };
 
-/** The real config, with Astro's cache moved to the folder the test names so fixture builds never touch the real cache. */
+/** The real config, with Astro's cache moved to the folder the test names so fixture builds never touch the real cache (Vite's own dependency cache included). */
 export default {
     ...baseConfig,
     cacheDir: `${process.env.BLOG_CACHE_DIR}/`,
-    vite: { ...baseConfig.vite, plugins: [...(baseConfig.vite?.plugins ?? []), tagColorsOverride] },
+    vite: { ...baseConfig.vite, cacheDir: `${process.env.BLOG_CACHE_DIR}/vite`, plugins: [...(baseConfig.vite?.plugins ?? []), tagColorsOverride] },
 };

@@ -1,6 +1,8 @@
 // QC edge cases that need a fresh build. Every build runs in a throwaway copy of
 // the site under the system temp folder, so the real dist/ and exam_apps/ are
-// never touched. node_modules is shared through a link inside the temp copy.
+// never touched. The packages in node_modules are shared through links, but each copy
+// gets its own .vite and .astro cache folders: two builds sharing one Vite dependency
+// cache collide (ENOTEMPTY on node_modules/.vite/deps) whenever they overlap.
 import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -16,12 +18,15 @@ const canBuild = existsSync(astroBin);
 function makeCopy(label) {
     const directory = mkdtempSync(join(tmpdir(), `qc-${label}-`));
     for (const name of ['src', 'public', 'astro.config.mjs', 'package.json']) cpSync(join(root, name), join(directory, name), { recursive: true });
-    symlinkSync(join(root, 'node_modules'), join(directory, 'node_modules'));
+    mkdirSync(join(directory, 'node_modules'));
+    for (const name of readdirSync(join(root, 'node_modules'))) {
+        if (name === '.vite' || name === '.astro') continue;
+        symlinkSync(join(root, 'node_modules', name), join(directory, 'node_modules', name));
+    }
     return directory;
 }
 
 function removeCopy(directory) {
-    unlinkSync(join(directory, 'node_modules'));
     rmSync(directory, { recursive: true, force: true });
 }
 
