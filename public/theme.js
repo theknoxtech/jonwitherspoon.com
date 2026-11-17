@@ -5,7 +5,8 @@
  * 1. Early: read the saved choice and, if it is exactly "light" or "dark", set
  *    data-theme on <html>. With no choice, CSS follows the device setting.
  * 2. After the page is parsed: wire the header toggle button, which flips the
- *    theme, saves the choice and updates its label and aria-pressed. The button
+ *    theme, saves the choice and updates its label and data-theme-state
+ *    (the hook the CSS uses to pick the moon or sun icon). The button
  *    stays hidden until the `has-theme-toggle` class is added to <html>.
  *
  * Storage can be blocked (private windows), so every storage call is guarded.
@@ -66,7 +67,7 @@
         const showState = () => {
             const isDark = currentTheme() === 'dark';
             label.textContent = isDark ? 'Light mode' : 'Dark mode';
-            button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+            button.setAttribute('data-theme-state', isDark ? 'dark' : 'light');
         };
 
         button.addEventListener('click', () => {

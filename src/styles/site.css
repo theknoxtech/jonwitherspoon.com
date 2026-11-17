@@ -547,8 +547,8 @@ main,
 
 .theme-toggle:hover { border-color: var(--accent); }
 
-.theme-toggle[aria-pressed="true"] .theme-icon-moon,
-.theme-toggle[aria-pressed="false"] .theme-icon-sun { display: none; }
+.theme-toggle[data-theme-state="dark"] .theme-icon-moon,
+.theme-toggle[data-theme-state="light"] .theme-icon-sun { display: none; }
 
 .shortcut {
     display: none;

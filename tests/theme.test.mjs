@@ -34,7 +34,7 @@ function runThemeScript({ saved = null, storageThrows = false, deviceDark = fals
         setAttribute: (name, value) => rootAttributes.set(name, String(value)),
         getAttribute: (name) => (rootAttributes.has(name) ? rootAttributes.get(name) : null),
     };
-    const buttonAttributes = new Map([['aria-pressed', 'false']]);
+    const buttonAttributes = new Map();
     const clickHandlers = [];
     const button = {
         setAttribute: (name, value) => buttonAttributes.set(name, String(value)),
@@ -115,32 +115,40 @@ test('theme.js: while the page is still loading the saved theme is applied first
     assert.ok(!page.root.classList.contains('has-theme-toggle'));
     page.finishLoading();
     assert.ok(page.root.classList.contains('has-theme-toggle'));
-    assert.equal(page.button.getAttribute('aria-pressed'), 'true');
+    assert.equal(page.label.textContent, 'Light mode');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'dark');
+    assert.equal(page.button.getAttribute('aria-pressed'), null);
 });
 
-test('theme.js: a click flips light to dark and back, saves each choice, and updates the label and aria-pressed', () => {
+test('theme.js: a click flips light to dark and back, saves each choice, and updates the label and data-theme-state, never aria-pressed', () => {
     const page = runThemeScript({ saved: 'light' });
     assert.equal(page.label.textContent, 'Dark mode');
-    assert.equal(page.button.getAttribute('aria-pressed'), 'false');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'light');
+    assert.equal(page.button.getAttribute('aria-pressed'), null);
 
     page.button.click();
     assert.equal(page.theme(), 'dark');
     assert.equal(page.store.get('theme'), 'dark');
     assert.equal(page.label.textContent, 'Light mode');
-    assert.equal(page.button.getAttribute('aria-pressed'), 'true');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'dark');
+    assert.equal(page.button.getAttribute('aria-pressed'), null);
 
     page.button.click();
     assert.equal(page.theme(), 'light');
     assert.equal(page.store.get('theme'), 'light');
     assert.equal(page.label.textContent, 'Dark mode');
-    assert.equal(page.button.getAttribute('aria-pressed'), 'false');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'light');
+    assert.equal(page.button.getAttribute('aria-pressed'), null);
 });
 
 test('theme.js: with no saved choice on a dark device the button starts in the dark state and the first click goes light', () => {
     const page = runThemeScript({ deviceDark: true });
     assert.equal(page.label.textContent, 'Light mode');
-    assert.equal(page.button.getAttribute('aria-pressed'), 'true');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'dark');
+    assert.equal(page.button.getAttribute('aria-pressed'), null);
     page.button.click();
+    assert.equal(page.label.textContent, 'Dark mode');
+    assert.equal(page.button.getAttribute('data-theme-state'), 'light');
     assert.equal(page.theme(), 'light');
     assert.equal(page.store.get('theme'), 'light');
 });
@@ -159,13 +167,14 @@ test('every page loads /theme.js in the head, not deferred, before search.js', (
     assert.ok(existsSync(join(DIST, 'theme.js')));
 });
 
-test('the header has a real theme button with a visible text label, aria-pressed, both icons, hidden until JS', () => {
+test('the header has a real theme button with a visible text label, no aria-pressed, a data-theme-state hook, both icons, hidden until JS', () => {
     for (const file of MAIN_PAGES) {
         const html = readPage(file);
         const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-        const button = /<button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">([\s\S]*?)<\/button>/.exec(header);
+        const button = /<button class="theme-toggle" type="button" data-theme-toggle data-theme-state="light">([\s\S]*?)<\/button>/.exec(header);
         assert.ok(button, `${file}: theme button missing from the header`);
-        assert.match(button[1], /<span class="theme-toggle-text" data-theme-label>Dark mode<\/span>/);
+        assert.doesNotMatch(button[0], /aria-pressed/);
+    assert.match(button[1], /<span class="theme-toggle-text" data-theme-label>Dark mode<\/span>/);
         assert.match(button[1], /theme-icon-moon[^>]*aria-hidden="true"/);
         assert.match(button[1], /theme-icon-sun[^>]*aria-hidden="true"/);
         assert.ok(header.indexOf('data-theme-toggle') < header.indexOf('search-trigger'), `${file}: theme button sits next to Search`);
@@ -217,6 +226,11 @@ test('CSS: the light block restores every variable the dark block changes to its
     for (const name of lightBlock.keys()) {
         assert.ok(darkBlock.has(name), `${name} is in the light block but not the dark block`);
     }
+});
+
+test('CSS: the theme icons swap on data-theme-state, not aria-pressed', () => {
+    assert.match(CSS_SOURCE, /\.theme-toggle\[data-theme-state="dark"\] \.theme-icon-moon,\s*\.theme-toggle\[data-theme-state="light"\] \.theme-icon-sun \{ display: none; \}/);
+    assert.doesNotMatch(CSS_SOURCE, /\.theme-toggle\[aria-pressed/);
 });
 
 test('CSS: the only prefers-color-scheme rule is the one device-dark block', () => {

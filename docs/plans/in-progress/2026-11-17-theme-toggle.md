@@ -46,9 +46,9 @@ The script is a small separate file, loaded in the page head without `defer`, so
 - [ ] Implement in `site.css`. The same variable list necessarily appears twice (CSS cannot share one block between a media query and an attribute selector); the test above guards it. Set `color-scheme` to match.
 
 ### Task 2: Script and button
-- [ ] Tests (`tests/theme.test.mjs`, run in Node with a small fake `document` and `localStorage`): saved "dark" sets `data-theme="dark"`; saved junk such as "banana" is ignored; storage that throws does not throw out of the script; a click flips light to dark and back, saves it, and updates the button's label and `aria-pressed`.
+- [ ] Tests (`tests/theme.test.mjs`, run in Node with a small fake `document` and `localStorage`): saved "dark" sets `data-theme="dark"`; saved junk such as "banana" is ignored; storage that throws does not throw out of the script; a click flips light to dark and back, saves it, and updates the button's label and its `data-theme-state` hook (no `aria-pressed`).
 - [ ] Build-level tests: every page loads `/theme.js` in the head, not deferred; no inline script, no inline style; the header has a button with a visible text label and a hidden-until-JS class; `theme.js` uses no `eval` or `innerHTML`.
-- [ ] Implement `public/theme.js` and the header button. The button label says what a click does ("Dark mode" / "Light mode") and carries `aria-pressed`.
+- [ ] Implement `public/theme.js` and the header button. The button label says what a click does ("Dark mode" / "Light mode") and has no `aria-pressed` (Jon chose a changing label with no pressed state); a `data-theme-state` attribute ("light" or "dark", the theme shown) drives the moon/sun icon swap in CSS.
 - [ ] Update the existing test "every page loads /search.js (deferred)..." to also allow `/theme.js` (this plan breaks it; Jon's rule allows that edit).
 
 ### Task 3: Docs and check
@@ -61,7 +61,7 @@ The script is a small separate file, loaded in the page head without `defer`, so
 2. **Dark and light blocks drifting apart** when someone edits a colour in one place. Pinned by the identical-blocks test.
 3. **Saved junk or blocked storage** (private windows). Pinned by the junk and throwing-storage tests.
 4. **Contrast** in both manual modes. Pinned by the extended contrast test.
-5. **Keyboard and screen readers.** The control is a real button with a text label and `aria-pressed`.
+5. **Keyboard and screen readers.** The control is a real button with a changing text label and no pressed state.
 
 ## Security
 
