@@ -50,9 +50,9 @@ add(D4, N28b, "Which statement about assigning an app protection policy is corre
   ["You can apply it to a device group when the devices are enrolled in Intune", "You can apply it to either user groups or device groups on Android", "You can apply it to a device group when the app uses the Intune App SDK"],
   "The quickstart states that app protection policies apply to groups that contain users, not groups that contain devices.", K28.appQs);
 add(D4, N28b, "A user is in the targeted group, but a status report shows no app protection policy for the user. Before changing settings, which Intune report should you open first?",
-  ["Apps, Monitor, App protection status"],
-  ["Devices, Monitor, Assignment failures", "Reports, Device compliance, Noncompliant devices", "Endpoint security, Antivirus, Unhealthy endpoints"],
-  "The investigation flow starts at Apps, Monitor, App protection status. A newly targeted user can take up to 24 hours to appear in reports.", K28.appTs);
+  ["Apps > Monitor > App protection status"],
+  ["Devices > Monitor > Assignment failures", "Reports > Device compliance > Noncompliant devices", "Endpoint security > Antivirus > Unhealthy endpoints"],
+  "The investigation flow starts at Apps > Monitor > App protection status. A newly targeted user can take up to 24 hours to appear in reports.", K28.appTs);
 add(D4, N28b, "You are building an app protection policy that must protect company data when a device is rooted or jailbroken. Which two actions can you choose for this conditional launch setting?",
   ["Block access", "Wipe data"],
   ["Warn", "Reset PIN", "Encrypt organizational data"],
@@ -116,7 +116,7 @@ add(D5, N28e, "For an operating system vulnerability, which remediation might th
 add(D2, N28f, "Windows 11 devices are Entra joined and enrolled in Intune. A Microsoft Edge policy exists in on-premises Group Policy but not in the settings catalog. You need to manage it centrally with the least effort. What should you do?",
   ["Import the ADMX and ADML files into Intune and create a profile from them"],
   ["Deploy a PowerShell script that writes the registry value to each device", "Create a custom profile with a hand-built OMA-URI setting for the policy", "Export the setting from a domain controller and deploy it as a compliance policy"],
-  "Use Devices, Configuration, Import ADMX to upload the template files, then create a profile that uses the imported settings.", K28.admx);
+  "Use Devices > Manage devices > Configuration > Import ADMX to upload the template files, then create a profile that uses the imported settings.", K28.admx);
 add(D2, N28f, "Which two files do you upload when you import a custom administrative template into Intune?",
   ["An ADMX file", "An ADML file for one language"],
   ["A Group Policy backup (GPO) file", "A JSON settings export from Group Policy analytics", "A provisioning package (PPKG) file"],
@@ -139,3 +139,19 @@ add(D2, N28g, "Which journalctl tag shows the Microsoft Tunnel agent logs?",
   ["mstunnel-agent"],
   ["mstunnel_monitor, which shows the monitoring task logs", "ocserv, which shows the tunnel server logs", "ocserv-access, which shows access logs when enabled"],
   "Tags: mstunnel-agent is the agent, mstunnel_monitor is the monitoring task, ocserv is the server and ocserv-access is the access log.", K28.tunMon);
+
+/* 8. Groups you can assign in Intune (added from a practice question, Nov 16) */
+const N28h = "Groups you can use for Intune assignments";
+const K28g = ML + 'intune/fundamentals/tenant-administration/add-groups';
+add(D1, N28h, "A tenant has Admin1 (user), Group1 (Microsoft 365 group), Group2 (distribution group), Group3 (mail-enabled security group) and Group4 (security group). You create a Microsoft 365 Apps app in Intune. To which objects can you assign the app?",
+  ["Group3 and Group4 only"],
+  ["Admin1, Group1, Group2, Group3 and Group4", "Group1, Group2, Group3 and Group4 only", "Admin1, Group3 and Group4 only", "Group1, Group3 and Group4 only"],
+  "Intune assignments need security-enabled Entra groups. Mail-enabled security and security groups qualify. A default Microsoft 365 group is not security-enabled, a distribution group is not a security group, and you assign to groups, not to a single user.", K28g);
+add(D1, N28h, "Which requirement must a Microsoft Entra group meet before Intune can use it for assignments?",
+  ["It must be security-enabled"],
+  ["It must be mail-enabled so that Intune can notify its members", "It must use dynamic membership so devices join automatically", "It must contain only devices and no user accounts at all"],
+  "Assigned and dynamic membership both work, and a security group can hold users or devices. By default a Microsoft 365 group is not security-enabled and is not supported.", K28g);
+add(D1, N28h, "Why can you not select a default Microsoft 365 group when you assign an Intune policy or app?",
+  ["It is not security-enabled, so Intune does not support it"],
+  ["It can hold devices only, and the assignment needs users", "It is mail-enabled, and Intune blocks every mail-enabled group", "It uses dynamic membership, which Intune cannot evaluate"],
+  "Default Microsoft 365 groups support only users and are not security-enabled. A security-enabled Microsoft 365 group, created with Graph PowerShell, is supported but still holds users only.", K28g);

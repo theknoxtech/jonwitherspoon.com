@@ -528,10 +528,10 @@ add(D3, N23f, "Which conditional launch settings are on the Windows list?",
   ["Offline grace, Min app and SDK version, Disabled account, Min and Max OS, threat level"],
   ["Max PIN attempts, Jailbroken/rooted devices, Play integrity verdict and Device model(s) list", "Min patch version, Samsung Knox attestation, Require device lock and Min Company Portal version list", "Offline grace period, Max PIN attempts, Primary MTD service and Non-working time list"],
   "Windows has no PIN, so there is no Max PIN attempts. It has no jailbreak or Play integrity checks either.", WIN);
-add(D3, N23f, "Which component supplies the device health signal for the Windows MAM threat defense check, and what does it need?",
-  ["Windows Security Center; Windows 11 23H2 or later"],
-  ["Microsoft Defender for Endpoint, on any enrolled Windows PC in the tenant", "The Company Portal app, on any Windows 10 PC that has Edge installed", "Windows Autopilot, on any Entra joined PC that was registered by a reseller"],
-  "The MTD connector for the Windows Security Center is supported on Windows 11 version 22631 (23H2) or later.", WMAM);
+add(D3, N23f, "A Windows app protection policy uses Max allowed device threat level, which needs a Mobile Threat Defense (MTD) signal. Which MTD connector supplies it, and which Windows version does it require?",
+  ["Windows Security Center connector; Windows 11 23H2 or later"],
+  ["Microsoft Entra ID Protection risk detections; any Windows 11 version that is enrolled in Intune", "Company Portal compliance report connector; Windows 10 PCs that have Microsoft Edge installed", "Windows Autopilot deployment profile connector; any Entra joined PC that was registered by a reseller"],
+  "For Windows MAM, the MTD connector is the one for the Windows Security Center (WSC). Intune receives the device health state from it. It is supported only on Windows 11 version 22631 (23H2) or later.", WMAM);
 add(D3, N23f, "Which Conditional Access setup limits Windows users to Edge with app protection when they reach Microsoft 365?",
   ["A policy requiring app protection for Windows; Edge allowed, other browsers blocked"],
   ["A policy that requires a compliant device, because MAM devices are always compliant in Entra", "A policy that requires a hybrid joined device for every browser on the PC", "A policy that blocks every browser, including Edge, for all Windows devices"],

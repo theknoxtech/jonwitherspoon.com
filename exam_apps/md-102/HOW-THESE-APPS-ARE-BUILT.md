@@ -99,7 +99,7 @@ Learn moves and renames pages, so links rot. `source/link-urls.tsv` lists every 
 
 `q26.js` (Endpoint security: connect, deploy and configure) covers MDE connection and EDR onboarding, firewall policy, EPM, App Control and Managed Installer, exploit protection, FileVault and Windows Hello for Business: 5 setup sequences and 79 questions. `q27.js` has 10 questions on removing MSI Office when deploying Microsoft 365 Apps. Lab 13 (Endpoint security) in `labs.js` is the hands-on companion, and Lab 6 has an MSI check step.
 
-`q28.js` (Nov 15, from a Microsoft practice assessment) covers 25 questions on removing OEM apps (Windows Configuration Designer and Fresh Start), app protection assignment (user groups, not device groups) and jailbroken or rooted actions, Microsoft 365 Apps with Visio, Managed apps app configuration, reading Vulnerability Remediation Agent suggestions, custom ADMX import and Tunnel server logs. It sits between `q26.js` and `q27.js` on purpose: ids are `Q.length + 1`, and `q27.js` splices questions out, so any file that adds questions must come before `q27.js`, never after it.
+`q28.js` (Nov 15, from a Microsoft practice assessment) covers 28 questions (25 from the practice assessment plus 3 on groups usable for Intune assignments) on removing OEM apps (Windows Configuration Designer and Fresh Start), app protection assignment (user groups, not device groups) and jailbroken or rooted actions, Microsoft 365 Apps with Visio, Managed apps app configuration, reading Vulnerability Remediation Agent suggestions, custom ADMX import and Tunnel server logs. It sits between `q26.js` and `q27.js` on purpose: ids are `Q.length + 1`, and `q27.js` splices questions out, so any file that adds questions must come before `q27.js`, never after it.
 
 
 `q21.js` is the "Exam notes drill": 64 questions written from a list of exam notes after checking every claim on Learn. Several claims were wrong or out of date and were corrected or dropped. Do the same for the next exam: verify first, then write.
@@ -180,4 +180,4 @@ The app keeps everything in one `store` object under a localStorage key (`md102.
 
 ## 12. Keeping this guide current
 
-Update this guide whenever the app changes: a new question file (build order, section 2), a new mode or panel (section 4), a new check or test (section 6), or a path or deploy change (section 10). Current state: bank of 720 questions (115, 150, 112, 277 and 66 across Domains 1 to 5), 13 labs, drill options added in v37 and v38, interchangeable sequence steps in v39.
+Update this guide whenever the app changes: a new question file (build order, section 2), a new mode or panel (section 4), a new check or test (section 6), or a path or deploy change (section 10). Current state: bank of 723 questions (118, 150, 112, 277 and 66 across Domains 1 to 5), 13 labs, drill options added in v37 and v38, interchangeable sequence steps in v39.
