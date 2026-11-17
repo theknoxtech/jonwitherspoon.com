@@ -234,6 +234,18 @@ All in the `profile` block at the top of `site.json`:
 - `location`, `github`, `linkedin`: your location and links.
 - `aboutDraftNote`: the "[DRAFT: Jon to review]" note. Set it to an empty `""` once you are happy with the About text.
 
+## Light and dark mode
+
+A button in the header switches the site between light and dark. A first-time visitor gets whatever their device is set to; once they click, the choice is remembered on that device (in the browser, no cookie) and used on every page. Without JavaScript there is no button and the site follows the device setting.
+
+The colours live in `src/styles/site.css`:
+
+- The light colours are at the top, in `:root`.
+- The dark colours are written **twice**, in the `@media (prefers-color-scheme: dark)` block and in the `:root[data-theme="dark"]` block. If you change a dark colour, change it in both places. `npm test` fails if the two differ.
+- `:root[data-theme="light"]` repeats the light value of every colour that dark changes. If you change a light colour that dark also changes, change it there too. `npm test` checks this as well.
+
+The script is `public/theme.js`. The lab apps under `/exam_apps/` are separate pages and do not have the toggle.
+
 ## Try it on your computer
 
 In a terminal, in the project folder:

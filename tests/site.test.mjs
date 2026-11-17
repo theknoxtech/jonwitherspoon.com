@@ -124,7 +124,7 @@ test('main pages have no inline script, no inline style, no style=, no external-
     for (const [route, file] of Object.entries(MAIN_PAGES)) {
         const html = readPage(file);
         for (const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
-            assert.match(script[1], /\ssrc="\/(search|tabs)\.js"/, `${route}: script that is not /search.js or /tabs.js`);
+            assert.match(script[1], /\ssrc="\/(search|tabs|theme)\.js"/, `${route}: script that is not /search.js, /tabs.js or /theme.js`);
             assert.equal(script[2].trim(), '', `${route}: inline script content`);
             assert.doesNotMatch(script[1], /type="module"/);
         }
@@ -135,13 +135,14 @@ test('main pages have no inline script, no inline style, no style=, no external-
     }
 });
 
-test('every page loads /search.js (deferred); only /portfolio/ also loads /tabs.js', () => {
+test('every page loads /search.js (deferred) and /theme.js (not deferred); only /portfolio/ also loads /tabs.js', () => {
     for (const [route, file] of Object.entries(MAIN_PAGES)) {
         const html = readPage(file);
         assert.match(html, /<script[^>]*\ssrc="\/search\.js"[^>]*\sdefer/, `${route} search.js reference`);
+        assert.match(html, /<script(?![^>]*\sdefer)[^>]*\ssrc="\/theme\.js"/, `${route} theme.js reference`);
         assert.equal(/<script[^>]*\ssrc="\/tabs\.js"[^>]*\sdefer/.test(html), route === '/portfolio/', `${route} tabs.js reference`);
     }
-    assert.ok(existsSync(join(DIST, 'search.js')) && existsSync(join(DIST, 'tabs.js')));
+    assert.ok(existsSync(join(DIST, 'search.js')) && existsSync(join(DIST, 'tabs.js')) && existsSync(join(DIST, 'theme.js')));
 });
 
 test('search.js and tabs.js use no eval or innerHTML; search.js fetches only its own index', () => {

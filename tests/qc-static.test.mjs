@@ -188,12 +188,12 @@ test('QC: JavaScript-free markup (no script, handlers, javascript: urls, forms, 
     for (const file of MAIN_PAGES) {
         const html = readDist(file);
         assert.doesNotMatch(html, /<noscript|<form|<iframe|<object|<embed|<base\b/i, `${file}: forbidden element`);
-        assert.doesNotMatch(html.replace(/<script\s+src="\/(search|tabs)\.js"[^>]*><\/script>/g, ''), /<script/i, `${file}: script other than /search.js`);
+        assert.doesNotMatch(html.replace(/<script\s+src="\/(search|tabs|theme)\.js"[^>]*><\/script>/g, ''), /<script/i, `${file}: script other than /search.js, /tabs.js or /theme.js`);
         assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${file}: inline event handler`);
         assert.doesNotMatch(html, /javascript:/i, `${file}: javascript: url`);
         assert.doesNotMatch(html, /modulepreload|type="module"/i, `${file}: module script hint`);
     }
-    assert.deepEqual(walk(DIST).filter((file) => file.endsWith('.js')).map((file) => relative(DIST, file)), ['search.js', 'tabs.js'], 'main build should emit only search.js and tabs.js');
+    assert.deepEqual(walk(DIST).filter((file) => file.endsWith('.js')).map((file) => relative(DIST, file)), ['search.js', 'tabs.js', 'theme.js'], 'main build should emit only search.js, tabs.js and theme.js');
 });
 
 test('QC: the 404 page links back into the site and the 404 override targets it', { skip: !hasBuild }, () => {
@@ -251,12 +251,12 @@ function variables(block) {
     return Object.fromEntries([...block.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)].map((match) => [match[1], match[2]]));
 }
 
-test('QC CSS: light and dark palettes both exist and follow prefers-color-scheme (no toggle)', () => {
+test('QC CSS: light and dark palettes both exist; they follow prefers-color-scheme until a data-theme choice is made', () => {
     assert.match(css, /color-scheme:\s*light dark/);
-    assert.match(css, /@media \(prefers-color-scheme: dark\)\s*\{\s*:root\s*\{/);
+    assert.match(css, /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme="light"\]\)\s*\{/);
     const dark = variables(css.slice(css.indexOf('@media (prefers-color-scheme: dark)')));
     for (const name of ['background', 'surface', 'ink', 'ink-muted', 'rule', 'accent', 'accent-text']) assert.ok(dark[name], `dark --${name}`);
-    assert.doesNotMatch(css, /data-theme|\.dark\b|\.light\b/);
+    assert.doesNotMatch(css, /\.dark\b|\.light\b/);
 });
 
 test('QC CSS: text colour pairs meet WCAG AA 4.5:1 in light and dark; the accent border meets 3:1', () => {
@@ -472,7 +472,7 @@ test('QC config (by design, not failed): the lab route CSP differs from the plan
 });
 
 test('QC dist: only expected file types are published (no maps, sources, notes, dotfiles, scripts, package files)', { skip: !hasBuild }, () => {
-    const allowed = /\.(html|css|json|jpg|woff2|txt)$|^(search|tabs)\.js$/;
+    const allowed = /\.(html|css|json|jpg|woff2|txt)$|^(search|tabs|theme)\.js$/;
     for (const file of walk(DIST)) {
         const name = relative(DIST, file);
         assert.match(name, allowed, `unexpected file type in dist: ${name}`);

@@ -39,7 +39,7 @@ function assertStrictCspClean(html, label) {
     assert.doesNotMatch(html, /<style/i, `${label} has <style`);
     assert.doesNotMatch(html, /\sstyle=/i, `${label} has style=`);
     for (const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
-        assert.match(script[1], /\ssrc="\/(search|tabs)\.js"/, `${label}: unexpected script`);
+        assert.match(script[1], /\ssrc="\/(search|tabs|theme)\.js"/, `${label}: unexpected script`);
         assert.equal(script[2].trim(), '', `${label}: inline script content`);
     }
 }

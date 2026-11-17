@@ -100,8 +100,67 @@
     --column: 62rem;
 }
 
+:root[data-theme="light"] {
+    color-scheme: light;
+    --background: #eef2fb;
+    --surface: #ffffff;
+    --glass-worst: #eff2fd;
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    --rule: #cdd6e8;
+    --accent: #4f46e5;
+    --accent-text: #4338ca;
+    --accent-two: #0b647d;
+    --tint: #e3e8fb;
+    --hero-tint: #e4e9fb;
+    --hero-tint-end: #ebeffc;
+    --heading-start: #0e7490;
+    --heading-mid: #4f46e5;
+    --heading-end: #7e22ce;
+    --control-border: #64748b;
+    --chip-blue-fill: #e0e7ff;
+    --chip-blue-text: #3730a3;
+    --chip-teal-fill: #cffafe;
+    --chip-teal-text: #155e75;
+    --chip-amber-fill: #fef3c7;
+    --chip-amber-text: #92400e;
+    --chip-rose-fill: #ffe4e6;
+    --chip-rose-text: #9f1239;
+    --chip-green-fill: #d1fae5;
+    --chip-green-text: #065f46;
+    --chip-purple-fill: #f3e8ff;
+    --chip-purple-text: #6b21a8;
+    --chip-orange-fill: #fed7aa;
+    --chip-orange-text: #7c2d12;
+    --chip-pink-fill: #fbcfe8;
+    --chip-pink-text: #831843;
+    --chip-sky-fill: #e0f2fe;
+    --chip-sky-text: #075985;
+    --chip-slate-fill: #e2e8f0;
+    --chip-slate-text: #1e293b;
+    --status-live-fill: #dcfce7;
+    --status-live-text: #166534;
+    --status-progress-fill: #fef3c7;
+    --status-progress-text: #92400e;
+    --status-planned-fill: #e2e8f0;
+    --status-planned-text: #334155;
+    --glass-fill: rgba(255, 255, 255, 0.6);
+    --glass-fill-hover: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(15, 23, 42, 0.1);
+    --glass-edge: inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 1px 0 rgba(15, 23, 42, 0.06);
+    --shadow-card: 0 10px 30px rgba(51, 65, 120, 0.12), 0 2px 8px rgba(51, 65, 120, 0.08);
+    --shadow-lift: 0 20px 44px -10px rgba(51, 65, 120, 0.25), 0 0 26px rgba(79, 70, 229, 0.15);
+    --shadow-button: 0 6px 18px -6px rgba(79, 70, 229, 0.5);
+    --dialog-fill: rgba(255, 255, 255, 0.92);
+    --orb-indigo: rgba(129, 140, 248, 0.2);
+    --orb-cyan: rgba(56, 189, 248, 0.16);
+    --orb-violet: rgba(167, 139, 250, 0.2);
+}
+
+/* The dark values appear twice (device setting with no saved choice, and :root[data-theme="dark"]) because CSS cannot share one block between a media query and an attribute selector. tests/theme.test.mjs keeps the two identical. */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
         --background: #060810;
         --surface: #121a30;
         --glass-worst: #3a3e5f;
@@ -156,6 +215,63 @@
         --orb-cyan: rgba(56, 189, 248, 0.2);
         --orb-violet: rgba(167, 139, 250, 0.24);
     }
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --background: #060810;
+    --surface: #121a30;
+    --glass-worst: #3a3e5f;
+    --ink: #f8fafc;
+    --ink-muted: #b0bcd0;
+    --rule: #232c46;
+    --accent: #818cf8;
+    --accent-text: #a5b4fc;
+    --accent-two: #7dd3fc;
+    --tint: #232b52;
+    --hero-tint: #3f4361;
+    --hero-tint-end: #3a405e;
+    --heading-start: #38bdf8;
+    --heading-mid: #818cf8;
+    --heading-end: #c084fc;
+    --control-border: #8294b0;
+    --chip-blue-fill: #1e2a5e;
+    --chip-blue-text: #c7d2fe;
+    --chip-teal-fill: #0f3a42;
+    --chip-teal-text: #99f6e4;
+    --chip-amber-fill: #3d2f0c;
+    --chip-amber-text: #fde68a;
+    --chip-rose-fill: #4a1d33;
+    --chip-rose-text: #fecdd3;
+    --chip-green-fill: #0d3b2c;
+    --chip-green-text: #a7f3d0;
+    --chip-purple-fill: #3b1d5e;
+    --chip-purple-text: #e9d5ff;
+    --chip-orange-fill: #4d2208;
+    --chip-orange-text: #fed7aa;
+    --chip-pink-fill: #6b1d4a;
+    --chip-pink-text: #fbcfe8;
+    --chip-sky-fill: #0c3a5a;
+    --chip-sky-text: #bae6fd;
+    --chip-slate-fill: #2b3345;
+    --chip-slate-text: #e2e8f0;
+    --status-live-fill: #0f3d2a;
+    --status-live-text: #86efac;
+    --status-progress-fill: #3d2f0c;
+    --status-progress-text: #fde68a;
+    --status-planned-fill: #232b3e;
+    --status-planned-text: #cbd5e1;
+    --glass-fill: rgba(255, 255, 255, 0.06);
+    --glass-fill-hover: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-edge: inset 0 1px 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.25);
+    --shadow-lift: 0 24px 60px -10px rgba(0, 0, 0, 0.7), 0 0 30px rgba(129, 140, 248, 0.2);
+    --shadow-button: 0 6px 20px -6px rgba(129, 140, 248, 0.45);
+    --dialog-fill: rgba(10, 14, 28, 0.9);
+    --orb-indigo: rgba(129, 140, 248, 0.28);
+    --orb-cyan: rgba(56, 189, 248, 0.2);
+    --orb-violet: rgba(167, 139, 250, 0.24);
 }
 
 *,
@@ -411,6 +527,28 @@ main,
 .has-quick-search .search-trigger { display: inline-flex; }
 
 .search-trigger:hover { border-color: var(--accent); }
+
+.theme-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 0.9rem;
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--glass-edge);
+    color: var(--ink);
+    font: 500 0.9rem/1.2 var(--font-sans);
+    cursor: pointer;
+}
+
+.has-theme-toggle .theme-toggle { display: inline-flex; }
+
+.theme-toggle:hover { border-color: var(--accent); }
+
+.theme-toggle[aria-pressed="true"] .theme-icon-moon,
+.theme-toggle[aria-pressed="false"] .theme-icon-sun { display: none; }
 
 .shortcut {
     display: none;
@@ -1036,6 +1174,7 @@ p.placeholder { display: block; width: fit-content; max-width: 100%; }
     .nav-list a,
     .icon-link,
     .search-trigger,
+    .theme-toggle,
     .button,
     .chip-button,
     .tab,
