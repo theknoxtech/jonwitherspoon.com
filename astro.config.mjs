@@ -59,5 +59,7 @@ export default defineConfig({
     output: 'static',
     site: 'https://jonwitherspoon.com',
     build: { inlineStylesheets: 'never' },
+    // The default colour highlighter writes style="" attributes, which the strict CSP forbids.
+    markdown: { syntaxHighlight: false },
     integrations: [placeholderGuard, labCopy],
 });

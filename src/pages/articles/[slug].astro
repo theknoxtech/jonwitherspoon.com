@@ -1,0 +1,36 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { assertArticleIsAllowed, chipTint, publishedArticles } from '../../lib/articles.js';
+
+export async function getStaticPaths() {
+  const articles = publishedArticles(await getCollection('blog'));
+  articles.forEach(assertArticleIsAllowed);
+  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article);
+const { title, date, description, cover, coverAlt, tags } = article.data;
+const isoDate = date.toISOString().slice(0, 10);
+---
+
+<Base title={`${title} - Jonathan Witherspoon`} description={description} path={`/articles/${article.id}/`} section="articles">
+  <article class="article">
+    <header class="page-header">
+      <h1 id="page-title">{title}</h1>
+      <p class="meta mono"><time datetime={isoDate}>{isoDate}</time></p>
+      {tags.length > 0 && (
+        <ul class="chips mono">
+          {tags.map((tag) => <li class={`chip chip-${chipTint(tag)}`}>{tag}</li>)}
+        </ul>
+      )}
+    </header>
+    {cover && <Image class="article-cover" src={cover} alt={coverAlt} width={960} height={480} loading="eager" />}
+    <div class="article-body">
+      <Content />
+    </div>
+    <p class="more"><a class="text-link" href="/articles/">All articles</a></p>
+  </article>
+</Base>

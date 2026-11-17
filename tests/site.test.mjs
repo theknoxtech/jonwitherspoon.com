@@ -300,9 +300,11 @@ test('project chips and filters come from the tags in site.json (change a tag th
     for (const tag of tags) assert.ok(projects.includes(`>${tag.replace('&', '&amp;')}</li>`) || projects.includes(`>${tag}</`), `chip for ${tag}`);
 });
 
-test('articles section is driven by site.json articles (empty array in this build)', () => {
+test('articles section is driven by the blog collection (no articles in this build), and site.json has no articles list', () => {
     const site = JSON.parse(readFileSync(new URL('../src/data/site.json', import.meta.url), 'utf8'));
-    assert.deepEqual(site.articles, []);
+    assert.ok(!('articles' in site), 'the old articles list is removed from site.json');
+    assert.match(readPage('index.html'), /<p class="empty-state">Articles are on the way\.<\/p>/);
+    assert.match(readPage('articles/index.html'), /<p class="empty-state">/);
 });
 
 test('header has monogram, icon links with text labels and a search button hidden until JS; dialog is present', () => {
@@ -336,7 +338,7 @@ test('search-index.json lists the four projects and the labs, same-origin urls o
     assert.ok(entries.some((entry) => entry.title.includes('MD-102') && entry.url === '/exam_apps/md-102/'));
 });
 
-test('footer is one compact row: brand, three nav links, icon links, copyright, build stamp, old-site link; no Topics column', () => {
+test('footer is one compact row: brand, four nav links, icon links, copyright, build stamp, old-site link; no Topics column', () => {
     for (const file of Object.values(MAIN_PAGES)) {
         const html = readPage(file);
         const footer = html.slice(html.indexOf('<footer class="site-footer">'), html.indexOf('</footer>'));
@@ -344,7 +346,7 @@ test('footer is one compact row: brand, three nav links, icon links, copyright, 
         assert.match(footer, /<p class="footer-brand">/);
         assert.match(footer, /<nav aria-label="Footer">/);
         assert.equal(countMatches(footer, /<ul class="footer-list">[\s\S]*?<\/ul>/g), 1);
-        for (const label of ['Portfolio', 'Projects', 'Labs']) assert.match(footer, new RegExp(`<a href="/${label.toLowerCase()}/">${label}</a>`));
+        for (const label of ['Portfolio', 'Projects', 'Labs', 'Articles']) assert.match(footer, new RegExp(`<a href="/${label.toLowerCase()}/">${label}</a>`));
         assert.match(footer, /class="footer-social"/);
         assert.match(footer, /&copy; 2026 Jon Witherspoon|© 2026 Jon Witherspoon/);
         assert.match(footer, /built \d{4}-\d{2}-\d{2} · (local|[0-9a-f]{7})/);

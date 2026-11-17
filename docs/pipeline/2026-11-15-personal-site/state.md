@@ -57,3 +57,7 @@ Re-read at the start of every stage; update at the end of every stage.
 
 - 2026-11-15: 1 Design: round 1 and 2 done, Recon 01 and 02, CVE report saved. 2 Plan: written, advisor consulted, plan fixed (route pattern, 404, fonts, repo visibility).
 - 2026-11-15: 0 Size: project CLAUDE.md created from template and Project Context filled; repo initialized; run branch cut.
+
+- 2026-11-16 rule change (Jon, "relax it"): developers may update existing tests broken by an approved plan change, to match the new behavior only, and list each in their report. Other failing tests, and security scans or reviews, still stop and ask Jon.
+
+- 2026-11-16: blog build (frontend-dev-6) done: 142 of 142 tests, 3 clean runs by orchestrator. Two existing tests updated per the relaxed rule (footer nav 3 to 4; articles section). Dev ran git stash and pop by mistake (restored cleanly). exam_apps/md-102/index.html and source/q28.js show uncommitted wording edits (written 19:37, not by the build; they were clean earlier) -- NOT committed, NOT touched; Jon asked whether they are his. Dev reported 3 of 8 early full runs had one random test failure; not reproduced in 6 later runs. QC (prototype scope) not yet run on the blog.

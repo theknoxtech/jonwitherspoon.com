@@ -1,7 +1,9 @@
+import { getCollection } from 'astro:content';
 import site from '../data/site.json';
+import { publishedArticles } from '../lib/articles.js';
 
-/** Build-time search index for the quick-search dialog: projects and labs only, same origin. */
-export function GET() {
+/** Build-time search index for the quick-search dialog: projects, labs and published articles, same origin. */
+export async function GET() {
   const projects = site.projects.map((project) => ({
     kind: 'project',
     title: project.title,
@@ -21,7 +23,15 @@ export function GET() {
       url: links[0]?.path ?? '/labs/',
     };
   });
-  return new Response(JSON.stringify([...projects, ...labs]), {
+  const articles = publishedArticles(await getCollection('blog')).map((article) => ({
+    kind: 'article',
+    title: article.data.title,
+    description: article.data.description,
+    tags: article.data.tags,
+    status: '',
+    url: `/articles/${article.id}/`,
+  }));
+  return new Response(JSON.stringify([...projects, ...labs, ...articles]), {
     headers: { 'Content-Type': 'application/json' },
   });
 }

@@ -142,21 +142,66 @@ When you change jobs, set the old job's `"current"` to `false`, give it an end m
 
 ## Add an article
 
-Articles are a list called `articles` in `site.json`. It starts empty (`[]`), which shows "no articles yet" on the Home page. To add one:
+Articles are not in `site.json`. Each article is its own Markdown file (a plain text file) in the folder `src/content/blog/`. If that folder does not exist yet, create it.
 
-```json
-"articles": [
-    {
-        "title": "How I automated BitLocker",
-        "date": "2026-12-01",
-        "description": "A short summary of the article.",
-        "tags": ["PowerShell", "BitLocker"],
-        "url": "https://example.com/my-article"
-    }
-]
+There are two ways to make an article:
+
+- **One file, no pictures:** `src/content/blog/my-title.md`. The web address becomes `/articles/my-title/`.
+- **One folder, with pictures:** `src/content/blog/my-title/index.md`, and the pictures go in the same folder. The web address is still `/articles/my-title/`.
+
+Use lowercase words with dashes in the file or folder name. It becomes the web address.
+
+The top of the file is a header between two lines of three dashes, then the article text:
+
+```markdown
+---
+title: How I automated BitLocker
+date: 2026-12-01
+description: One sentence summary.
+tags: [PowerShell, BitLocker]
+draft: false
+---
+
+The article text goes here. A blank line starts a new paragraph.
+
+## A heading
+
+- a list item
+- another one
 ```
 
-The Home page shows up to three, in the order you list them. The `url` can be any address for now. A full blog on this site has not been built yet.
+- `title`, `date` (year-month-day) and `description` are required. If one is missing or wrong, the build stops and names the file.
+- `tags` is optional. Tags look the same as on Projects.
+- `draft: true` hides the article everywhere (list, Home, search). Use it while you are still writing, or to hold an article back until a later date. Without `draft`, the article is published. A date in the future does not hide it.
+
+### Add a picture
+
+1. Make the article a folder (`my-title/index.md`) and copy the picture into that folder, for example `bitlocker-policy.png`.
+2. In the text, write `![what the picture shows](./bitlocker-policy.png)`.
+
+The words in the square brackets are the **alt text**: a short description for people who cannot see the picture. It is required. If it is empty, the build stops.
+
+Keep each original picture under about 2 MB. The site makes a smaller copy for visitors, but the big original stays in the repository. Only use your own pictures, and check screenshots for private details (names, tenant IDs, addresses) before you commit, because git keeps every old version. Pictures must be files in the article folder: an address that starts with `https://` is not allowed, and the build stops.
+
+### Add a banner picture (optional)
+
+A banner is the wide picture across the top of the article and at the top of its card on the Articles page and on Home. Copy the picture into the article folder and add two lines to the header:
+
+```markdown
+cover: ./cover.png
+coverAlt: Short description of the picture
+```
+
+`coverAlt` is required whenever `cover` is set. An article with no banner gets a plain text card.
+
+### What the build refuses
+
+The build stops, naming the file, if an article has: a picture with no alt text, a `cover` with no `coverAlt`, a picture from another website, a raw `<script>` or `<style>` tag, or a `style=` attribute. This keeps the site safe.
+
+### Preview and publish
+
+1. Preview on your computer with `npm run build && npm run preview` (see "Try it on your computer"), then open `/articles/`.
+2. To publish, set `draft: false` (or remove the line), then follow "Publish" below. The article goes live when the pull request is merged into `main`.
 
 ## Change the profile text
 
