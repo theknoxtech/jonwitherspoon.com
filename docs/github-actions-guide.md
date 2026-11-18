@@ -52,7 +52,7 @@ The run turns red (fails) and nothing is published if:
 
 ## Before you start
 
-- [ ] You have the GitHub repository `jonwitherspoon.com` with `main` and `dev` pushed (setup guide section 1).
+- [ ] You have the GitHub repository `jonwitherspoon.com` with `main` pushed. `dev` is pushed last, after both secrets are added (setup guide sections 1 and 4a).
 - [ ] You have the Azure Static Web App and its deployment token (setup guide section 3). Plan type Free, deployment source **Other**, not GitHub.
 
 ## Steps to switch it on
@@ -60,8 +60,8 @@ The run turns red (fails) and nothing is published if:
 - [ ] **Add the secret.** In the GitHub repository: Settings > Secrets and variables > Actions > **New repository secret**. Name: `AZURE_STATIC_WEB_APPS_API_TOKEN`. Value: the token from Azure (Static Web App > **Manage deployment token**). Save. Do this before the first pull request, or the first run fails at the Deploy step.
 - [ ] **Set the workflow permissions.** Settings > Actions > General > Workflow permissions: choose **Read repository contents permissions**. (The workflow asks for more only where it needs it, and only on the deploy job.)
 - [ ] **Limit which actions can run.** Same page: allow only selected actions. If you see "Require actions to be pinned to a full-length commit SHA", turn it on. The workflow already pins every action to a full SHA, a fixed fingerprint of that action's code. The option may not appear on every plan.
-- [ ] **Set up the dev site.** Follow setup guide section 4a: create the second Static Web App (Free, deployment source **Other**, for example `swa-jonwitherspoon-dev`), add its token as the secret `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`, add the custom domain `dev.jonwitherspoon.com` with **CNAME** validation, and in Cloudflare add a `CNAME` record named `dev` pointing to the dev app's `*.azurestaticapps.net` name, **DNS only**. Add the secret before the first push to `dev`.
-- [ ] **Check the first dev push.** After it runs, confirm it landed on `dev.jonwitherspoon.com` and not on a preview address with `-dev.` in its name (the app's Environments page in Azure shows this).
+- [ ] **Set up the dev site.** Follow setup guide section 4a: create the second Static Web App (Free, deployment source **Other**, for example `swa-jonwitherspoon-dev`), add its token as the secret `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`, add the custom domain `dev.jonwitherspoon.com` with **CNAME** validation, and in Cloudflare add a `CNAME` record named `dev` pointing to the dev app's `*.azurestaticapps.net` name, **DNS only**. Add the secret before the first push to `dev`, then push `dev` as the last part of that section.
+- [ ] **Check the first dev push.** After you push `dev` (the last step of setup guide section 4a) and the run finishes, confirm it landed on `dev.jonwitherspoon.com` and not on a preview address with `-dev.` in its name (the app's Environments page in Azure shows this).
 - [ ] **Check the headers.** `curl -sI https://dev.jonwitherspoon.com/` must show `x-robots-tag: noindex, nofollow`; `curl -sI https://jonwitherspoon.com/` must not show `x-robots-tag`.
 - [ ] **Turn on Dependabot.** Settings > Code security: turn on Dependabot alerts and Dependabot security updates. `.github/dependabot.yml` already asks for weekly update pull requests against `dev` for npm and for the actions themselves.
 - [ ] **Protect `main`** (public repository). Settings > Rules > Rulesets: require a pull request and block force pushes and deletion on `main`.

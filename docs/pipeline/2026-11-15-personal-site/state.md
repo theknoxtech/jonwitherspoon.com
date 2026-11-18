@@ -12,6 +12,7 @@ Re-read at the start of every stage; update at the end of every stage.
 | Prompt 1 (prototype review) | APPROVED 2026-11-17 |
 | Plan | `docs/plans/in-progress/2026-11-15-personal-site.md` (moved to in-progress 2026-11-17, prototype approved for hardening) |
 | Branch | `plan/personal-site` (cut from `dev`) |
+| Base commit | 647a42e (dev) |
 | Work split | Front-end: src/pages, layouts, styles, site.json, avatar, fonts. Back-end: package/config/workflow/headers/md-102 move/setup guide |
 | QC failed rounds | 1 of 3 (round 1 fixed; docs defect) |
 | Security review | Run 1 done 2026-11-18: no blocking findings; 11 logged for later |
@@ -69,3 +70,5 @@ Re-read at the start of every stage; update at the end of every stage.
 - 2026-11-18 QC round 1 (Normal, HEAD f9e68e6): FAIL on one documentation defect (Actions guide still said the workflow skips npm test). Fixed by backend-dev-7; re-check = QC's two failing tests now pass plus a full run (224 tests, 223 pass, 0 fail, 1 todo). QC failed rounds: 1 of 3. Snapshot diff: HEAD unchanged; only the QC report and tests/qc-final.test.mjs changed among tracked files; checksums changed on ignored files dist/*, .astro/.prerender and docs/.DS_Store (build output and Finder metadata; disclosed to Jon). Low finding left open: a tag containing "|" never matches its filter button (todo test in qc-final). Info findings: second .md in an article folder is read as an article; missing banner/image error names the image not the article; foo.md plus foo/index.md warns and the later wins.
 
 - 2026-11-18 Security review run 1 (HEAD b0f4b9a, Public): 0 Critical, 0 High, 0 Medium; 4 Low (SEC-001, 003, 004, 005) and 7 Info (SEC-002, 006 to 011), all logged for later in docs/security/review-later.md; run file docs/security/reviews/2026-11-18-plan-personal-site-run-1.md; tracker docs/security/issues.md. No blocking issue. Next: merge prompt (prompt 2) after advisor.
+
+- 2026-11-18: committing the security run file (408a09a) made the repo's secret-scan test fail, because the reviewer's text quoted a fake test phone number. Orchestrator reworded that one phrase in docs/security/reviews/2026-11-18-plan-personal-site-run-1.md (no digits); no finding changed; the scan test was not touched. Disclosed to Jon. Also fixed the guides' push order (backend-dev-8): push main only first; push dev last, after both Azure apps and both secrets exist.

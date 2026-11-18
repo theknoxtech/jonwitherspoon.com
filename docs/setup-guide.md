@@ -13,7 +13,7 @@ You will use three things:
 - [ ] Turn on two-factor sign-in (2FA) for your GitHub account (Settings > Password and authentication).
 - [ ] Create a new repository named `jonwitherspoon.com`. Do not add a README, licence or .gitignore (the project already has them).
 - [ ] Choose visibility (see section 2). Recommended: **public**. The site content is public anyway, and a public repository gets the safety features below for free.
-- [ ] From the project folder, add the repository as `origin` and push both branches: `main` and `dev`.
+- [ ] From the project folder, add the repository as `origin` and push only `main` for now. Push `dev` last, at the end of section 4a, after both Azure apps and both secrets exist.
 
 ## 2. GitHub settings
 
@@ -48,7 +48,7 @@ Both:
 
 ## 4a. The dev site (dev.jonwitherspoon.com)
 
-A push to the `dev` branch builds the site and deploys it to `dev.jonwitherspoon.com`, so you can look at changes before a pull request into `main`. It is a second Static Web App with its own deploy token, because Azure cannot put a custom domain on a preview. Do these steps in order, and add the secret before the first push to `dev`, or that push fails at the Deploy step.
+A push to the `dev` branch builds the site and deploys it to `dev.jonwitherspoon.com`, so you can look at changes before a pull request into `main`. It is a second Static Web App with its own deploy token, because Azure cannot put a custom domain on a preview. Do these steps in order, and add the secret before the first push to `dev`, or that push fails at the Deploy step. That is why `dev` is not pushed until the last step here.
 
 - [ ] In the same resource group, create a second **Static Web App**: plan type **Free**, deployment source **Other**, name for example `swa-jonwitherspoon-dev`.
 - [ ] Open it, choose **Manage deployment token**, and copy the token. It can only replace the dev site.
@@ -56,7 +56,7 @@ A push to the `dev` branch builds the site and deploys it to `dev.jonwitherspoon
 - [ ] In the dev app: Custom domains > Add > custom domain on other DNS. Enter `dev.jonwitherspoon.com` and choose **CNAME** validation.
 - [ ] Cloudflare > the zone > DNS > Records: add a **CNAME** record, name `dev`, target = the dev app's `*.azurestaticapps.net` address (on its Overview page; no `https://`). Set it to **DNS only** (grey cloud), not Proxied.
 - [ ] Back in Azure, wait for the custom domain to show as validated.
-- [ ] Push to `dev`. Open the Static Web App's **Environments** page in Azure and confirm the deploy landed on the production environment, reached at `dev.jonwitherspoon.com`, and not on a separate preview address (one whose name has `-dev.` in it). Azure does not document what happens when the app's production branch differs from the branch that is pushed, so this check matters.
+- [ ] Push `dev` now, for the first time (`git push -u origin dev`). Do it only now because the first push to `dev` starts the dev deploy, and that deploy needs the dev secret you added above. Open the Static Web App's **Environments** page in Azure and confirm the deploy landed on the production environment, reached at `dev.jonwitherspoon.com`, and not on a separate preview address (one whose name has `-dev.` in it); the first dev push must land on the dev address. Azure does not document what happens when the app's production branch differs from the branch that is pushed, so this check matters.
 - [ ] Run the dev checks in section 7.
 
 ## 5. Try it locally, then first deploy
