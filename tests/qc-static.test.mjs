@@ -227,7 +227,6 @@ test('QC: placeholders use the CSS class, never an inline style', { skip: !hasBu
             assert.doesNotMatch(match[0], /style=/);
         }
     }
-    assert.match(readDist('portfolio/index.html'), /<span class="placeholder">\[TO SUPPLY/);
     const css = readdirSync(join(DIST, '_astro')).filter((name) => name.endsWith('.css'));
     assert.match(readFileSync(join(DIST, '_astro', css[0]), 'utf8'), /\.placeholder\{[^}]*dashed/);
 });

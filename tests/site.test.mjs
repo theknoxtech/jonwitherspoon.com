@@ -66,7 +66,7 @@ test('all required main pages are built', () => {
     }
 });
 
-test('portfolio page lists the current role first, with a visible placeholder', () => {
+test('portfolio page lists the current role first, with its real start, location, bullets and technologies', () => {
     const html = readPage('portfolio/index.html');
     const roles = [...html.matchAll(/class="entry[^"]*"/g)];
     assert.ok(roles.length >= 5, 'expected five experience entries');
@@ -80,7 +80,28 @@ test('portfolio page lists the current role first, with a visible placeholder', 
         lastIndex = index;
     }
     assert.match(html, /current/);
-    assert.match(html, /class="placeholder"[^>]*>\[TO SUPPLY:/);
+    const current = experience.slice(experience.indexOf('Critical Network Solutions'), experience.indexOf('Enable Resource Group'));
+    assert.match(current, /Jun 2026/);
+    assert.match(current, /Remote/);
+    for (const bullet of ['Design, build and deploy automations at scale.', 'Lead projects implementing cloud technologies and various migrations.', 'Build AI solutions in Azure Foundry.']) {
+        assert.ok(current.includes(bullet), `missing bullet: ${bullet}`);
+    }
+    for (const technology of ['Azure', 'Azure Foundry', 'Azure Key Vault', 'NinjaRMM API', 'SMTP2Go API', 'Hyper-V', 'Microsoft 365', 'Entra ID', 'PowerShell', 'Shell scripting', 'Python', 'Flask', 'Claude Code (vibe coding)']) {
+        assert.ok(current.includes(technology), `missing technology: ${technology}`);
+    }
+    assert.doesNotMatch(html, /TO SUPPLY/);
+});
+
+test('no built page contains "[TO SUPPLY" (production deploys with FAIL_ON_PLACEHOLDER=1)', () => {
+    const stack = [DIST];
+    while (stack.length > 0) {
+        const directory = stack.pop();
+        for (const entry of readdirSync(directory, { withFileTypes: true })) {
+            const path = join(directory, entry.name);
+            if (entry.isDirectory()) stack.push(path);
+            else if (entry.name.endsWith('.html')) assert.ok(!readFileSync(path, 'utf8').includes('[TO SUPPLY'), `placeholder left in ${path}`);
+        }
+    }
 });
 
 test('portfolio page has certifications with verify links, past exams, education', () => {

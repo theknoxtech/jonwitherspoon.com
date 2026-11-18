@@ -21,7 +21,7 @@
         {
             "company": "Critical Network Solutions",
             "title": "Systems Engineer II",
-            "start": "[TO SUPPLY: start month, YYYY-MM]",
+            "start": "2026-06",
             "end": "present",
             "location": "Remote",
             "current": true,
@@ -30,7 +30,7 @@
                 "Lead projects implementing cloud technologies and various migrations.",
                 "Build AI solutions in Azure Foundry."
             ],
-            "technologies": ["[TO SUPPLY: technologies]"]
+            "technologies": ["Azure", "Azure Foundry", "Azure Key Vault", "NinjaRMM API", "SMTP2Go API", "Hyper-V", "Microsoft 365", "Entra ID", "PowerShell", "Shell scripting", "Python", "Flask", "Claude Code (vibe coding)"]
         },
         {
             "company": "Enable Resource Group",

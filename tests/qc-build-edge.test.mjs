@@ -186,7 +186,7 @@ test('QC placeholder guard: warns and exits 0 by default, naming the files', { s
     withCopy('warn', ({ status, output }) => {
         assert.equal(status, 0, output);
         assert.match(output, /WARNING: 1 page\(s\) still contain "\[TO SUPPLY": portfolio\/index\.html/);
-    });
+    }, { siteChange: (site) => { site.experience[0].start = '[TO SUPPLY: start month, YYYY-MM]'; }, });
 });
 
 test('QC placeholder guard: FAIL_ON_PLACEHOLDER=1 fails the build with a non-zero exit and names the files', { skip }, () => {
@@ -194,14 +194,23 @@ test('QC placeholder guard: FAIL_ON_PLACEHOLDER=1 fails the build with a non-zer
         assert.notEqual(status, 0, 'build should fail');
         assert.match(output, /1 page\(s\) still contain "\[TO SUPPLY": portfolio\/index\.html/);
         assert.doesNotMatch(output, /WARNING:/);
-    }, { extraEnv: { FAIL_ON_PLACEHOLDER: '1' } });
+    }, { extraEnv: { FAIL_ON_PLACEHOLDER: '1' }, siteChange: (site) => { site.experience[0].start = '[TO SUPPLY: start month, YYYY-MM]'; }, });
+});
+
+test('QC placeholder guard: an injected placeholder renders in the .placeholder class span with no inline style', { skip }, () => {
+    withCopy('placeholder-span', ({ status, output }, directory) => {
+        assert.equal(status, 0, output);
+        const html = readFileSync(join(directory, 'dist/portfolio/index.html'), 'utf8');
+        assert.match(html, /<span class="placeholder">\[TO SUPPLY/);
+        for (const match of html.matchAll(/<[^>]*\[TO SUPPLY[^<]*/g)) assert.doesNotMatch(match[0], /style=/);
+    }, { siteChange: (site) => { site.experience[0].start = '[TO SUPPLY: start month, YYYY-MM]'; }, });
 });
 
 test('QC placeholder guard: FAIL_ON_PLACEHOLDER=0 only warns', { skip }, () => {
     withCopy('zero', ({ status, output }) => {
         assert.equal(status, 0, output);
         assert.match(output, /WARNING:/);
-    }, { extraEnv: { FAIL_ON_PLACEHOLDER: '0' } });
+    }, { extraEnv: { FAIL_ON_PLACEHOLDER: '0' }, siteChange: (site) => { site.experience[0].start = '[TO SUPPLY: start month, YYYY-MM]'; }, });
 });
 
 test('QC placeholder guard: with every placeholder filled in, no warning and FAIL_ON_PLACEHOLDER=1 passes', { skip }, () => {
