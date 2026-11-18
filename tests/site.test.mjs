@@ -109,7 +109,7 @@ test('portfolio page has certifications with verify links, past exams, education
     assert.equal(countMatches(html, /class="cert"/g), 7, 'expected seven certifications');
     assert.equal(countMatches(html, /class="exam"/g), 1, 'expected one past exam');
     assert.match(html, /Verify on/);
-    const sc300 = html.slice(html.indexOf('Identity and Access Administrator Associate'));
+    const sc300 = html.slice(html.indexOf('Identity and Access Administrator Associate', html.indexOf('class="cert"')));
     assert.ok(sc300.length > 0, 'SC-300 certification missing');
     assert.match(sc300.slice(0, sc300.indexOf('</li>')), /Earned 29 Jul 2026/);
     assert.match(sc300.slice(0, sc300.indexOf('</li>')), /href="https:\/\/learn\.microsoft\.com\/api\/credentials\/share\/en-us\/JonWitherspoon-9260\/AFCED976DD341750\?sharingId=76B3F23CC8D338C8"/);

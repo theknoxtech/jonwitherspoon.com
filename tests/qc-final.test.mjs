@@ -186,7 +186,7 @@ test('QC guide: "Add a certification" example shows on Portfolio in list positio
         const portfolio = page(result, 'portfolio/index.html');
         assert.ok(portfolio.includes('Microsoft Certified: Example Associate'));
         assert.ok(portfolio.includes('href="https://learn.microsoft.com/..."'));
-        assert.ok(portfolio.indexOf('Example Associate') < portfolio.indexOf('Azure Fundamentals'), 'unshift puts it first');
+        assert.ok(portfolio.indexOf('Example Associate') < portfolio.indexOf('Azure Fundamentals', portfolio.indexOf('class="cert"')),'unshift puts it first');
     }, { siteChange: (site) => site.certifications.unshift(certification) });
 });
 

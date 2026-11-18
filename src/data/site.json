@@ -13,7 +13,9 @@
         "aboutDraftNote": "[DRAFT: Jon to review]",
         "about": [
             "I grew up dying of dysentery and guessing how to play Minesweeper, and I learned to install Windows 95 before I left elementary school.",
-            "Since then I have been boots on the ground implementing infrastructure, the person who gets the call at midnight, and the person behind the scenes streamlining workflows. Learning PowerShell is when IT became fun for me, because it showed me what solving problems through automation looks like.",
+            "I'm a systems engineer based in Knoxville, TN, with about ten years in IT, from being the sole IT person on a school campus to senior escalation work on a service desk covering 100+ clients. Today I'm a Systems Engineer II at Critical Network Solutions, where I design, build and deploy automations at scale, lead cloud implementations and migrations, and build AI solutions in Azure Foundry.",
+            "Most of my work sits around Microsoft 365, Entra ID, Intune and Azure, tied together with PowerShell, Python and APIs. Learning PowerShell is when IT became fun for me, because it showed me what solving problems through automation looks like.",
+            "I mentor junior engineers, write documentation and knowledge bases, and build free practice apps for Microsoft exams, which you can find under Labs. I hold a B.S. in Information Technology from Western Governors University, and I'm Microsoft certified in Azure Fundamentals and as an Identity and Access Administrator Associate.",
             "I am not chasing a title. I want to build things that matter, keep learning how technologies fit together, and do work where owning the implementation is part of the job. I also like helping people understand the tools they use."
         ]
     },
