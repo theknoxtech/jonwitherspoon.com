@@ -130,9 +130,15 @@ test('package.json has Astro as the only dependency', () => {
     assert.deepEqual(packageJson.dependencies, { astro: '^6.4.8' });
     assert.equal(packageJson.devDependencies, undefined);
     assert.equal(packageJson.engines.node, '>=22.12');
-    assert.equal(packageJson.scripts.test, 'node --test tests/');
+    assert.equal(packageJson.scripts.test, 'node --test "tests/*.test.mjs"');
     assert.equal(read('.node-version').trim(), '22');
     assert.match(read('.gitattributes'), /^\* text=auto eol=lf$/m);
+});
+
+test('test script uses the *.test.mjs glob, not a bare directory (Node 22 treats a directory as a module)', () => {
+    const tokens = packageJson.scripts.test.trim().split(/\s+/);
+    assert.notEqual(tokens.at(-1).replace(/^["']|["']$/g, '').replace(/\/$/, ''), 'tests');
+    assert.match(packageJson.scripts.test, /"tests\/\*\.test\.mjs"$/);
 });
 
 test('no lab files or notes under public/', () => {
