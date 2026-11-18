@@ -4,7 +4,7 @@ Every finding gets a row with an ID that is never reused. Status values: Open, F
 
 | Done | ID | Severity | Status | Found in run | Where | Summary | Confirming run |
 |---|---|---|---|---|---|---|---|
-| [ ] | SEC-001 | Low | Logged for later | 1 | exam_apps/md102-handoff.md | Public repo would carry personal study data, artifact URLs and a local path | |
+| [ ] | SEC-001 | Low | Fixed, awaiting check | 1 | exam_apps/md102-handoff.md | Handoff note removed from the history before the first push (rewrite 2026-11-18, Jon approved); the artifact link remains in exam_apps/md-102/CLAUDE.md by Jon decision | |
 | [ ] | SEC-002 | Info | Logged for later | 1 | docs/pipeline build notes | Local `/Users/...` paths in run records | |
 | [ ] | SEC-003 | Low | Logged for later | 1 | cve/report-2.md; articles/[slug].astro | Astro advisory exception says "no image pipeline", but sharp now processes blog images | |
 | [ ] | SEC-004 | Low | Logged for later | 1 | src/lib/articles.js | Article markup guard misses unquoted img src, javascript: links, iframes; CSP is the backstop | |
