@@ -1448,9 +1448,9 @@ add(D4, T4c, "Which update channel gives Microsoft 365 Apps new features once a 
   ["Current Channel", "Semi-Annual Enterprise Channel", "Beta Channel"],
   "Monthly Enterprise Channel releases on the second Tuesday of each month. Current Channel ships as soon as ready, and Semi-Annual is twice a year.", L.m365Intune);
 add(D4, T4c, "Which of these deploys Microsoft Edge to Windows PCs through Intune?",
-  ["The Microsoft Edge (Windows 10 and later) app type"],
-  ["A Win32 app built from the Edge installer", "An app protection policy for Edge", "An app configuration policy for Edge"],
-  "Intune has a built-in Edge app type with channel selection. Edge policies are set separately in the settings catalog.", L.win32);
+  ["The Microsoft Edge, version 77 and later app type"],
+  ["A Win32 app that you package from the Edge installer with the content prep tool", "An app protection policy for Edge that installs the browser on enrolled PCs", "An app configuration policy for Edge that pushes the installer to the devices"],
+  "Apps > All Apps > Create > App type > Microsoft Edge, version 77 and later > Windows 10. You pick the Stable, Beta or Dev channel. Edge policies are set separately in the settings catalog.", ML + 'intune/app-management/deployment/add-edge-windows');
 add(D4, T4c, "An admin wants Outlook on mobile to stay silent from 10 PM to 7 AM. Where is this configured?",
   ["A Quiet Time policy"],
   ["A compliance policy", "A Conditional Access session control", "An app protection policy PIN setting"],
