@@ -1,4 +1,4 @@
-**Status:** In progress. Requested by Jon 2026-11-17 ("there needs to be a toggle"). Built on branch plan/personal-site as part of the prototype revision. Size: Small. Exposure: Public.
+**Status:** Built and merged into dev on 2026-11-18 (branch plan/personal-site). Nothing left over.
 
 # Light / dark mode toggle
 

@@ -10,7 +10,7 @@ Re-read at the start of every stage; update at the end of every stage.
 | Stage | 8 Merge prompt (QC and security review done) |
 | Design round | 2 |
 | Prompt 1 (prototype review) | APPROVED 2026-11-17 |
-| Plan | `docs/plans/in-progress/2026-11-15-personal-site.md` (moved to in-progress 2026-11-17, prototype approved for hardening) |
+| Plan | `docs/plans/done-with-open-items/2026-11-15-personal-site.md` (merged into dev 2026-11-18 with open items) |
 | Branch | `plan/personal-site` (cut from `dev`) |
 | Base commit | 647a42e (dev) |
 | Work split | Front-end: src/pages, layouts, styles, site.json, avatar, fonts. Back-end: package/config/workflow/headers/md-102 move/setup guide |
@@ -72,3 +72,4 @@ Re-read at the start of every stage; update at the end of every stage.
 - 2026-11-18 Security review run 1 (HEAD b0f4b9a, Public): 0 Critical, 0 High, 0 Medium; 4 Low (SEC-001, 003, 004, 005) and 7 Info (SEC-002, 006 to 011), all logged for later in docs/security/review-later.md; run file docs/security/reviews/2026-11-18-plan-personal-site-run-1.md; tracker docs/security/issues.md. No blocking issue. Next: merge prompt (prompt 2) after advisor.
 
 - 2026-11-18: committing the security run file (408a09a) made the repo's secret-scan test fail, because the reviewer's text quoted a fake test phone number. Orchestrator reworded that one phrase in docs/security/reviews/2026-11-18-plan-personal-site-run-1.md (no digits); no finding changed; the scan test was not touched. Disclosed to Jon. Also fixed the guides' push order (backend-dev-8): push main only first; push dev last, after both Azure apps and both secrets exist.
+- 2026-11-18: Jon answered the merge prompt: merge into dev and accept QC round 1 (ignored-file checksum changes were build output and Finder metadata): YES; create GitHub repo jonwitherspoon.com (public) and push main only: YES. Plans moved to done-with-open-items (main, blog, dev-site) and done (theme-toggle).
