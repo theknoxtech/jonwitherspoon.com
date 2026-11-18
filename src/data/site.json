@@ -23,12 +23,12 @@
             "title": "Systems Engineer II",
             "start": "[TO SUPPLY: start month, YYYY-MM]",
             "end": "present",
-            "location": "[TO SUPPLY: location or Remote]",
+            "location": "Remote",
             "current": true,
             "bullets": [
-                "[TO SUPPLY: achievement bullet 1]",
-                "[TO SUPPLY: achievement bullet 2]",
-                "[TO SUPPLY: achievement bullet 3]"
+                "Design, build and deploy automations at scale.",
+                "Lead projects implementing cloud technologies and various migrations.",
+                "Build AI solutions in Azure Foundry."
             ],
             "technologies": ["[TO SUPPLY: technologies]"]
         },
