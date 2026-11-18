@@ -33,9 +33,12 @@ The robot's steps, in order:
 2. Install Node (the version in `.node-version`, currently 22).
 3. `npm ci` (installs exactly what `package-lock.json` lists, nothing newer).
 4. `npm run build`.
-5. Scan the built files for phone numbers and street addresses.
-6. On a push to `main` only: fail if any `[TO SUPPLY` text is left.
-7. Deploy the built `dist/` folder to Azure.
+5. `npm test` (run the tests). If a test fails, the run stops here and nothing is deployed.
+6. Scan the built files for phone numbers and street addresses.
+7. On a push to `main` only: fail if any `[TO SUPPLY` text is left.
+8. Deploy the built `dist/` folder to Azure.
+
+The dev job (push to `dev`) runs the same steps, including the tests, except that `[TO SUPPLY` text is allowed. It adds the noindex header just before it deploys to the dev site.
 
 ## What blocks a deploy
 
@@ -44,6 +47,7 @@ The run turns red (fails) and nothing is published if:
 - any `[TO SUPPLY` placeholder remains in the built pages (production only; a preview just warns),
 - the scan finds something that looks like a phone number or street address,
 - the build or `npm ci` fails,
+- a test fails (`npm test`),
 - the secret `AZURE_STATIC_WEB_APPS_API_TOKEN` is missing or wrong (for a push to `dev`: `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV`).
 
 ## Before you start
@@ -83,6 +87,7 @@ gh pr status
 | What you see | What it means | What to do |
 |---|---|---|
 | Fails at "Build", message says `[TO SUPPLY` | Only on a push to `main`: placeholder text is left | Fill them in `src/data/site.json` (see `docs/editing-guide.md`) |
+| Fails at "Test" | A test failed, so nothing was deployed | Run `npm run build && npm test` locally and fix the failing test |
 | Fails at "Check dist for phone and address patterns" | The scan matched text that looks like a phone number or address | Find it in the log, remove it from the source, and push again |
 | Fails at "Deploy", mentions the token | Secret missing, misspelt or reset | Re-add `AZURE_STATIC_WEB_APPS_API_TOKEN` (see "Resetting the token") |
 | A push to `dev` fails at "Deploy to the dev site", mentions the token | `AZURE_STATIC_WEB_APPS_API_TOKEN_DEV` missing, misspelt or reset | Re-add it from the dev app's deployment token |
@@ -107,7 +112,3 @@ Never paste the token into a file, a chat or a commit.
 ## Keeping the actions up to date
 
 Dependabot opens a weekly pull request when an action or npm package has a newer version. For the actions, the pull request changes the pinned SHA and its version comment together. Read it, check that the preview builds, and merge into `dev` like any other change.
-
-## Not in the workflow today
-
-The workflow does not run `npm test`. The tests run on your machine (`npm run build && npm test`), but a failing test would not stop a deploy. Adding a test step is a small change to `deploy.yml`; ask for it if you want it.

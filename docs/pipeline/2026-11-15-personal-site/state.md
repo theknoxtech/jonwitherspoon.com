@@ -13,8 +13,8 @@ Re-read at the start of every stage; update at the end of every stage.
 | Plan | `docs/plans/in-progress/2026-11-15-personal-site.md` (moved to in-progress 2026-11-17, prototype approved for hardening) |
 | Branch | `plan/personal-site` (cut from `dev`) |
 | Work split | Front-end: src/pages, layouts, styles, site.json, avatar, fonts. Back-end: package/config/workflow/headers/md-102 move/setup guide |
-| QC failed rounds | 0 of 3 |
-| Security review | Not yet |
+| QC failed rounds | 1 of 3 (round 1 fixed; docs defect) |
+| Security review | Not yet (next) |
 | Logged for later | 0 (Critical 0, High 0, Medium 0, Low 0, Info 0) |
 | Waiting on Jon for | Safety stop: OK for local npm install (Astro) and network downloads (avatar, IBM Plex fonts) |
 
@@ -65,3 +65,5 @@ Re-read at the start of every stage; update at the end of every stage.
 - 2026-11-17 Decided by Jon: repo `jonwitherspoon.com`, PUBLIC (not yet created or pushed; creating and pushing still needs his go-ahead after the security review). MD-102 app issues: Jon handles in another chat. Theme button wording: open.
 
 - 2026-11-17 Decided by Jon: dev branch deploys to dev.jonwitherspoon.com on a SECOND Azure Static Web App (all in Azure, no Cloudflare hosting). Decided for Jon (recommended default, unanswered): dev site public with noindex header; login is an extra. Plan written; build waits for fullstack-dev-2 (flaky test fix and npm test step, also edits deploy.yml). Recon 05 and 06 saved.
+
+- 2026-11-18 QC round 1 (Normal, HEAD f9e68e6): FAIL on one documentation defect (Actions guide still said the workflow skips npm test). Fixed by backend-dev-7; re-check = QC's two failing tests now pass plus a full run (224 tests, 223 pass, 0 fail, 1 todo). QC failed rounds: 1 of 3. Snapshot diff: HEAD unchanged; only the QC report and tests/qc-final.test.mjs changed among tracked files; checksums changed on ignored files dist/*, .astro/.prerender and docs/.DS_Store (build output and Finder metadata; disclosed to Jon). Low finding left open: a tag containing "|" never matches its filter button (todo test in qc-final). Info findings: second .md in an article folder is read as an article; missing banner/image error names the image not the article; foo.md plus foo/index.md warns and the later wins.
