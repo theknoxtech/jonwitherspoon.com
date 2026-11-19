@@ -1,0 +1,21 @@
+/* ---- Balance wrong options on the new questions ---- */
+const W = (id, w, c) => { const q = Q.find(x => x.id === id); q.w = w; if (c) q.c = c; };
+W(108, ["Sync, which only forces a policy check-in", "Restart, which reloads the Defender service", "Rotate BitLocker recovery keys on the devices"]);
+W(110, ["Create an app configuration policy with a Visio checkbox", "Assign a Visio license to the admin who builds the app", "Create a device configuration profile listing the products"]);
+W(112, ["The app only shows in the Company Portal as Available", "Intune reports a conflict error and installs nothing at all", "It installs only if the user selects it in the Company Portal"]);
+W(115, ["A Windows feature update policy for the iPhones' users", "A compliance policy with a minimum OS version of 18.4 only", "An enrollment restriction with a minimum OS version of 18.4"]);
+W(123, ["Retire, which removes company data and management", "Delete, which removes the record from Intune only", "Fresh Start, which reinstalls Windows and removes OEM apps"]);
+W(127, ["User Enrollment, using a Managed Apple Account", "Company Portal self-enrollment on the personal device", "A Conditional Access policy requiring a managed device"]);
+W(131, ["Assignments to your user groups and device groups", "Scope tags for each administrator who manages it", "The Company Portal category, icon and description text"]);
+W(132, ["Sync, which only forces a policy check-in on the PC", "Fresh Start, which reinstalls Windows on the device", "Rotate BitLocker recovery keys on the managed drive"]);
+W(134, ["Devices > Compliance, using a firewall requirement setting", "Apps > App protection, using a network access rule", "Tenant administration > Connectors and tokens > Firewall"]);
+W(136, ["Devices > Configuration, with a custom OMA-URI profile only", "Apps > Windows apps, within the app's detection rules", "Tenant administration > Roles, within the custom role"]);
+W(137, ["Windows Update in Settings on the locked device", "The Intune Autopilot devices list for the PC", "A scope tag in the Entra admin center for the user"]);
+W(138, ["The Windows Update ring report under Devices > Monitor", "The App install status report under Apps > Monitor", "The Autopatch groups report under Devices > Windows"]);
+W(139, ["Windows Autopatch phased rollout with ring delays", "Hotpatch with a baseline security update", "A BitLocker policy with a network unlock option"]);
+W(143, ["Upload the APK as a Win32 app in the Apps area", "Add it as an iOS store app with an App Store URL", "Send the APK by email to every user on the device"]);
+W(145, ["Tenant status under Tenant administration", "The enrollment restrictions page for the platform", "Endpoint analytics startup performance for the PC"]);
+W(146, ["Exports from the Intune Reports page only, run on demand", "A Windows Autopatch cohort for the affected devices", "A compliance notification template with a long message"]);
+W(147, ["Devices > Monitor > Enrollment failures for the tenant", "Endpoint analytics work from anywhere for the tenant", "Apps > Monitor > App install status for the tenant"]);
+W(149, ["Create a compliance policy with a built-in alert option", "Turn on push notifications in the Company Portal app", "Add an alert rule to each Autopilot deployment profile"]);
+W(152, ["A Win32 app detection rule that checks the registry value", "A security baseline setting for the registry value", "A platform script that assigns a tag when the value is set"]);

@@ -1,0 +1,848 @@
+<title>MD-102 Practice Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column, three tabs (Practice, Study plan, Progress). Cool slate paper, deep-cyan accent, one hue per exam domain. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#162230; --muted:#566878; --line:#d3dbe3; --soft:#e3e9ef;
+  --accent:#0b5d76; --accent-ink:#ffffff; --accent-soft:#d9eaf0;
+  --d1:#3a6ca6; --d2:#9a5f12; --d3:#14796a; --d4:#8a4a9c; --d5:#b0443c;
+  --good:#1d7444; --good-soft:#dcefe3; --bad:#ad352c; --bad-soft:#f6dedb; --warn:#8a6a00;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1620; --surface:#16212d; --ink:#e5ecf2; --muted:#9db0c0; --line:#2a3947; --soft:#1f2c3a;
+    --accent:#62bad6; --accent-ink:#06222c; --accent-soft:#183746;
+    --d1:#7fa9dc; --d2:#e0a24f; --d3:#4fc0ac; --d4:#c590d6; --d5:#ee8c82;
+    --good:#58c487; --good-soft:#173b2a; --bad:#f08a80; --bad-soft:#44201d; --warn:#e3c14f;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1620; --surface:#16212d; --ink:#e5ecf2; --muted:#9db0c0; --line:#2a3947; --soft:#1f2c3a;
+  --accent:#62bad6; --accent-ink:#06222c; --accent-soft:#183746;
+  --d1:#7fa9dc; --d2:#e0a24f; --d3:#4fc0ac; --d4:#c590d6; --d5:#ee8c82;
+  --good:#58c487; --good-soft:#173b2a; --bad:#f08a80; --bad-soft:#44201d; --warn:#e3c14f;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:880px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{line-height:1.25;text-wrap:balance;margin:0}
+h1{font-size:22px;font-weight:600;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600}
+h3{font-size:15px;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.top p{color:var(--muted);max-width:56ch;margin-top:4px}
+.count{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right}
+.count b{display:block;font-size:26px;font-weight:500;color:var(--ink);line-height:1.1}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:500 14px var(--font);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:6px;padding:9px 16px;font:500 14px var(--font);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+.panel + .panel{margin-top:12px}
+.mode{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mode p{color:var(--muted);font-size:14px;flex:1}
+.mode .meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+select{font:14px var(--font);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 8px;max-width:100%}
+.chip{display:inline-block;font:500 11.5px var(--mono);padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.chip.d1{color:var(--d1)} .chip.d2{color:var(--d2)} .chip.d3{color:var(--d3)} .chip.d4{color:var(--d4)} .chip.d5{color:var(--d5)}
+.sec{margin:24px 0 10px}
+.note{font-size:13.5px;color:var(--muted)}
+/* question */
+.qhead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.qtext{font-size:17.5px;font-weight:500;line-height:1.45;max-width:68ch}
+.hint{font:12.5px var(--mono);color:var(--muted);margin-top:8px}
+.opts{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:11px 12px;font:15px/1.45 var(--font);cursor:pointer}
+.opt .k{font:500 12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.opt .t{min-width:0;overflow-wrap:anywhere}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.missed{border-style:dashed;border-color:var(--good)}
+.opt .tag{margin-left:auto;font:500 11px var(--mono);white-space:nowrap;padding-left:8px;flex:none}
+.opt.right .tag,.opt.missed .tag{color:var(--good)} .opt.wrong .tag{color:var(--bad)}
+.fb{border-left:3px solid var(--good);background:var(--good-soft);border-radius:0 6px 6px 0;padding:12px 14px;margin-bottom:16px}
+.fb.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.fb b{display:block;margin-bottom:2px}
+.fb a{font-size:13.5px;display:inline-block;margin-top:6px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+/* results */
+.score{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:baseline}
+.score b{font:500 44px/1 var(--mono)}
+.dom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;margin:12px 0}
+.dom .nm{font-weight:500;min-width:0}
+.dom .nm small{display:block;font:12px var(--mono);color:var(--muted);font-weight:400}
+.dom .pc{font:500 14px var(--mono);text-align:right}
+.meter{grid-column:1 / -1;height:8px;background:var(--soft);border-radius:4px;position:relative;overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.meter u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.5;left:80%}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font:500 11.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.mock{border:1px solid var(--line);border-radius:8px;background:var(--surface);margin:12px 0;overflow-x:auto}
+.mock .cap{font:500 11.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line)}
+.mock table{width:100%;border-collapse:collapse;font-size:14px}
+.mock td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mock tr:last-child td{border-bottom:0}
+.mock tr.h td{font-weight:700;background:var(--soft)}
+.mock td.l{width:50%}
+.mock td.v span{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:2px 9px;background:var(--bg)}
+.mock tr.dim td{color:var(--muted)}
+.mock tr.dim td.v span{opacity:.7;border-style:dashed}
+.mock .i1{padding-left:28px}.mock .i2{padding-left:44px}
+.rev{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.ord{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:16px 0}
+.ord h3{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ord ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-height:56px}
+.ord .col{border:1px dashed var(--line);border-radius:6px;padding:10px;min-width:0}
+.ord .col.seq{border-style:solid;border-color:var(--accent)}
+.step{display:flex;gap:8px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+.step .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.step .no{font:500 12px var(--mono);color:var(--muted);min-width:20px;padding-top:2px}
+.step .ctl{display:flex;gap:4px;flex:none}
+.step .ctl button,.pool button.stepb{font:inherit;font-size:13px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:2px 8px;cursor:pointer}
+.step .ctl button:disabled{opacity:.35;cursor:default}
+.pool button.stepb{width:100%;text-align:left;padding:8px 10px;border-radius:6px;background:var(--surface)}
+.pool button.stepb:hover{border-color:var(--accent)}
+.step.ok{border-color:var(--good);background:var(--good-soft)}
+.step.no2{border-color:var(--bad);background:var(--bad-soft)}
+.step .why{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.empty{color:var(--muted);font-size:13px}
+.rev p.q{font-weight:500}
+.rev .ans{font-size:14px;margin-top:6px;overflow-wrap:anywhere}
+.rev .ans span{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-right:6px}
+/* plan */
+.week{display:grid;grid-template-columns:104px minmax(0,1fr);gap:4px 16px}
+@media (max-width:560px){.week{grid-template-columns:1fr}}
+.week .when{font:500 12.5px var(--mono);color:var(--muted)}
+.week ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.week li label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.week li input{margin-top:5px;flex:none}
+.week li.done span{color:var(--muted);text-decoration:line-through}
+.link-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.facts{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+textarea{width:100%;min-height:96px;font:12px/1.4 var(--mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px}
+.flag{border-left:3px solid var(--warn);padding:2px 0 2px 12px}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .25s ease}}
+details.lab{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 14px 12px}
+details.lab>summary{display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer;padding:12px 0;font-weight:600}
+details.lab[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+details.lab .lm{display:flex;gap:6px;align-items:center;flex-shrink:0}
+details.lab .lt{min-width:0}
+.ph{margin:16px 0 6px;font:600 12.5px var(--font);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.lsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lsteps label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.lsteps input{margin-top:3px;flex-shrink:0}
+.lsteps li.done span{color:var(--muted);text-decoration:line-through}
+.flagnote{margin-top:12px;padding:10px 12px;border-left:3px solid var(--accent);background:var(--soft);font-size:13.5px}
+#impfile{max-width:100%}
+[hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Exam MD-102 · outline of Oct 27, 2026</div>
+      <h1>MD-102 Practice Lab</h1>
+      <p>Managing and Securing Microsoft 365 Endpoints by using Intune. Questions follow the official skills-measured outline and its weights.</p>
+    </div>
+    <div class="count" id="countdown"></div>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="practice">Home</button>
+    <button role="tab" data-tab="labs">Labs</button>
+    <button role="tab" data-tab="plan">Study plan</button>
+    <button role="tab" data-tab="progress">Progress</button>
+  </nav>
+  <main id="view" aria-live="polite"></main>
+</div>
+
+<script>
+/*__DATA__*/
+
+const DOM = {
+  1: {name:'Prepare infrastructure for devices', short:'Prepare infrastructure', range:'20–25%', w:.22, v:'var(--d1)'},
+  2: {name:'Manage and maintain devices', short:'Manage and maintain', range:'25–30%', w:.27, v:'var(--d2)'},
+  3: {name:'Protect devices', short:'Protect devices', range:'15–20%', w:.18, v:'var(--d3)'},
+  4: {name:'Manage and secure applications', short:'Apps', range:'15–20%', w:.18, v:'var(--d4)'},
+  5: {name:'Optimize endpoint operations', short:'Optimize operations', range:'10–15%', w:.13, v:'var(--d5)'}
+};
+const DIDS = [1,2,3,4,5];
+const KEY = 'md102.lab.v1';
+let store = {attempts:[], q:{}, plan:{}, lab:{}};
+try { const s = localStorage.getItem(KEY); if (s) store = Object.assign({attempts:[], q:{}, plan:{}, lab:{}}, JSON.parse(s)); } catch (e) {}
+if (!store.lab) store.lab = {};
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+/* ---------- save and resume an unfinished quiz ---------- */
+function persistRun(){
+  try {
+    if (!S) return;
+    store.run = {mode:S.mode, label:S.label, i:S.i, instant:S.instant, limit:S.limit, left:S.left, checked:S.checked, started:S.started, saved:Date.now(), endless:!!S.endless, pickId:S.pickId || '',
+      items:S.items.map(it => ({id:it.q.id, type:it.type || '', opts:it.opts ? it.opts.map(o => ({t:o.t, ok:o.ok})) : null, pool:it.pool || null, seq:it.seq || null, picked:it.picked || [], done:it.done, ok:it.ok}))};
+    save();
+  } catch (e) {}
+}
+function restoreRun(){
+  const r = store.run;
+  if (!r || !r.items || !r.items.length) return false;
+  const items = [];
+  for (const x of r.items){
+    const q = Q.find(z => z.id === x.id);
+    if (!q) return false;
+    const base = x.type === 'order' ? {q, type:'order', pool:x.pool, seq:x.seq || [], picked:x.picked || []} : {q, opts:x.opts, picked:x.picked || []};
+    items.push(Object.assign(base, {done:!!x.done, ok:!!x.ok}));
+  }
+  S = {mode:r.mode, label:r.label, items, i:Math.min(r.i || 0, items.length - 1), instant:r.instant, limit:r.limit || 0, left:r.left || 0, checked:!!r.checked, endless:!!r.endless, pickId:r.pickId || '', started:Date.now() - Math.max(0, (r.saved || Date.now()) - (r.started || Date.now()))};
+  return true;
+}
+function resumeCard(){
+  const r = store.run;
+  if (!r || !r.items || !r.items.length) return '';
+  const done = r.items.filter(x => x.done).length;
+  return '<section class="panel" style="margin-bottom:16px"><div class="eyebrow">Saved quiz</div><h2>Resume: ' + esc(r.label) + '</h2><p>' + done + ' of ' + r.items.length + ' answered. Saved ' + esc(new Date(r.saved).toLocaleString()) + '. Starting a different quiz replaces it.</p><div class="row"><button class="btn" data-act="resume">Resume</button><button class="btn ghost" data-act="discardrun">Discard</button></div></section>';
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') persistRun(); });
+window.addEventListener('pagehide', persistRun);
+
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const vis = q => {
+  if (!q.v) return '';
+  return '<div class="mock" role="img" aria-label="Mock-up of app protection policy settings"><div class="cap">' + esc(q.vc || 'Policy settings as configured (mock-up)') + '</div><table>' +
+    q.v.map(r => r[0] === '#' ? '<tr class="h"><td colspan="2">' + esc(r[1]) + '</td></tr>' :
+      '<tr' + (r[3] ? ' class="dim"' : '') + '><td class="l i' + (r[2] || 0) + '">' + esc(r[0]) + '</td><td class="v"><span>' + esc(r[1]) + '</span></td></tr>').join('') + '</table></div>';
+};
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pct = (r, t) => t ? Math.round(100 * r / t) : 0;
+
+let tab = 'practice', view = 'home', S = null, last = null, timer = null;
+
+/* ---------- countdown ---------- */
+function examDate(){
+  const v = store.exam || '2026-11-21', p = v.split('-').map(Number);
+  return new Date(p[0], p[1] - 1, p[2], 23, 59, 59);
+}
+function countdown(){
+  const end = examDate(), now = new Date();
+  const d = Math.max(0, Math.ceil((end - now) / 86400000));
+  $('#countdown').innerHTML = '<b>' + d + '</b>days to ' + end.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+}
+
+/* ---------- session building ---------- */
+function qStats(id){ return store.q[id] || {seen:0, right:0, last:null}; }
+function buildItem(q){
+  if (q.type === 'order') return {q, type:'order', pool:shuffle(q.steps.concat(q.extra)), seq:[], picked:[], done:false, ok:false};
+  const opts = shuffle(q.c.map(t => ({t, ok:true})).concat(q.w.map(t => ({t, ok:false}))));
+  return {q, opts, picked:[], done:false, ok:false};
+}
+function alloc(n){
+  const a = {}; let used = 0;
+  [1,2,3,4].forEach(d => { a[d] = Math.round(n * DOM[d].w); used += a[d]; });
+  a[5] = n - used;
+  return a;
+}
+function pickDiagnostic(n){
+  let out = pickWeighted(n, true);
+  const topics = {}; Q.filter(q => q.type !== 'order').forEach(q => { (topics[q.t] = topics[q.t] || []).push(q); });
+  Object.keys(topics).forEach(t => {
+    if (out.some(q => q.t === t)) return;
+    const add = topics[t].slice().sort((a, b) => qStats(a.id).seen - qStats(b.id).seen)[0];
+    const cnt = {}; out.filter(q => q.d === add.d).forEach(q => { cnt[q.t] = (cnt[q.t] || 0) + 1; });
+    const big = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+    const i = out.findIndex(q => q.d === add.d && q.t === big);
+    if (i >= 0 && cnt[big] > 1) out[i] = add; else out.push(add);
+  });
+  return shuffle(out);
+}
+function weakDomains(){
+  const st = DIDS.map(d => { let r = 0, n = 0; Q.filter(q => q.d === d).forEach(q => { const s = qStats(q.id); r += s.right; n += s.seen; }); return {d, n, a:n >= 10 ? r / n : 2 - DOM[d].w}; });
+  return st.sort((x, y) => x.a - y.a).slice(0, 2).map(x => x.d).sort();
+}
+/* mcqOnly (full practice exam and baseline): ordering questions are memorization aids and live in Setup sequences */
+function pickWeighted(n, mcqOnly){
+  const a = alloc(n); let out = [];
+  DIDS.forEach(d => {
+    const pool = Q.filter(q => q.d === d && !(mcqOnly && q.type === 'order')).map(q => ({q, k:qStats(q.id).seen + Math.random()}));
+    pool.sort((x, y) => x.k - y.k);
+    out = out.concat(pool.slice(0, a[d]).map(x => x.q));
+  });
+  return shuffle(out);
+}
+function pickWeak(n){
+  const sc = Q.map(q => {
+    const s = qStats(q.id);
+    const miss = s.seen ? 1 - s.right / s.seen : .5;
+    return {q, k: miss + (s.last === false ? .6 : 0) + Math.random() * .25};
+  });
+  sc.sort((x, y) => y.k - x.k);
+  return shuffle(sc.slice(0, n).map(x => x.q));
+}
+function start(mode, opt){
+  opt = opt || {};
+  let qs = [], label = '', instant = true, limit = 0;
+  if (mode === 'diagnostic'){ qs = pickDiagnostic(60); label = 'Baseline diagnostic'; instant = false; }
+  else if (mode === 'mock'){ qs = pickWeighted(50, true); label = 'Full practice exam'; instant = false; limit = 100 * 60; }
+  else if (mode === 'weak'){ qs = pickWeak(20); label = 'Weak-spot drill'; }
+  else if (mode === 'weak14'){ const wd = weakDomains(); qs = shuffle(Q.filter(q => wd.includes(q.d)).map(q => ({q, k:(qStats(q.id).last === false ? -1 : 0) + (qStats(q.id).seen ? 0.5 : 0) + Math.random()})).sort((a, b) => a.k - b.k).slice(0, 20).map(x => x.q)); label = 'Weakest domains focus (' + wd.join(' and ') + ')'; }
+  else if (mode === 'seq'){ qs = shuffle(Q.filter(q => q.type === 'order')); label = 'Setup sequences'; }
+  else if (mode === 'seqloop'){
+    const all = Q.filter(q => q.type === 'order');
+    const one = opt.id ? all.find(q => q.id === +opt.id) : null;
+    qs = [one || shuffle(all)[0]]; label = one ? 'Sequence practice: ' + (SEQ_NAMES[Q.filter(z => z.type === 'order').indexOf(one)] || one.t) : 'Sequence practice (endless)';
+  }
+  else if (mode === 'missed'){ qs = shuffle(Q.filter(q => qStats(q.id).last === false)); label = 'Missed questions'; }
+  else if (mode === 'drill'){
+    qs = shuffle(Q.filter(q => (!opt.d || q.d === +opt.d) && (!opt.t || q.t === opt.t)));
+    if (opt.w === 'weak') qs = shuffle(qs).map(q => ({q, k:(qStats(q.id).last === false ? -1 : 0) + (qStats(q.id).seen ? 0.5 : 0) + Math.random() * 0.4})).sort((a, b) => a.k - b.k).map(x => x.q);
+    label = opt.t ? 'Topic: ' + opt.t : opt.d ? 'Domain ' + opt.d + ' drill' : 'All questions';
+    if (opt.n && opt.n < qs.length){ qs = qs.slice(0, opt.n); label += ' (' + opt.n + ' questions' + (opt.w === 'weak' ? ', missed and unseen first' : '') + ')'; }
+  }
+  if (!qs.length) return;
+  S = {mode, label, items:qs.map(buildItem), i:0, instant, limit, left:limit, checked:false, started:Date.now(), endless:mode === 'seqloop', pickId:opt.id || ''};
+  view = 'q';
+  clearInterval(timer);
+  if (limit) timer = setInterval(tick, 1000);
+  render();
+}
+function tick(){
+  if (!S) { clearInterval(timer); return; }
+  S.left--;
+  if (S.left % 15 === 0) persistRun();
+  const el = $('#clock'); if (el) el.textContent = fmt(S.left);
+  if (S.left <= 0) finish();
+}
+const fmt = s => { s = Math.max(0, s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+/* ---------- answering ---------- */
+/* a step is right at position i if it matches, or if both positions sit in the same interchangeable group (q.swap = [[4,5]]) */
+function stepOk(q, t, i){
+  if (t === q.steps[i]) return true;
+  const j = q.steps.indexOf(t);
+  return j >= 0 && (q.swap || []).some(g => g.indexOf(i) >= 0 && g.indexOf(j) >= 0);
+}
+function grade(it){
+  if (it.type === 'order') return it.seq.length === it.q.steps.length && it.seq.every((t, i) => stepOk(it.q, t, i));
+  const want = it.opts.map((o, i) => o.ok ? i : -1).filter(i => i >= 0).sort().join(',');
+  const got = it.picked.slice().sort().join(',');
+  return want === got;
+}
+function submit(){
+  const it = S.items[S.i];
+  if (it.done || !(it.type === 'order' ? it.seq.length : it.picked.length)) return;
+  it.done = true; it.ok = grade(it);
+  const st = qStats(it.q.id);
+  store.q[it.q.id] = {seen:st.seen + 1, right:st.right + (it.ok ? 1 : 0), last:it.ok};
+  save();
+  if (S.instant) { S.checked = true; render(); } else next();
+}
+function pickNextSeq(){
+  const all = Q.filter(q => q.type === 'order'), cur = S.items[S.i].q;
+  if (S.pickId) return cur;
+  const recent = S.items.slice(-Math.min(6, all.length - 1)).map(x => x.q.id);
+  const pool = all.filter(q => !recent.includes(q.id));
+  return shuffle(pool.length ? pool : all.filter(q => q.id !== cur.id))[0];
+}
+function next(){
+  S.checked = false;
+  if (S.endless){ S.items.push(buildItem(pickNextSeq())); S.i++; render(); window.scrollTo(0, 0); return; }
+  if (S.i >= S.items.length - 1) finish(); else { S.i++; render(); window.scrollTo(0, 0); }
+}
+function finish(){
+  clearInterval(timer);
+  delete store.run; save();
+  const done = S.items.filter(i => i.done);
+  const dom = {1:[0,0], 2:[0,0], 3:[0,0], 4:[0,0], 5:[0,0]}, top = {};
+  done.forEach(i => {
+    dom[i.q.d][1]++; if (i.ok) dom[i.q.d][0]++;
+    const t = top[i.q.t] || (top[i.q.t] = {d:i.q.d, r:0, n:0}); t.n++; if (i.ok) t.r++;
+  });
+  const right = done.filter(i => i.ok).length;
+  last = {ts:Date.now(), mode:S.mode, label:S.label, right, total:done.length, planned:S.items.length, dom, top, items:S.items, secs:Math.round((Date.now() - S.started) / 1000)};
+  if (done.length){
+    store.attempts.push({ts:last.ts, mode:S.mode, label:S.label, right, total:done.length, dom});
+    store.attempts = store.attempts.slice(-60);
+    save();
+  }
+  S = null; view = 'result'; render(); window.scrollTo(0, 0);
+}
+
+/* ---------- views ---------- */
+function topicList(){
+  const m = {};
+  Q.forEach(q => { m[q.t] = m[q.t] || {d:q.d, n:0}; m[q.t].n++; });
+  return Object.keys(m).map(t => ({t, d:m[t].d, n:m[t].n}));
+}
+function seenCount(){ return Q.filter(q => qStats(q.id).seen > 0).length; }
+
+const SEQ_NAMES = ['Autopilot hybrid join (user-driven)', 'Hybrid join with GPO auto-enrollment', 'iPhone enrollment with ADE', 'Apple MDM push certificate', 'Android fully managed by QR code', 'Windows LAPS rollout', 'App protection for unenrolled phones', 'Win32 app deployment', 'Microsoft 365 Apps with Visio', 'Multi Admin Approval', 'Cloud PKI with SCEP', 'Autopilot device preparation (Entra join)', 'Automatic enrollment at Entra join', 'Bulk enrollment with a provisioning package', 'Win32 app deployment (wizard order)', 'Helpdesk access with scope tags', 'Autopilot Entra join (user-driven)', 'Windows 365 Cloud PC provisioning'];
+function seqList(){ return Q.filter(q => q.type === 'order').map((q, i) => ({q, n:(i + 1) + '. ' + (SEQ_NAMES[i] || q.q.slice(0, 60))})); }
+function homeView(){
+  const missed = Q.filter(q => qStats(q.id).last === false).length;
+  const tl = topicList();
+  const topOpts = DIDS.map(d => '<optgroup label="Domain ' + d + ': ' + esc(DOM[d].short) + '">' +
+    tl.filter(x => x.d === d).map(x => '<option value="' + esc(x.t) + '">' + esc(x.t) + ' (' + x.n + ')</option>').join('') + '</optgroup>').join('');
+  return resumeCard() +
+  '<div class="grid">' +
+    '<section class="panel mode"><h2>Baseline diagnostic</h2><p>60 questions drawn across all five domains in exam proportion, with every topic covered at least once. Answers are shown at the end. Multiple choice only; step-ordering practice lives in Setup sequences. Start here to see what you know and what you don\'t.</p><div class="meta">60 questions · about 50 min · no clock</div><div><button class="btn" data-act="start" data-mode="diagnostic">Start diagnostic</button></div></section>' +
+    '<section class="panel mode"><h2>Full practice exam</h2><p>50 questions, weighted like the real outline, with a 100-minute clock. No feedback until the end. Multiple choice only; step-ordering practice lives in Setup sequences.</p><div class="meta">50 questions · 100 min</div><div><button class="btn" data-act="start" data-mode="mock">Start practice exam</button></div></section>' +
+    '<section class="panel mode"><h2>Weakest domains focus</h2><p>20 questions from your two lowest-scoring domains (Domains ' + weakDomains().join(' and ') + ' right now; until you have 10 or more answers per domain it leans on the heaviest exam domains), favoring ones you missed or have not seen. Feedback after every question.</p><div class="meta">20 questions · instant feedback</div><div><button class="btn" data-act="start" data-mode="weak14">Start focus drill</button></div></section>' +
+    '<section class="panel mode"><h2>Setup sequences</h2><p>Put steps in the order Microsoft documents them: hybrid join, Autopilot hybrid join, ADE, push certificate, LAPS, Win32 and more.</p><div class="meta">' + Q.filter(q => q.type === 'order').length + ' sequences · some steps are distractors</div><div class="row"><button class="btn" data-act="start" data-mode="seq">Practice sequences</button></div>' +
+      '<div class="stack" style="margin-top:12px"><label for="selSeq" class="note">Or repeat them one at a time, as often as you like:</label><select id="selSeq" style="max-width:100%"><option value="">A different random sequence each round</option>' + seqList().map(x => '<option value="' + x.q.id + '">' + esc(x.n) + '</option>').join('') + '</select><div><button class="btn ghost sm" data-act="seqloop">Start endless practice</button></div></div></section>' +
+    '<section class="panel mode"><h2>Weak-spot drill</h2><p>20 questions chosen from what you have missed or not yet seen. Feedback after every question.</p><div class="meta">20 questions · instant feedback</div><div><button class="btn" data-act="start" data-mode="weak">Drill weak spots</button></div></section>' +
+    '<section class="panel mode"><h2>Missed questions</h2><p>Replay every question you last got wrong until none are left.</p><div class="meta">' + missed + ' waiting</div><div><button class="btn" data-act="start" data-mode="missed"' + (missed ? '' : ' disabled') + '>Replay missed</button></div></section>' +
+  '</div>' +
+  '<section class="panel stack sec"><h2>Study one area</h2>' +
+    '<div class="row"><label for="selCount" class="note">Questions</label><select id="selCount">' + [10, 20, 30, 50, 100, 0].map(n => '<option value="' + n + '"' + ((store.drillN || 0) === n ? ' selected' : '') + '>' + (n ? n : 'All in the area') + '</option>').join('') + '</select><span class="note">A random set each time, if the area has more than this.</span></div>' +
+    '<div class="row"><label for="selPick" class="note">Choose</label><select id="selPick"><option value="rand"' + (store.drillP === 'rand' ? ' selected' : '') + '>A random mix</option><option value="weak"' + (store.drillP === 'weak' ? ' selected' : '') + '>Missed and unseen first</option></select></div>' +
+    '<div class="row"><label for="selDomain" class="note">Domain</label><select id="selDomain"><option value="">All domains</option>' + DIDS.map(d => '<option value="' + d + '">' + d + '. ' + esc(DOM[d].short) + ' (' + DOM[d].range + ')</option>').join('') + '</select>' +
+    '<button class="btn ghost sm" data-act="drillDomain">Drill domain</button></div>' +
+    '<div class="row"><label for="selTopic" class="note">Topic</label><select id="selTopic">' + topOpts + '</select><button class="btn ghost sm" data-act="drillTopic">Drill topic</button></div>' +
+  '</section>' +
+  '<p class="note sec">' + Q.length + ' questions in the bank · ' + seenCount() + ' seen so far. Your history is kept in this browser only. The Progress tab has a backup box.</p>';
+}
+
+function orderBody(it){
+  const q = it.q;
+  if (!S.checked){
+    const avail = it.pool.filter(t => !it.seq.includes(t));
+    return '<p class="hint">Select the steps you need, in the order you would do them. Not every listed step belongs. Use the arrows to move a step.</p>' +
+    '<div class="ord"><div class="col pool"><h3>Available steps</h3><ol>' + (avail.length ? avail.map(t => '<li><button class="stepb" data-act="oadd" data-t="' + esc(t) + '">' + esc(t) + '</button></li>').join('') : '<li class="empty">All steps are in your sequence.</li>') + '</ol></div>' +
+    '<div class="col seq"><h3>Your sequence</h3><ol>' + (it.seq.length ? it.seq.map((t, i) => '<li class="step"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span><span class="ctl"><button data-act="oup" data-i="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button><button data-act="odown" data-i="' + i + '" aria-label="Move down"' + (i === it.seq.length - 1 ? ' disabled' : '') + '>↓</button><button data-act="orm" data-i="' + i + '" aria-label="Remove step">✕</button></span></li>').join('') : '<li class="empty">Pick steps from the left.</li>') + '</ol></div></div>';
+  }
+  const yours = it.seq.map((t, i) => '<li class="step ' + (stepOk(q, t, i) ? 'ok' : 'no2') + '"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('');
+  const right = q.steps.map((t, i) => '<li class="step ok"><span class="no">' + (i + 1) + '.</span><span class="tx">' + esc(t) + '<span class="why">' + esc(q.notes[i]) + '</span></span></li>').join('');
+  return '<div class="ord"><div class="col"><h3>Your sequence</h3><ol>' + (yours || '<li class="empty">You left this empty.</li>') + '</ol></div><div class="col"><h3>Correct sequence</h3><ol>' + right + '</ol></div></div>';
+}
+function qView(){
+  const it0 = S.items[S.i];
+  if (it0.type === 'order') return qOrderView();
+  const it = it0, n = S.items.length, multi = it.q.c.length > 1;
+  const L = 'ABCDEFGH';
+  const opts = it.opts.map((o, i) => {
+    let cls = 'opt', tag = '';
+    if (S.checked){
+      const p = it.picked.includes(i);
+      if (o.ok && p){ cls += ' right'; tag = 'Correct, you chose this'; }
+      else if (o.ok){ cls += ' missed'; tag = 'Correct answer'; }
+      else if (p){ cls += ' wrong'; tag = 'Your answer'; }
+    } else if (it.picked.includes(i)) cls += ' sel';
+    return '<button class="' + cls + '" data-act="pick" data-i="' + i + '" role="' + (multi ? 'checkbox' : 'radio') + '" aria-checked="' + it.picked.includes(i) + '"' + (S.checked ? ' disabled' : '') + '><span class="k">' + L[i] + '</span><span class="t">' + esc(o.t) + '</span>' + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</button>';
+  }).join('');
+  let fb = '';
+  if (S.checked){
+    fb = '<div class="fb' + (it.ok ? '' : ' bad') + '"><b>' + (it.ok ? 'Correct' : 'Not quite') + '</b>' + esc(it.q.e) + (it.q.l ? '<br><a href="' + esc(it.q.l) + '" target="_blank" rel="noopener">Read on Microsoft Learn</a>' : '') + '</div>';
+  }
+  const act = S.checked
+    ? '<button class="btn" data-act="next">' + (S.i >= n - 1 ? 'See results' : 'Next question') + '</button>'
+    : '<button class="btn" data-act="submit"' + (it.picked.length ? '' : ' disabled') + '>' + (S.instant ? 'Check answer' : (S.i >= n - 1 ? 'Finish' : 'Next')) + '</button>';
+  return '' +
+  '<div class="qhead"><div class="row"><span class="chip d' + it.q.d + '">Domain ' + it.q.d + '</span><span class="note">' + esc(it.q.t) + '</span></div>' +
+    '<div class="row mono note"><span>' + (S.i + 1) + ' / ' + n + '</span>' + (S.limit ? '<span id="clock">' + fmt(S.left) + '</span>' : '') + '</div></div>' +
+  '<div class="bar"><i style="width:' + Math.round(100 * (S.i + (S.checked ? 1 : 0)) / n) + '%"></i></div>' +
+  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' + vis(it.q) +
+    (multi ? '<p class="hint">Select ' + it.q.c.length + '</p>' : '') +
+    '<div class="opts" role="' + (multi ? 'group' : 'radiogroup') + '">' + opts + '</div>' + fb +
+    '<div class="actions">' + act + '<button class="btn ghost" data-act="end">End and score</button><button class="btn ghost" data-act="gohome">Save and go home</button></div></section>';
+}
+
+function qOrderView(){
+  const it = S.items[S.i], n = S.items.length;
+  let fb = '';
+  if (S.checked) fb = '<div class="fb' + (it.ok ? '' : ' bad') + '"><b>' + (it.ok ? 'Correct order' : 'Not quite') + '</b>' + esc(it.q.e) + (it.q.l ? '<br><a href="' + esc(it.q.l) + '" target="_blank" rel="noopener">Read on Microsoft Learn</a>' : '') + '</div>';
+  const act = S.checked
+    ? (S.endless ? '<button class="btn" data-act="next">' + (S.pickId ? 'Go again' : 'Next sequence') + '</button>' : '<button class="btn" data-act="next">' + (S.i >= n - 1 ? 'See results' : 'Next question') + '</button>') + '<button class="btn ghost" data-act="again">Try this one again</button>'
+    : '<button class="btn" data-act="submit"' + (it.seq.length ? '' : ' disabled') + '>' + (S.instant ? 'Check order' : (S.i >= n - 1 ? 'Finish' : 'Next')) + '</button>';
+  return '' +
+  '<div class="qhead"><div class="row"><span class="chip d' + it.q.d + '">Domain ' + it.q.d + '</span><span class="note">Sequence · ' + esc(it.q.t) + '</span></div>' +
+    '<div class="row mono note"><span>' + (S.endless ? 'Round ' + (S.i + 1) : (S.i + 1) + ' / ' + n) + '</span>' + (S.limit ? '<span id="clock">' + fmt(S.left) + '</span>' : '') + '</div></div>' +
+  (S.endless ? '' : (S.endless ? '' : '<div class="bar"><i style="width:' + Math.round(100 * (S.i + (S.checked ? 1 : 0)) / n) + '%"></i></div>')) +
+  '<section class="panel"><p class="qtext">' + esc(it.q.q) + '</p>' + vis(it.q) +
+    '<p class="note"><b>Use ' + (it.pool.length > it.q.steps.length ? 'exactly ' + it.q.steps.length + ' of the ' + it.pool.length + ' steps' : 'all ' + it.q.steps.length + ' steps') + '.</b> ' + it.seq.length + ' of ' + it.q.steps.length + ' placed.</p>' + orderBody(it) + fb +
+    '<div class="actions">' + act + (it.seq.length && !S.checked ? '<button class="btn ghost" data-act="oclear">Clear</button>' : '') + '<button class="btn ghost" data-act="end">End and score</button><button class="btn ghost" data-act="gohome">Save and go home</button></div></section>';
+}
+
+function domBars(dom){
+  return DIDS.map(d => {
+    const r = dom[d][0], t = dom[d][1], p = pct(r, t);
+    return '<div class="dom"><div class="nm">' + d + '. ' + esc(DOM[d].short) + '<small>Exam weight ' + DOM[d].range + ' · ' + r + ' of ' + t + '</small></div><div class="pc">' + (t ? p + '%' : 'n/a') + '</div><div class="meter"><i style="width:' + p + '%;background:' + DOM[d].v + '"></i><u title="80% target"></u></div></div>';
+  }).join('');
+}
+
+function resultView(){
+  const R = last, p = pct(R.right, R.total);
+  let verdict = p >= 85 ? 'Strong result. Keep mixing in full practice exams and fix the few misses.' : p >= 70 ? 'Close. Work the weakest topics below, then retake a practice exam.' : 'Plenty of room. Follow the study plan for the weakest domain first.';
+  const topics = Object.keys(R.top).map(t => ({t, d:R.top[t].d, r:R.top[t].r, n:R.top[t].n})).sort((a, b) => (a.r / a.n) - (b.r / b.n) || b.n - a.n);
+  const wrong = R.items.filter(i => i.done && !i.ok);
+  const skipped = R.planned - R.total;
+  const rows = topics.map(x => '<tr><td>' + esc(x.t) + '<br><span class="chip d' + x.d + '">Domain ' + x.d + '</span></td><td class="n">' + x.r + '/' + x.n + '</td><td class="n">' + pct(x.r, x.n) + '%</td><td><button class="btn ghost sm" data-act="drillT" data-t="' + esc(x.t) + '">Drill</button></td></tr>').join('');
+  const review = wrong.map(i => {
+    if (i.type === 'order') return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">Sequence · ' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p><div class="ord"><div class="col"><h3>Your order</h3><ol>' + (i.seq.map((t, k) => '<li class="step ' + (stepOk(i.q, t, k) ? 'ok' : 'no2') + '"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') || '<li class="empty">No steps chosen.</li>') + '</ol></div><div class="col"><h3>Correct order</h3><ol>' + i.q.steps.map((t, k) => '<li class="step ok"><span class="no">' + (k + 1) + '.</span><span class="tx">' + esc(t) + '</span></li>').join('') + '</ol></div></div><p class="note">' + esc(i.q.e) + '</p></div>';
+    const ch = i.picked.map(k => esc(i.opts[k].t)).join('; ');
+    const co = i.opts.filter(o => o.ok).map(o => esc(o.t)).join('; ');
+    return '<div class="rev"><span class="chip d' + i.q.d + '">Domain ' + i.q.d + '</span> <span class="note">' + esc(i.q.t) + '</span><p class="q">' + esc(i.q.q) + '</p>' + vis(i.q) +
+      '<p class="ans"><span>YOU</span>' + ch + '</p><p class="ans"><span>CORRECT</span>' + co + '</p>' +
+      '<p class="note" style="margin-top:6px">' + esc(i.q.e) + (i.q.l ? ' <a href="' + esc(i.q.l) + '" target="_blank" rel="noopener">Learn</a>' : '') + '</p></div>';
+  }).join('');
+  return '' +
+  '<section class="panel"><div class="eyebrow">' + esc(R.label) + (R.mode === 'mock' || R.mode === 'diagnostic' ? ' · answers shown below' : '') + '</div>' +
+    '<div class="score"><b>' + p + '%</b><span class="mono note">' + R.right + ' of ' + R.total + ' correct · ' + fmt(R.secs) + ' elapsed' + (skipped ? ' · ' + skipped + ' unanswered' : '') + '</span></div>' +
+    '<p style="margin-top:8px">' + verdict + '</p>' +
+    '<p class="note" style="margin-top:6px">The real exam reports a scaled score (700 to pass). This percentage is a practice signal, not a prediction. Aim for 80% or better on full practice exams.</p></section>' +
+  '<h2 class="sec">By exam domain</h2><section class="panel">' + domBars(R.dom) + '</section>' +
+  '<h2 class="sec">By topic, weakest first</h2><section class="panel scroll"><table class="tbl"><thead><tr><th>Topic</th><th class="n">Right</th><th class="n">Score</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></section>' +
+  '<div class="row sec"><button class="btn" data-act="start" data-mode="weak">Drill weak spots</button><button class="btn ghost" data-act="home">Back to practice</button></div>' +
+  (wrong.length ? '<h2 class="sec">What you missed (' + wrong.length + ')</h2><section class="panel">' + review + '</section>' : '<p class="sec">No misses in this set.</p>');
+}
+
+/* ---------- progress ---------- */
+function progressView(){
+  const dom = {1:[0,0], 2:[0,0], 3:[0,0], 4:[0,0], 5:[0,0]}, top = {};
+  Q.forEach(q => {
+    const s = qStats(q.id); dom[q.d][0] += s.right; dom[q.d][1] += s.seen;
+    const t = top[q.t] || (top[q.t] = {d:q.d, r:0, n:0}); t.r += s.right; t.n += s.seen;
+  });
+  const att = store.attempts.slice().reverse().slice(0, 12).map(a => '<tr><td class="mono">' + new Date(a.ts).toLocaleDateString(undefined, {month:'short', day:'numeric'}) + '</td><td>' + esc(a.label) + '</td><td class="n">' + a.right + '/' + a.total + '</td><td class="n">' + pct(a.right, a.total) + '%</td></tr>').join('');
+  const tr = Object.keys(top).map(t => ({t, d:top[t].d, r:top[t].r, n:top[t].n})).sort((a, b) => (a.n ? a.r / a.n : -1) - (b.n ? b.r / b.n : -1));
+  const trows = tr.map(x => '<tr><td>' + esc(x.t) + '</td><td><span class="chip d' + x.d + '">D' + x.d + '</span></td><td class="n">' + (x.n ? pct(x.r, x.n) + '%' : 'not seen') + '</td><td class="n">' + x.n + '</td></tr>').join('');
+  return '' +
+  '<h2>Lifetime accuracy by domain</h2><section class="panel" style="margin-top:10px">' + domBars(dom) + '<p class="note">Counts every answer you have given, so early misses stay in the average. Use the Missed questions mode to clear them.</p></section>' +
+  '<h2 class="sec">Topics, weakest first</h2><section class="panel scroll"><table class="tbl"><thead><tr><th>Topic</th><th>Domain</th><th class="n">Accuracy</th><th class="n">Answers</th></tr></thead><tbody>' + trows + '</tbody></table></section>' +
+  '<h2 class="sec">Recent attempts</h2><section class="panel scroll">' + (att ? '<table class="tbl"><thead><tr><th>Date</th><th>Set</th><th class="n">Right</th><th class="n">Score</th></tr></thead><tbody>' + att + '</tbody></table>' : '<p class="note">No attempts yet. Take the baseline diagnostic first.</p>') + '</section>' +
+  '<h2 class="sec">Back up or move your progress</h2><section class="panel stack"><p class="note">Progress lives in this browser only. Download a backup file, then pick it again under Restore to bring your progress back, on this or another device. If the download button is missing, copy the text instead.</p>' +
+    '<label class="note" for="exp">Your data</label><textarea id="exp" readonly></textarea><div class="row"><button class="btn sm" data-act="download" id="dlbtn" hidden>Download backup file</button><button class="btn ghost sm" data-act="copy">Copy text</button><span class="note" id="copied"></span></div>' +
+    '<label class="note" for="impfile">Restore from a backup file</label><div class="row"><input type="file" id="impfile" accept=".json,application/json,.txt"><span class="note" id="filemsg"></span></div>' +
+    '<label class="note" for="imp">Or restore from pasted text</label><textarea id="imp" placeholder="Paste saved data here"></textarea><div class="row"><button class="btn ghost sm" data-act="import">Restore</button><span class="note" id="impmsg"></span></div>' +
+    '<div class="row"><button class="btn ghost sm" data-act="reset">Reset all progress</button><span class="note" id="resetmsg"></span></div></section>';
+}
+
+/* ---------- plan ---------- */
+const WEEKS = [
+  {when:'Oct 27 – Nov 2', title:'Baseline and enrollment basics', d:1, items:[
+    'Take the 60-question baseline diagnostic on day one and note your three weakest topics',
+    'Run the Weakest domains focus until you get every question right twice',
+    'Join types: Entra join vs hybrid join vs registered, MDM user scope, automatic enrollment',
+    'Enrollment by platform: Apple ADE and User Enrollment, Android Enterprise scenarios, Knox',
+    'Enrollment restrictions: priority order, device limits, what a change does to existing devices',
+    'Run the Learn free practice assessment once so you have a second reading on your gaps'],
+   ref:[['MD-102 exam page','https://learn.microsoft.com/credentials/certifications/exams/md-102/'],['Exam sandbox','https://aka.ms/examdemo']]},
+  {when:'Nov 3 – Nov 9', title:'Roles, approvals and identity', d:1, items:[
+    'RBAC: scope groups vs scope tags, custom roles, the Windows 365 Administrator role',
+    'Multi Admin Approval: which resources, approver group rules, the requester completes the change',
+    'LAPS: policy, who can read the password, the remote task permission, lost with the device object',
+    'Compliance policy settings that close gaps (no policy assigned) and how they pair with Conditional Access',
+    'Drill every Domain 1 topic under 80%'],
+   ref:[['Multi Admin Approval','https://learn.microsoft.com/intune/fundamentals/role-based-access-control/multi-admin-approval']]},
+  {when:'Nov 10 – Nov 16', title:'Autopilot and the Enrollment Status Page', d:2, items:[
+    'Classic Autopilot: user-driven, self-deploying, pre-provisioning, hardware hash, deployment profiles',
+    'Autopilot device preparation: policy, user group, static device group owned by the Intune Provisioning Client',
+    'ESP blocking, Windows settings backup and restore (formerly Windows Backup for Organizations) at OOBE',
+    'Autopilot Reset vs Fresh Start vs Wipe vs Retire',
+    'Build one device preparation policy in a lab tenant if you can'],
+   ref:[['Autopilot device preparation','https://learn.microsoft.com/autopilot/device-preparation/overview']]},
+  {when:'Nov 17 – Nov 23', title:'Configuration, updates and Windows 365', d:2, items:[
+    'Settings catalog, templates, filters vs scope tags, assignment filters on device properties',
+    'Group Policy analytics and importing custom ADMX',
+    'Update rings, feature update policies, expedite, hotpatch, Windows Autopatch',
+    'Windows 365: provisioning policy, Microsoft-hosted vs your own network, Remote Help licensing',
+    'Device query and bulk device actions'],
+   ref:[['Hotpatch in Intune','https://learn.microsoft.com/intune/device-updates/windows/configure-hotpatch']]},
+  {when:'Nov 24 – Nov 30', title:'Compliance, baselines and encryption', d:3, items:[
+    'Compliance: grace periods, actions for noncompliance, risk score from Defender for Endpoint',
+    'Conditional Access grants: compliant device, app protection policy, and the retired approved client app grant',
+    'Security baselines: versions do not update themselves, conflict reporting',
+    'BitLocker: disk encryption policy, recovery key location, key rotation',
+    'Take a 50-question mock exam at the end of the week'],
+   ref:[['Security baselines','https://learn.microsoft.com/intune/device-security/security-baselines/configure-baselines']]},
+  {when:'Dec 1 – Dec 7', title:'Intune Suite and Defender', d:3, items:[
+    'Endpoint Privilege Management: automatic, user confirmed, support approved',
+    'Cloud PKI: root and issuing CAs, bring your own CA, SCEP delivery',
+    'App Control for Business: audit mode first, built-in policies',
+    'Defender for Endpoint onboarding with an EDR policy',
+    'Replay your Missed questions until the list is empty'],
+   ref:[['Endpoint Privilege Management','https://learn.microsoft.com/intune/epm/overview']]},
+  {when:'Dec 8 – Dec 14', title:'Applications and protection policies', d:4, items:[
+    'App protection policies: data transfer, PIN, offline grace period, no enrollment needed',
+    'App configuration vs app protection; Microsoft 365 Apps policies; Edge settings',
+    'Win32 apps: intunewin, detection vs requirement rules, supersedence vs dependencies, IME logs',
+    'Tunnel for MAM and Quiet Time',
+    'Drill every Domain 4 topic under 80%'],
+   ref:[['App protection policies','https://learn.microsoft.com/intune/app-management/protection/create-policy']]},
+  {when:'Dec 15 – Dec 21', title:'Operations, analytics and Copilot', d:5, items:[
+    'Remediations: exit code 0 vs 1, schedule, run on demand',
+    'Endpoint analytics scores: startup performance, work from anywhere, application reliability',
+    'Security Copilot in Intune: what Copilot and the Vulnerability Remediation Agent do, and who approves actions',
+    'Device cleanup rules, naming templates, Collect diagnostics',
+    'Take a second full mock exam and compare Domain scores to the baseline'],
+   ref:[['Security Copilot agents in Intune','https://learn.microsoft.com/intune/copilot/agents/']]},
+  {when:'Dec 22 – Dec 31', title:'Final pass and exam', d:0, items:[
+    'One last practice exam at the start of the week, then review the cheat sheet below',
+    'Sit the exam a few days before your date, which leaves room to reschedule',
+    'Do not learn new material in the final 48 hours']}
+];
+const FACTS = [
+  'This app is built to the MD-102 skills outline updated Oct 27, 2026. Older practice material often misses Multi Admin Approval, EPM, Cloud PKI, Windows settings backup and restore and Security Copilot content.',
+  'Enrollment restrictions: lowest priority number wins. Changes affect new enrollments only. They are not a security boundary.',
+  'Scope groups say who you can act on. Scope tags say what you can see. Use both for distributed IT.',
+  'Multi Admin Approval: approvers must be a security group assigned directly to an Intune role. Nobody approves their own request, Global Admins included.',
+  'LAPS: reading the password needs the Entra role or a custom Intune permission. Deleting the device object loses the stored password.',
+  'Autopilot device preparation: no hardware hash, no deployment profile. Static device group owned by the Intune Provisioning Client. Entra join only, no hybrid join.',
+  'Self-deploying mode needs TPM 2.0 attestation and Entra join. Autopilot Reset keeps the join and management. Retire removes only company data.',
+  'Windows settings backup and restore (formerly Windows Backup for Organizations) restores settings and the Microsoft Store app list at OOBE on Entra joined devices. The restore page is a tenant-wide enrollment setting, and the user needs at least one backup profile.',
+  'Hotpatch avoids restarts for security updates on supported Windows 11 Enterprise. Expedite policies override ring deferral. Feature update policies pin a version.',
+  'Group Policy analytics reads exported GPO XML. Custom ADMX is imported under Devices > Configuration > Import ADMX.',
+  'Remote Help and EPM need an add-on or Intune Suite license. Device query on multiple devices needs Advanced Analytics.',
+  'Conditional Access: Require approved client app is read-only: no new or edited policies, existing ones keep enforcing. Use Require app protection policy. Unenrolled devices cannot be marked compliant.',
+  'Security baselines do not update themselves. Choose Change version, review differences first. Overlapping settings report as Conflict.',
+  'BitLocker recovery keys are escrowed to Entra and shown in Intune. Rotate the key after anyone reads it.',
+  'EPM elevation types: automatic (file hash required), user confirmed, support approved (admin approves a request) and elevate as current user. Deny rules always win.',
+  'App protection works without enrollment. Offline grace period has two parts: block after minutes, wipe after days.',
+  'Win32: requirement rules decide applicability, detection rules decide installed. Supersedence replaces, dependencies install first. 0x87D1041C = installed but not detected.',
+  'Remediations: detection exit 0 means no issue, exit 1 runs the remediation script.',
+  'Device Enrollment Manager: non-admin account, up to 1,000 devices. Standard users are capped by the device limit restriction (1 to 15).',
+  'Standalone add-ons: EPM, Enterprise App Management, Advanced Analytics, Remote Help, Cloud PKI. Tunnel for MAM and Zebra FOTA come only with Intune Plan 2 or the Suite. Add-ons are listed under Tenant administration > Intune add-ons.',
+  'Advanced Analytics needs a license on top of Intune Plan 1 or 2, and Windows devices must be enrolled and onboarded to endpoint analytics. Tunnel for MAM extends Tunnel to unenrolled Android and iOS devices.',
+  'Cloud Policy for Microsoft 365 Apps: scopes are all users, specific Entra groups (several per configuration now) or anonymous Office for the web users. Policies apply to users; devices in a group are ignored.',
+  'Update ring deferral: quality 0 to 30 days, feature 0 to 365 days. Apple updates use DDM software update in the settings catalog. Android Zebra firmware uses FOTA deployments.',
+  'Endpoint protection template: new policies for Windows only (the macOS template is deprecated; use the settings catalog or endpoint security policies). Enterprise App Catalog and Remediations: Windows only.'
+];
+[['Lab 1 (automatic enrollment, restrictions, device limits) on the Labs tab'],['Lab 9 Part C (RBAC and scope tags) on the Labs tab'],['Lab 2 (Autopilot and ESP) and Lab 3 (provisioning packages) on the Labs tab','Lab 11 (hybrid join), if you have a server VM'],['Lab 5 (profiles and baselines) and Lab 7 (update rings) on the Labs tab'],['Lab 4 (compliance and Conditional Access) and Lab 8 (LAPS, BitLocker, Defender) on the Labs tab'],[],['Lab 6 (app deployment and filters) and Lab 10 (app protection) on the Labs tab'],['Lab 9 Parts A, B and D (scripts, remediations, device actions) on the Labs tab'],[]].forEach((a, i) => { WEEKS[i].items.push.apply(WEEKS[i].items, a); });
+const DAY = 86400000, fmtD = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+function planStart(){
+  if (!store.planStart){ const n = new Date(); store.planStart = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); save(); }
+  const p = store.planStart.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]);
+}
+function planGroups(){
+  const start = planStart(), end = examDate(); end.setHours(0, 0, 0, 0);
+  const days = Math.round((end - start) / DAY) + 1;
+  if (days < 1) return {days, groups:[]};
+  const n = Math.max(1, Math.min(WEEKS.length, Math.floor(days / 3)));
+  const groups = [];
+  for (let g = 0; g < n; g++){
+    const a = Math.round(g * WEEKS.length / n), b = Math.round((g + 1) * WEEKS.length / n);
+    const d0 = Math.round(g * days / n), d1 = Math.max(d0, Math.round((g + 1) * days / n) - 1);
+    groups.push({phases:WEEKS.slice(a, b).map((w, i) => ({w, wi:a + i})), from:new Date(start.getTime() + d0 * DAY), to:new Date(start.getTime() + d1 * DAY)});
+  }
+  return {days, groups};
+}
+function planView(){
+  const PG = planGroups();
+  const wk = PG.groups.map((g, gi) => {
+    const items = g.phases.map(ph => ph.w.items.map((t, ti) => {
+      const k = ph.wi + '-' + ti, on = !!store.plan[k];
+      return '<li class="' + (on ? 'done' : '') + '"><label><input type="checkbox" data-plan="' + k + '"' + (on ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>';
+    }).join('')).join('');
+    const refs = [].concat.apply([], g.phases.map(ph => ph.w.ref || []));
+    const refsH = refs.length ? '<p class="note" style="margin-top:10px">' + refs.map(r => '<a href="' + esc(r[1]) + '" target="_blank" rel="noopener">' + esc(r[0]) + '</a>').join(' · ') + '</p>' : '';
+    const doms = []; g.phases.forEach(ph => { if (ph.w.d && !doms.includes(ph.w.d)) doms.push(ph.w.d); });
+    const when = g.from.getTime() === g.to.getTime() ? fmtD(g.from) : fmtD(g.from) + ' – ' + fmtD(g.to);
+    return '<section class="panel"><div class="week"><div class="when">' + esc(when) + '<br>' + doms.map(d => '<span class="chip d' + d + '">Domain ' + d + '</span>').join(' ') + '</div><div><h3>Step ' + (gi + 1) + ': ' + esc(g.phases.map(ph => ph.w.title).join(' + ')) + '</h3><ul>' + items + '</ul>' + refsH + '</div></div></section>';
+  }).join('');
+  const wkHead = PG.days < 1 ? 'The exam date has passed' : 'Plan from ' + fmtD(planStart()) + ' to ' + fmtD(examDate()) + ' (' + PG.days + ' day' + (PG.days === 1 ? '' : 's') + ', ' + PG.groups.length + ' step' + (PG.groups.length === 1 ? '' : 's') + ')';
+  const unusedWk = WEEKS.map((w, wi) => {
+    const items = w.items.map((t, ti) => {
+      const k = wi + '-' + ti, on = !!store.plan[k];
+      return '<li class="' + (on ? 'done' : '') + '"><label><input type="checkbox" data-plan="' + k + '"' + (on ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>';
+    }).join('');
+    const refs = '';
+    return '<section class="panel"><div class="week"><div class="when">' + esc(w.when) + '<br>' + (w.d ? '<span class="chip d' + w.d + '">Domain ' + w.d + '</span>' : '') + '</div><div><h3>Week ' + (wi + 1) + ': ' + esc(w.title) + '</h3><ul>' + items + '</ul>' + refs + '</div></div></section>';
+  }).join('');
+  return '' +
+  '<section class="panel flag"><h3>Exam date and outline</h3><p style="margin-top:6px">Microsoft updated the MD-102 skills outline on <b>Oct 27, 2026</b>, and these questions follow that version. Pick your exam date and the plan below is rescheduled to fit between today and that date: fewer days merge steps, more days spread them out.</p><div class="row" style="margin-top:10px"><label class="note" for="examDate">Exam date</label><input type="date" id="examDate" value="' + esc(store.exam || '2026-11-21') + '"></div><p class="note" style="margin-top:8px">Learn links in the Exam notes drill were checked on Nov 14, 2026. Other links are unverified; if one fails, search the title on Learn.</p></section>' +
+  '<h2 class="sec">High-yield topics to know cold</h2><section class="panel"><p>These come up in many Intune scenarios. Use the Progress tab for your own weak topics, then check these off against the Learn pages.</p><ul class="facts">' +
+    [
+      'Enrollment: Device Enrollment Manager accounts enroll up to 1,000 devices. Device limit restrictions allow 1 to 15 per user. A device must be enrolled before Conditional Access can evaluate its compliance.',
+      'Autopilot: name templates are 15 characters or fewer and Entra join only. Self-deploying and pre-provisioning need a physical TPM 2.0, so virtual machines fail. Autopilot Reset keeps Wi-Fi details, Entra join and Intune enrollment.',
+      'Apps: Required plus Available (through different groups) merges to Required and Available. Win32 requirement rules decide applicability and detection rules decide installed. App protection works without enrollment. Cloud Policy uses priority, with 0 as the highest.',
+      'Updates: update rings defer quality updates 0 to 30 days and feature updates 0 to 365 days, and pause for up to 35 days. macOS and iOS updates use DDM software update in the settings catalog.',
+      'Policy conflicts: Group Policy wins over MDM unless the MDM wins policy is set. Compliance policies come before the Conditional Access policy that uses them.',
+      'Intune Suite: Advanced Analytics, Enterprise App Catalog, EPM, Remote Help, Cloud PKI and Tunnel for MAM sit under Manage and maintain devices. Tunnel for MAM uses an app configuration policy for managed apps.'
+    ].map(f => '<li>' + esc(f) + '</li>').join('') + '</ul><p class="note" style="margin-top:8px">Outline gaps to cover beyond the question bank: Delivery Optimization, Android FOTA, Zebra and OEMConfig, Apple Business Manager apps, Managed Google Play private apps, firewall, ASR and antivirus policies, custom compliance scripts, Graph PowerShell, reports and Log Analytics, service health.</p></section>' +
+  '<h2 class="sec">Where the points are</h2><section class="panel">' +
+    DIDS.map(d => '<div class="dom"><div class="nm">' + d + '. ' + esc(DOM[d].name) + '<small>' + DOM[d].range + ' of the exam</small></div><div class="pc">' + DOM[d].range + '</div><div class="meter"><i style="width:' + Math.round(DOM[d].w * 100 / .30) + '%;background:' + DOM[d].v + '"></i></div></div>').join('') +
+    '<p class="note">Domains 1 and 2 are about half of the exam. Domains 3 and 4 add roughly another third.</p></section>' +
+  '<h2 class="sec">' + esc(wkHead) + '</h2><div class="stack">' + (wk || '<section class="panel"><p class="note">Pick a later exam date above to build a plan.</p></section>') + '</div><div class="row" style="margin-top:10px"><button class="btn ghost sm" data-act="planrestart">Restart plan from today</button><span class="note">Your ticks are kept.</span></div>' +
+  '<h2 class="sec">Setup sequences</h2><section class="panel stack"><p class="note">The order Microsoft documents. Steps marked interchangeable in the notes can swap. Practice them in Setup sequences.</p>' +
+    Q.filter(q => q.type === 'order').map(q => '<details><summary><span class="chip d' + q.d + '">Domain ' + q.d + '</span> ' + esc(q.q.replace(/ Some listed steps do not belong\./, '').replace(/^Place the steps in (the )?order (you would follow )?(to )?/i, '').replace(/\.$/, '')) + '</summary><ol style="margin:10px 0 0;padding-left:22px">' + q.steps.map(t => '<li style="margin-bottom:4px">' + esc(t) + '</li>').join('') + '</ol><p class="note" style="margin-top:8px">' + esc(q.e) + '</p></details>').join('') + '</section>' +
+  '<h2 class="sec">Know these cold</h2><section class="panel"><ul class="facts">' + FACTS.map(f => '<li>' + esc(f) + '</li>').join('') + '</ul></section>' +
+  '<h2 class="sec">Official resources</h2><section class="panel"><ul class="link-list">' +
+    [['MD-102 exam page','https://learn.microsoft.com/credentials/certifications/exams/md-102/'],['MD-102 study guide (skills measured)','https://learn.microsoft.com/credentials/certifications/resources/study-guides/md-102'],['Free practice assessment','https://learn.microsoft.com/credentials/certifications/exams/md-102/practice/assessment?assessment-type=practice&assessmentId=61'],['Exam sandbox','https://aka.ms/examdemo'],['Intune documentation','https://learn.microsoft.com/intune/']]
+    .map(r => '<li><a href="' + r[1] + '" target="_blank" rel="noopener">' + esc(r[0]) + '</a></li>').join('') + '</ul>' +
+    '<p class="note" style="margin-top:10px">The exam page also lists instructor-led and self-paced options under Two ways to prepare. Check it for anything newer than this list.</p></section>';
+}
+
+/* ---------- labs ---------- */
+function labKeys(l){ const k = []; l.parts.forEach((p, pi) => p.s.forEach((_, si) => k.push(l.id + '-' + pi + '-' + si))); return k; }
+function labCounts(){
+  let all = 0, tot = 0;
+  LABS.forEach(l => { const ks = labKeys(l), n = ks.filter(k => store.lab[k]).length; all += n; tot += ks.length;
+    const el = document.getElementById('lc' + l.id); if (el) el.textContent = n + '/' + ks.length; });
+  const g = document.getElementById('labTotal'); if (g) g.textContent = all + ' of ' + tot + ' steps done';
+}
+function labsView(){
+  const ul = a => '<ul class="facts">' + a.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+  const tbl = (head, rows) => '<div class="scroll"><table class="tbl"><thead><tr>' + head.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map(c => '<td>' + esc(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+  const labs = LABS.map(l => {
+    const parts = l.parts.map((p, pi) => '<h4 class="ph">' + esc(p.t) + '</h4><ul class="lsteps">' + p.s.map((t, si) => { const k = l.id + '-' + pi + '-' + si, on = !!store.lab[k]; return '<li class="' + (on ? 'done' : '') + '"><label><input type="checkbox" data-lab="' + k + '"' + (on ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>'; }).join('') + '</ul>').join('');
+    const n = labKeys(l).filter(k => store.lab[k]).length;
+    return '<details class="lab"><summary><span class="lt">Lab ' + l.id + ': ' + esc(l.title) + '</span><span class="lm">' + l.d.map(d => '<span class="chip d' + d + '">D' + d + '</span>').join(' ') + ' <span class="mono" id="lc' + l.id + '">' + n + '/' + labKeys(l).length + '</span></span></summary>' +
+      '<p class="note">About ' + esc(l.time) + '. Uses: ' + esc(l.uses) + '</p>' + parts +
+      '<h4 class="ph">Break it on purpose</h4>' + ul(l.brk) +
+      '<h4 class="ph">What the exam asks</h4>' + ul(l.exam) +
+      (l.flag ? '<p class="flagnote"><b>Check against Learn.</b> ' + esc(l.flag) + '</p>' : '') +
+      '</details>';
+  }).join('');
+  return '<section class="panel flag"><h3>Lab guide checklist</h3><p style="margin-top:6px">Hands-on checklists for MD-102. Tick steps as you finish them; ticks are saved in this browser and included in the backup file. Quiz questions in this app come from Microsoft Learn, not from these labs.</p><p class="mono" id="labTotal" style="margin-top:8px"></p></section>' +
+  '<h2 class="sec">Before you start</h2><section class="panel stack"><details><summary>Tenant objects to create first</summary>' + tbl(['Object','Notes'], LABSETUP.objects) + '</details><details><summary>Virtual machines</summary>' + tbl(['VM','Role','Used in'], LABSETUP.vms) + ul(LABSETUP.tips) + '</details><details><summary>Suggested lab order</summary><ol style="margin:10px 0 0;padding-left:22px">' + LABSETUP.order.map(t => '<li style="margin-bottom:4px">' + esc(t) + '</li>').join('') + '</ol></details></section>' +
+  '<h2 class="sec">Labs</h2><div class="stack">' + labs + '</div>' +
+  '<h2 class="sec">Reset a VM for a re-test</h2><section class="panel">' + tbl(['Order','Action','Where'], LABSETUP.reset) + '</section>' +
+  '<h2 class="sec">Troubleshooting toolkit</h2><section class="panel">' + tbl(['Tool','Use it for'], LABSETUP.tools) + '</section>' +
+  '<h2 class="sec">Exam preparation</h2><section class="panel">' + ul(LABSETUP.prep) + '</section>';
+}
+function importFile(inp){
+  const f = inp.files && inp.files[0], m = $('#filemsg'); if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(String(r.result));
+      if (!d || typeof d !== 'object' || !d.q) throw new Error('bad');
+      store = Object.assign({attempts:[], q:{}, plan:{}, lab:{}}, d); save(); render();
+      const m2 = $('#filemsg'); if (m2) m2.textContent = 'Restored from ' + f.name;
+    } catch (x) { m.textContent = 'That file is not a valid backup.'; }
+  };
+  r.onerror = () => { m.textContent = 'Could not read that file.'; };
+  r.readAsText(f);
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  countdown();
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  const v = $('#view');
+  if (tab === 'plan') v.innerHTML = planView();
+  else if (tab === 'labs'){ v.innerHTML = labsView(); labCounts(); }
+  else if (tab === 'progress'){
+    v.innerHTML = progressView();
+    try { $('#exp').value = JSON.stringify(store); } catch (e) {}
+    try { claude.use('downloads').then(d => { const b = $('#dlbtn'); if (d && b) b.hidden = false; }, () => {}); } catch (e) {}
+  }
+  else v.innerHTML = view === 'q' && S ? qView() : view === 'result' && last ? resultView() : homeView();
+  if (tab === 'practice' && view === 'q' && S) persistRun();
+}
+function goHome(){
+  if (S){ persistRun(); clearInterval(timer); S = null; }
+  view = 'home';
+  tab = 'practice'; location.hash = 'practice'; render(); window.scrollTo(0, 0);
+}
+function route(){
+  const h = (location.hash || '').replace('#', '');
+  tab = ['practice','labs','plan','progress'].includes(h) ? h : 'practice';
+  if (tab === 'practice' && !S && view === 'q') view = 'home';
+  render();
+}
+window.addEventListener('hashchange', route);
+$('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.tab === 'practice') goHome(); else location.hash = b.dataset.tab;
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'examDate' && e.target.value){ store.exam = e.target.value; save(); countdown(); render(); return; }
+  const lk = e.target.dataset && e.target.dataset.lab;
+  if (lk){ if (e.target.checked) store.lab[lk] = true; else delete store.lab[lk]; save(); e.target.closest('li').classList.toggle('done', e.target.checked); labCounts(); return; }
+  if (e.target.id === 'impfile'){ importFile(e.target); return; }
+  const k = e.target.dataset && e.target.dataset.plan;
+  if (k){ store.plan[k] = e.target.checked; save(); e.target.closest('li').classList.toggle('done', e.target.checked); }
+});
+let resetArmed = false;
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'start') start(b.dataset.mode);
+  else if (a === 'seqloop') start('seqloop', {id:$('#selSeq').value});
+  else if (a === 'drillDomain'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {d:$('#selDomain').value, n, w}); }
+  else if (a === 'drillTopic'){ const n = +$('#selCount').value || 0; const w = $('#selPick').value; store.drillN = n; store.drillP = w; save(); start('drill', {t:$('#selTopic').value, n, w}); }
+  else if (a === 'drillT'){ tab = 'practice'; location.hash = 'practice'; start('drill', {t:b.dataset.t}); }
+  else if (a === 'oadd'){ const it = S.items[S.i]; if (!S.checked && !it.seq.includes(b.dataset.t)){ it.seq.push(b.dataset.t); render(); } }
+  else if (a === 'orm'){ const it = S.items[S.i]; it.seq.splice(+b.dataset.i, 1); render(); }
+  else if (a === 'oup' || a === 'odown'){ const it = S.items[S.i], i = +b.dataset.i, j = a === 'oup' ? i - 1 : i + 1; if (j >= 0 && j < it.seq.length){ const t = it.seq[i]; it.seq[i] = it.seq[j]; it.seq[j] = t; render(); } }
+  else if (a === 'again'){ const q = S.items[S.i].q; S.checked = false; S.items.splice(S.i + 1, 0, buildItem(q)); S.i++; render(); window.scrollTo(0, 0); }
+  else if (a === 'oclear'){ S.items[S.i].seq = []; render(); }
+  else if (a === 'pick'){
+    const it = S.items[S.i]; if (S.checked) return;
+    const i = +b.dataset.i, multi = it.q.c.length > 1;
+    if (multi) it.picked = it.picked.includes(i) ? it.picked.filter(x => x !== i) : it.picked.concat(i);
+    else it.picked = [i];
+    render();
+  }
+  else if (a === 'submit') submit();
+  else if (a === 'next') next();
+  else if (a === 'end') finish();
+  else if (a === 'gohome') goHome();
+  else if (a === 'home') goHome();
+  else if (a === 'resume'){ if (restoreRun()){ view = 'q'; clearInterval(timer); if (S.limit) timer = setInterval(tick, 1000); render(); window.scrollTo(0, 0); } else { delete store.run; save(); render(); } }
+  else if (a === 'discardrun'){ delete store.run; save(); render(); }
+  else if (a === 'planrestart'){ delete store.planStart; save(); render(); }
+  else if (a === 'download'){
+    const m = $('#copied');
+    (async () => {
+      try {
+        const dl = await claude.use('downloads'); if (!dl) { m.textContent = 'Downloads are not available here. Use Copy text.'; return; }
+        const d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        await dl.save({filename:'md102-progress-' + stamp + '.json', data:JSON.stringify(store, null, 1)});
+        m.textContent = 'Saved';
+      } catch (x) { m.textContent = x && x.code === 'declined' ? 'Not saved' : 'Could not save. Use Copy text.'; }
+    })();
+  }
+  else if (a === 'copy'){
+    const ta = $('#exp'), m = $('#copied');
+    const ok = () => { m.textContent = 'Copied'; };
+    const fall = () => { ta.select(); m.textContent = 'Select and copy the text above'; };
+    try { navigator.clipboard.writeText(ta.value).then(ok, fall); } catch (x) { fall(); }
+  }
+  else if (a === 'import'){
+    const m = $('#impmsg');
+    try {
+      const d = JSON.parse($('#imp').value);
+      if (!d || typeof d !== 'object' || !d.q) throw new Error('bad');
+      store = Object.assign({attempts:[], q:{}, plan:{}, lab:{}}, d); save(); m.textContent = 'Restored'; render();
+    } catch (x) { m.textContent = 'That text is not a valid saved copy.'; }
+  }
+  else if (a === 'reset'){
+    const m = $('#resetmsg');
+    if (!resetArmed){ resetArmed = true; m.textContent = 'Select Reset again to erase everything.'; return; }
+    store = {attempts:[], q:{}, plan:{}, lab:{}}; save(); resetArmed = false; render();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (tab !== 'practice' || view !== 'q' || !S) return;
+  if (e.target.matches('select,textarea,input')) return;
+  const it = S.items[S.i];
+  if (it.type === 'order') return;
+  const idx = 'abcdefgh'.indexOf(e.key.toLowerCase());
+  if (e.key.length === 1 && idx >= 0 && idx < it.opts.length && !S.checked){ e.preventDefault(); const btn = document.querySelector('.opt[data-i="' + idx + '"]'); if (btn) btn.click(); }
+});
+route();
+setInterval(countdown, 3600000);
+</script>

@@ -1,0 +1,183 @@
+# How the certification practice apps are built
+
+A guide to the pattern behind the MD-102 Practice Lab and the KQL Query Lab, so you can build the next one (SC-300, MS-102, SC-100 and so on) quickly.
+
+## 1. What you get
+
+Each app is **one self-contained HTML file**: no framework, no build tools needed to run it, no server, no network calls. It works by double-clicking the file, or published as a claude.ai Artifact.
+
+- Questions are plain JavaScript data. The app code is separate from the content.
+- Progress is stored in the browser (`localStorage`) and can be exported to a backup file and restored.
+- The look follows the viewer's light or dark theme.
+
+Files in this folder (`md-102/` on the website):
+
+```
+md-102/
+  index.html                  the MD-102 Practice Lab, ready to serve (standalone build)
+  kql-lab.html                the KQL Query Lab, a companion app for the MD-102 device query objective
+  HOW-THESE-APPS-ARE-BUILT.md this guide
+  source/                     app shell (app.html), question files, build script, checks, tests
+  kql-source/                 KQL app shell, scenario data, test
+```
+
+For a new exam, add a sibling folder (for example `sc-300/`) with the same layout, so each app is its own page: `/exam_apps/md-102/`, `/exam_apps/sc-300/` and so on.
+
+## 2. The build pipeline (MD-102)
+
+```
+h.js  q1.js … q15.js  labs.js  q16 q17 q18 q19 q21 q22 q23 q24 q25 q26 q28 q27  q20.js   ──concatenate──►  all.js
+app.html  (contains the text /*__DATA__*/)  +  all.js  ──replace placeholder──►  index.html
+index.html  ──wrap in a full HTML page + download shim──►  standalone.html
+```
+
+`assemble.sh` does exactly this (cat, then a small Python replace). Run it from the source folder: `bash assemble.sh`. The result, `index.html`, is the build for publishing as a Claude Artifact (the Artifact tool adds the page wrapper). The last step also writes `standalone.html`, a complete page with doctype, viewport and a small shim, and that is the file to use on your own website (copy it to `md-102/index.html`).
+
+**Order matters.** Question ids are positions in the final list, so append new question files after the existing ones and never reorder. One exception: `q20.js` removes every question whose topic starts with `Lab ` (quiz questions must come from Microsoft Learn, not the lab setup), so it stays last, and any new question file goes just before it (`q26.js` and `q27.js` are the newest, just before `q20.js`). Add the new file name to `assemble.sh`, `chk.js` and `dump.js`. The bank is currently 699 questions.
+
+Why split it up: each `qN.js` file holds one domain or batch of questions, so you can edit content without touching the app code, and the app shell (`app.html`) stays readable.
+
+## 3. Question data format
+
+`h.js` starts the data file. It defines the Learn link table and the helpers:
+
+```js
+const ML = 'https://learn.microsoft.com/';
+const L = { remediations: ML + 'intune/device-management/tools/deploy-remediations', ... };
+const D1 = 1, D2 = 2, D3 = 3, D4 = 4, D5 = 5;   // exam domains
+const Q = [];
+function add(d, t, q, c, w, e, l) { Q.push({ id: Q.length + 1, d, t, q, c, w, e, l }); }
+```
+
+A question:
+
+```js
+add(D5, 'Endpoint analytics and Remediations',        // domain, topic (a drill group)
+  "A detection script returns exit code 1. What does the Remediation package do?",
+  ["It runs the remediation script, because 1 means the issue was detected"],   // correct answer(s)
+  ["It marks the device compliant", "It skips the remediation script", "It retires the device"],  // wrong answers
+  "Detection scripts return 0 for 'without issue' and 1 for 'with issue'. ...",  // explanation
+  L.remediations);                                  // Learn link
+```
+
+- **Multi-select** is automatic: if the correct array has more than one item the app shows checkboxes and says how many to pick ("Select three").
+- **Ordering questions** use `addo(domain, topic, question, steps, extra, notes, explanation, link)`. `steps` is the correct order, `extra` are distractor steps that do not belong, and `notes` flags steps whose order is interchangeable.
+- **Ids** are the position in the array. Never reorder or delete a question once people have progress saved; replace it in place or append. Progress is keyed by id.
+- **Interchangeable steps.** Grading of ordering questions is strict by default. If Learn allows two or more steps in either order, set `q.swap = [[4, 5]]` (zero-based positions in `steps`; steps inside a group may appear in any order within those positions). `stepOk()` in `app.html` uses it for grading, for the green/red marks and for the review screen. The block at the end of `q27.js` sets it for the sequences that have it (`SW(regex, groups)`). Whenever an explanation says steps are interchangeable, add a swap group, otherwise a correct answer is marked wrong.
+- `fix(id, correct, wrong)` and similar helpers patch a question after the fact. Prefer editing the question directly.
+
+Write wrong answers that are plausible, from the same family as the right one, and similar in length. A correct answer that is always the longest option teaches test-taking, not the subject. `chk.js` flags those cases (many older questions still do).
+
+
+### Override layers (restyling without changing ids)
+
+`q15.js` rewrites question wording after the fact, so the older files stay untouched:
+
+- `RW(id, oldStart, newStem)` replaces a question stem. `oldStart` is the first words of the old stem, and the build throws if they do not match, so a wrong id cannot slip through.
+- `RM(id, oldStart, newStem, [correct], [wrong])` also replaces the answer options. Use it to turn a single-answer question into a "select two" one.
+- Multi-select is automatic: if a question has more than one correct answer the app adds "Select N" itself, so do not type it into the stem.
+
+The Microsoft exam style used here: a short Contoso-type scenario, then "You need to… What should you…?", and for multiple answers "Each correct answer presents part of the solution." Mix direct questions, short scenarios and select-N questions; not every item should be a case study.
+
+### Fixing links and wording after the fact (patch block)
+
+The end of `q27.js` holds a small patch block. `PL(id, link, extra)` sets a question's Learn link and can overwrite other fields (stem, answers, explanation) with `extra`. Use it when a question shows the wrong Learn page after answering, instead of editing an old file. Always open the page and confirm it supports the answer; if Learn does not support the premise, rewrite or drop the question.
+
+### Domain tags
+
+Every question has a domain `d` and drills filter on it, so the tag must match the exam skills outline, not the topic it was written under. The re-tag block at the end of `q27.js` maps topics and single ids to the Oct 27, 2026 outline: Autopilot, ESP, Windows Backup, configuration profiles, Intune Suite (EPM, Cloud PKI, Remote Help, Tunnel for MAM) and remote actions are Domain 2; compliance, Conditional Access with compliance, roles, MAA, LAPS and Windows Hello for Business are Domain 1; endpoint security and device updates are Domain 3; apps and app protection are Domain 4; reports, Endpoint analytics and agents are Domain 5. When you add questions, set `d` from the outline, and after adding a batch print the topic-by-domain table to catch strays.
+
+### Removing retired features
+
+When Learn says a feature is retired and gone (for example the Intune Change Review, Policy Configuration and Device Offboarding agents), remove it from the quiz, the study notes and the cheat sheet. Question ids must stay stable, so do not delete the line from its file: splice the question out at the end of `q27.js` (the `[94, 436, 437, 438]` block throws if an id or stem is not what it expects). Do not use retired features as wrong answers either. Features that are only deprecated but still present (Android device administrator, the macOS Endpoint protection template) stay, because the exam can still ask what to use instead. Check Learn for retirement banners when you recheck links. The bank is now 695 questions.
+
+### Checking that Learn links still load
+
+Learn moves and renames pages, so links rot. `source/link-urls.tsv` lists every unique link with the question ids that use it, and `check-links.sh` (run in a normal Mac terminal) prints any that do not return 200. From Claude, fetch each URL with the Microsoft Learn fetch tool in batches and report only failures (the sandbox shell cannot reach Learn). Repair broken links with the `R` map at the end of `q27.js` (old path to new path); the build throws if fewer than 30 questions matched. Regenerate `link-urls.tsv` after changing links. A full check in Nov 2026 found 25 of 257 links broken, all fixed in v41.
+
+### Targeted drills
+
+`q26.js` (Endpoint security: connect, deploy and configure) covers MDE connection and EDR onboarding, firewall policy, EPM, App Control and Managed Installer, exploit protection, FileVault and Windows Hello for Business: 5 setup sequences and 79 questions. `q27.js` has 10 questions on removing MSI Office when deploying Microsoft 365 Apps. Lab 13 (Endpoint security) in `labs.js` is the hands-on companion, and Lab 6 has an MSI check step.
+
+`q28.js` (Nov 15, from a Microsoft practice assessment) covers 28 questions (25 from the practice assessment plus 3 on groups usable for Intune assignments) on removing OEM apps (Windows Configuration Designer and Fresh Start), app protection assignment (user groups, not device groups) and jailbroken or rooted actions, Microsoft 365 Apps with Visio, Managed apps app configuration, reading Vulnerability Remediation Agent suggestions, custom ADMX import and Tunnel server logs. It sits between `q26.js` and `q27.js` on purpose: ids are `Q.length + 1`, and `q27.js` splices questions out, so any file that adds questions must come before `q27.js`, never after it.
+
+
+`q21.js` is the "Exam notes drill": 64 questions written from a list of exam notes after checking every claim on Learn. Several claims were wrong or out of date and were corrected or dropped. Do the same for the next exam: verify first, then write.
+
+`q16.js` holds the "Exam gaps" drills. When a practice exam shows a weak spot, write 10 to 15 questions on it under one topic name (the `t` field) and put them in one domain. The topic then appears in the Topic dropdown and in the Progress tab automatically. Check each fact on Learn first and put the URL in `l`.
+
+## 4. App shell (`app.html`)
+
+One file with `<title>`, `<style>`, markup and a script. Main parts:
+
+- **Design tokens.** All colors are CSS variables on `:root`, redefined for dark mode with `@media (prefers-color-scheme: dark)` and `[data-theme="dark"]`, so both themes work.
+- **Tabs with hash routing.** `Practice`, `Labs`, `Study plan`, `Progress`, set with `location.hash`.
+- **Modes** are chosen in `start(mode, opt)`:
+  - `diagnostic`: 60 questions picked evenly across every topic, answers shown at the end.
+  - `mock`: 50 questions weighted by the exam's domain percentages, with a 100-minute timer.
+  - `weak`: picks questions you got wrong or have not seen.
+  - `weak14`: the two weakest domains (computed from your own scores).
+  - `seq`: only ordering questions.
+  - `missed`: replay everything last answered wrong.
+  - `drill`: one domain or topic. The "Study one area" panel on the Practice tab also sets how many questions (10, 20, 30, 50, 100 or All, saved in `store.drillN`) and how to pick them: random, or missed and unseen first (`store.drillP`, passed as `opt.n` and `opt.w === 'weak'`). Missed questions sort first, then unseen, with a little randomness.
+- **State.** `store = {attempts, q, plan, lab}` saved under one key (`md102.lab.v1`). `q[id]` holds seen/correct counts and the last result. Every read and write is wrapped in try/catch because storage can be blocked.
+- **Weights.** The `DOM` table holds each domain's name and exam percentage. Change it per exam.
+- **Study plan.** `WEEKS` is nine phase templates. The app takes the plan start date and the exam date and spreads the phases across the days in between. Ticks are stored by phase id so they survive a date change.
+- **Labs.** `labs.js` holds checklists, "break it on purpose" lists, exam notes and small question sets for each lab. Delete it if the exam has no labs.
+- **Backup.** The Progress tab exports the `store` as JSON and restores from a file. On claude.ai the file goes through the `downloads` capability: `const dl = await claude.use('downloads'); await dl.save({filename, data})`. Outside claude.ai it returns null, so the app hides the button and offers copy and paste instead.
+
+## 5. The KQL app
+
+Same idea, simpler: `data.js` builds an array `K` with `SC1(obj, cat, lvl, title, schema, task, a, e, w)`. Each scenario shows a table schema and a task, then you pick the correct query from several options. After you submit it explains why the right one works and why each wrong one fails. `schema` strings use the real table names and columns (IntuneDevices, InstalledApplication, SigninLogs and so on), which is what makes it feel like the exam.
+
+## 6. Checking and testing
+
+- `node chk.js`: loads all question files, prints the count per domain, and flags a correct answer that is the longest option (LONG) or a question with no Learn link (nolink). Older ids up to about 371 still print LONG and are accepted; everything newer must be clean.
+- Lint-style checks in the build: the shortening step at the end of `q8.js` throws if the text it expects is not found, so a rewrite cannot silently skip.
+- `t5.js` tests save and resume of a quiz in progress, `t6.js` the step-count line on ordering questions, `t7.js` the standalone build and its download button.
+- `t19.js` tests interchangeable-step grading, `t17.js` tests the drill question count, `t18.js` the missed and unseen first option, `t16.js` Lab 13.
+- `t3.js`, `t4.js`, `test.js` use Playwright (Chromium) to load the page, click through a quiz, and report JavaScript errors and horizontal scrolling at phone width (390 px).
+- Before publishing: run `assemble.sh`, run the checks, open the HTML once in a browser.
+
+## 7. Recipe for a new exam app
+
+1. **Get the official skills outline.** Copy the domains and percentages from the exam's Learn page. Note the "last updated" date and anything retired.
+2. **Make the question files.** Aim for about 5 to 6 questions per outline bullet, covering every bullet. Add ordering questions for any multi-step setup (these are the hardest to memorize).
+3. **Write each question from a Learn page.** Fetch the page, take the facts from it, and put the URL in `l`. Do not write facts from memory; check numbers, limits and defaults against Learn.
+4. **Copy `app.html`.** Change the title, the `KEY` string (it must be unique per app so progress does not collide), the `DOM` table, the `WEEKS` plan wording and the cheat sheet.
+5. **Assemble, check, test** (section 6).
+6. **Publish** as an Artifact with the `downloads` capability (for the backup file), or just keep the HTML file.
+7. **Re-check against Learn** every few weeks. Exams update their outlines.
+
+## 8. Using Claude to build the next one
+
+Give Claude the exam page URL and ask it to follow this guide. A prompt that works well:
+
+> Build a practice app for SC-300 using the pattern in HOW-THESE-APPS-ARE-BUILT.md. Pull the skills outline from Learn, write questions from the Learn pages (with links), include setup-sequence questions, a 60-question baseline, a weighted mock, a study plan tied to the exam date, and a backup download. Keep it generic so anyone can use it.
+
+Hand Claude the `md-102/source/` folder so it can copy `app.html`, `h.js` and `assemble.sh` as the starting point.
+
+## 9. Saved progress and resume
+
+The app keeps everything in one `store` object under a localStorage key (`md102.lab.v1`): attempts, per-question stats, the plan, lab ticks, the last exam, and `store.run`, the quiz in progress (question ids, option order, picks, position, time left). `persistRun()` saves it on every answer, every 15 seconds on the timer, and when the tab is hidden or closed. The home screen shows a Resume card while `store.run` exists, and `finish()` deletes it. If you add a new mode, save its state the same way or it will be lost on reload.
+
+## 10. Putting the apps on your website
+
+1. Copy the folder (`md-102/`) into the site. `index.html` is a single file with no dependencies, so it works from any static host or a plain `<a href="/exam_apps/md-102/">` link.
+2. The page loads one Google Fonts stylesheet if you kept the font link; the app falls back to system fonts if it is blocked.
+3. Progress lives in the visitor's browser for that exact address. Moving the app to a new URL starts everyone from zero, so decide the final path before sharing it. The Progress tab has a backup file (works on your own site because of the shim) and a restore.
+4. To rebuild after changing questions: `cd md-102/source && bash assemble.sh && node chk.js`, then copy `standalone.html` over `../index.html`.
+5. The site lives in `exam_apps/md-102/` in the website repo (the Astro site tests reference that path). Rebuild the site from a clean Linux copy, because `node_modules` on the Mac are darwin builds: copy the verified `exam_apps/md-102/index.html` into the copy, run `npm run build`, then `node --test tests/*.test.mjs` (plain `npm test` fails on a directory path), then copy `dist/` into the repo's `dist/`. A "[TO SUPPLY" placeholder warning for the home and work pages is pre-existing. After copying files to the Mac, check the size with `stat` before building, since the first copy is sometimes stale.
+
+## 11. Gotchas learned
+
+- Claude artifact pages cannot start downloads themselves; use the `downloads` capability or copy/paste. The standalone build adds a shim that does a normal browser download.
+- Republishing an Artifact reloads any open copy, so an unfinished quiz relies on the saved-progress feature to survive.
+- localStorage is per browser and per URL. Changing the artifact's URL, or moving the HTML to a different folder as a file, starts progress from zero. Use the backup file to move it.
+- Question ids must stay stable once published (see section 3).
+- No external libraries are needed; everything is inline. Only cdnjs, jsDelivr, unpkg and Google Fonts are allowed by the artifact sandbox if you ever need one.
+- Keep content free of personal data and of any vendor's practice-exam wording. Write your own questions from Learn.
+
+## 12. Keeping this guide current
+
+Update this guide whenever the app changes: a new question file (build order, section 2), a new mode or panel (section 4), a new check or test (section 6), or a path or deploy change (section 10). Current state: bank of 724 questions (118, 150, 112, 278 and 66 across Domains 1 to 5), 13 labs, drill options added in v37 and v38, interchangeable sequence steps in v39.

@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+import { tagColorPicker } from '../lib/tags.js';
+
+const projects = [...site.projects].sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || (b.date ?? '').localeCompare(a.date ?? ''));
+const allTags = [...new Set(projects.flatMap((project) => project.tags ?? []))].sort((a, b) => a.localeCompare(b));
+
+const tagColor = tagColorPicker(site.tagColors);
+function statusTone(status: string | undefined): string {
+  if (status === 'active' || status === 'live') return 'live';
+  if (status === 'in-progress') return 'progress';
+  return 'planned';
+}
+function searchText(project: (typeof projects)[number]): string {
+  return [project.title, project.description, ...(project.tags ?? []), project.status ?? ''].join(' ').toLowerCase();
+}
+---
+
+<Base
+  title="Projects - Jonathan Witherspoon"
+  description="Selected automation and tooling projects by Jonathan Witherspoon: PowerShell frameworks, a Windows Event Log triage tool, and Teams deployment scripts."
+  path="/projects/"
+  section="projects"
+>
+  <header class="page-header">
+    <h1 id="page-title">Projects</h1>
+    <p class="intro">Tools I built to solve real problems. Each card links to the source or release.</p>
+  </header>
+  <div class="search-panel" data-search-panel data-search-noun="projects">
+    <label class="search-label" for="project-search">Search projects</label>
+    <div class="search-row">
+      <input class="search-input" type="search" id="project-search" data-search-input placeholder="Title, tag or status" autocomplete="off" />
+      <button class="button button-secondary" type="button" data-search-clear>Clear</button>
+    </div>
+    <ul class="chips chip-filters mono" aria-label="Filter by tag">
+      {allTags.map((tag) => (
+        <li><button class={`chip chip-${tagColor(tag)} chip-button`} type="button" aria-pressed="false" data-tag={tag.toLowerCase()}>{tag}</button></li>
+      ))}
+    </ul>
+    <p class="search-count mono" data-search-count aria-live="polite"></p>
+    <p class="search-empty" data-search-empty hidden>No matches. Try a different word or clear the search.</p>
+  </div>
+  <ul class="card-list">
+    {projects.map((project) => (
+      <li class="card" data-search={searchText(project)} data-tags={(project.tags ?? []).join('|').toLowerCase()}>
+        <h2>{project.title}</h2>
+        <p>{project.description}</p>
+        <ul class="chips mono">
+          {(project.tags ?? []).map((tag) => <li class={`chip chip-${tagColor(tag)}`}>{tag}</li>)}
+        </ul>
+        <p class="card-action">
+          {(project.links ?? []).map((link) => <a class="button button-secondary" href={link.url} rel="noopener noreferrer" aria-label={`${link.label}: ${project.title}`}>{link.label}</a>)}
+          {project.status && <span class={`status status-${statusTone(project.status)}`}>{project.status}</span>}
+        </p>
+      </li>
+    ))}
+  </ul>
+</Base>

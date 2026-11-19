@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+
+const statusLabel: Record<string, string> = { live: 'live', 'in-progress': 'in progress', planned: 'planned' };
+const statusTone: Record<string, string> = { live: 'live', 'in-progress': 'progress', planned: 'planned' };
+
+// Only code and name are required. A lab with at least one link counts as live, one without as planned.
+const labs = site.labs.map((lab) => {
+  const links = (lab.links ?? []).filter((link) => link.path);
+  const status = lab.status ?? (links.length > 0 ? 'live' : 'planned');
+  const searchText = [lab.code, lab.name, lab.description ?? '', lab.currentFor ?? '', status, statusLabel[status] ?? '', ...links.map((link) => link.label)]
+    .join(' ')
+    .toLowerCase();
+  return { ...lab, links, status, searchText };
+});
+---
+
+<Base
+  title="Labs - Jonathan Witherspoon"
+  description="Practice apps I build while studying for Microsoft certification exams, starting with MD-102 and a KQL lab."
+  path="/labs/"
+  section="labs"
+>
+  <header class="page-header">
+    <h1 id="page-title">Labs</h1>
+    <p class="intro">Practice apps I build while studying for certification exams. Each one runs in your browser and keeps its progress on your device.</p>
+  </header>
+  <div class="search-panel" data-search-panel data-search-noun="labs">
+    <label class="search-label" for="lab-search">Search labs</label>
+    <div class="search-row">
+      <input class="search-input" type="search" id="lab-search" data-search-input placeholder="Exam code, name or status" autocomplete="off" />
+      <button class="button button-secondary" type="button" data-search-clear>Clear</button>
+    </div>
+    <p class="search-count mono" data-search-count aria-live="polite"></p>
+    <p class="search-empty" data-search-empty hidden>No matches. Try a different word or clear the search.</p>
+  </div>
+  <ul class="lab-list">
+    {labs.map((lab) => (
+      <li class="lab" data-search={lab.searchText}>
+        <p class="lab-code mono">{lab.code}</p>
+        <div>
+          <h2>{lab.name}</h2>
+          <p class="meta mono">
+            <span class={`status status-${statusTone[lab.status] ?? 'planned'}`}>{statusLabel[lab.status] ?? lab.status}</span>
+            {lab.updated ? ` updated ${lab.updated}` : ''}
+          </p>
+          {lab.currentFor && (
+            <p class="meta">
+              {lab.currentFor.includes('[TO SUPPLY') ? <span class="placeholder">{lab.currentFor}</span> : lab.currentFor}
+            </p>
+          )}
+          {lab.description && <p>{lab.description}</p>}
+          {lab.links.length > 0 && (
+            <p class="card-action">
+              {lab.links.map((link) => <a class="button button-primary" href={link.path}>{link.label}</a>)}
+            </p>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+</Base>

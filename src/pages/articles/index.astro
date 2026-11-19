@@ -1,0 +1,64 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import site from '../../data/site.json';
+import { publishedArticles } from '../../lib/articles.js';
+import { tagColorPicker } from '../../lib/tags.js';
+
+const tagColor = tagColorPicker(site.tagColors);
+const articles = publishedArticles(await getCollection('blog'));
+const allTags = [...new Set(articles.flatMap((article) => article.data.tags))].sort((a, b) => a.localeCompare(b));
+
+function searchText(article: (typeof articles)[number]): string {
+  return [article.data.title, article.data.description, ...article.data.tags].join(' ').toLowerCase();
+}
+---
+
+<Base
+  title="Articles - Jonathan Witherspoon"
+  description="Articles by Jonathan Witherspoon on systems administration, PowerShell, Microsoft 365 and infrastructure automation."
+  path="/articles/"
+  section="articles"
+>
+  <header class="page-header">
+    <h1 id="page-title">Articles</h1>
+    <p class="intro">Notes on things I built, broke and fixed. Newest first.</p>
+  </header>
+  {articles.length === 0 ? (
+    <p class="empty-state">No articles yet. Check back soon.</p>
+  ) : (
+    <>
+      <div class="search-panel" data-search-panel data-search-noun="articles">
+        <label class="search-label" for="article-search">Search articles</label>
+        <div class="search-row">
+          <input class="search-input" type="search" id="article-search" data-search-input placeholder="Title or tag" autocomplete="off" />
+          <button class="button button-secondary" type="button" data-search-clear>Clear</button>
+        </div>
+        <ul class="chips chip-filters mono" aria-label="Filter by tag">
+          {allTags.map((tag) => (
+            <li><button class={`chip chip-${tagColor(tag)} chip-button`} type="button" aria-pressed="false" data-tag={tag.toLowerCase()}>{tag}</button></li>
+          ))}
+        </ul>
+        <p class="search-count mono" data-search-count aria-live="polite"></p>
+        <p class="search-empty" data-search-empty hidden>No matches. Try a different word or clear the search.</p>
+      </div>
+      <ul class="card-list">
+        {articles.map((article) => (
+          <li class="article-card" data-search={searchText(article)} data-tags={article.data.tags.join('|').toLowerCase()}>
+            {article.data.cover && <Image class="article-cover" src={article.data.cover} alt={article.data.coverAlt} width={640} height={320} loading="lazy" />}
+            <h2>{article.data.title}</h2>
+            <p class="meta mono">{article.data.date.toISOString().slice(0, 10)}</p>
+            <p>{article.data.description}</p>
+            {article.data.tags.length > 0 && (
+              <ul class="chips mono">
+                {article.data.tags.map((tag) => <li class={`chip chip-${tagColor(tag)}`}>{tag}</li>)}
+              </ul>
+            )}
+            <p class="card-action"><a class="text-link" href={`/articles/${article.id}/`}>Read article<span class="visually-hidden">: {article.data.title}</span></a></p>
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+</Base>
