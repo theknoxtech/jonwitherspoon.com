@@ -65,7 +65,7 @@ const tabs = [
 
   <section class="tab-panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
     <h2 class="block-heading"><span class="mono">01 /</span> About</h2>
-    <p class="placeholder">{profile.aboutDraftNote}</p>
+    {profile.aboutDraftNote && <p class="placeholder">{profile.aboutDraftNote}</p>}
     {profile.about.map((paragraph) => <p class="intro">{paragraph}</p>)}
   </section>
 

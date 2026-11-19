@@ -419,7 +419,7 @@ test('portfolio page: six tabs in order with ARIA wiring, six panels present, ta
         assert.match(html, new RegExp(`<section class="tab-panel" id="panel-${name}" role="tabpanel" aria-labelledby="tab-${name}">\\s*<h2`), `panel ${name}`);
         assert.ok(!new RegExp(`id="panel-${name}"[^>]*hidden`).test(html), `panel ${name} must be visible without JS`);
     });
-    assert.match(html, /\[DRAFT: Jon to review\]/);
+    assert.doesNotMatch(html, /DRAFT: Jon to review/);
     assert.match(html, /href="\/projects\/">See all projects</);
     assert.match(html, /<details class="past-exams">/);
     const css = readDistCss();
@@ -433,10 +433,11 @@ test('tabs.js implements arrow, Home and End keys, roving tabindex and the URL h
     for (const needle of ['ArrowRight', 'ArrowLeft', 'Home', 'End', 'tabIndex', 'aria-selected', 'hashchange', 'location.hash', 'has-tabs']) assert.ok(script.includes(needle), needle);
 });
 
-test('the draft note sits in the About panel on /portfolio/, which is visible without JavaScript', () => {
+test('the About panel on /portfolio/ has no draft note and is visible without JavaScript', () => {
     const html = readPage('portfolio/index.html');
     const about = html.slice(html.indexOf('id="panel-about"'), html.indexOf('id="panel-skills"'));
-    assert.match(about, /\[DRAFT: Jon to review\]/);
+    assert.doesNotMatch(about, /DRAFT: Jon to review/);
+    assert.doesNotMatch(about, /class="placeholder"/);
     assert.doesNotMatch(about, /hidden/);
 });
 

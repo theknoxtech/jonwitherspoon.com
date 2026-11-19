@@ -204,8 +204,8 @@ test('QC: the 404 page links back into the site and the 404 override targets it'
     assert.ok(existsSync(join(DIST, '404.html')));
 });
 
-test('QC: About text is a marked draft (on the Portfolio About panel) and the old Silicon Scripted branding is absent from the pages', { skip: !hasBuild }, () => {
-    assert.match(readDist('portfolio/index.html'), /\[DRAFT: Jon to review\]/);
+test('QC: About text has no draft marker and the old Silicon Scripted branding is absent from the pages', { skip: !hasBuild }, () => {
+    assert.doesNotMatch(readDist('portfolio/index.html'), /DRAFT: Jon to review/);
     for (const file of MAIN_PAGES) {
         const visibleText = readDist(file).replace(/<[^>]+>/g, ' ');
         const hits = visibleText.match(/silicon\s+scripted/gi) ?? [];

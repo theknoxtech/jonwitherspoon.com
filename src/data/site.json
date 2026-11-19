@@ -10,7 +10,7 @@
         "credly": "https://www.credly.com/users/jonathan-witherspoon/badges",
         "learn": "https://learn.microsoft.com/en-us/users/jonwitherspoon-9260/credentials",
         "avatar": "/avatar.jpg",
-        "aboutDraftNote": "[DRAFT: Jon to review]",
+        "aboutDraftNote": "",
         "about": [
             "I grew up dying of dysentery and guessing how to play Minesweeper, and I learned to install Windows 95 before I left elementary school.",
             "I'm a systems engineer based in Knoxville, TN, with about ten years in IT, from being the sole IT person on a school campus to senior escalation work on a service desk covering 100+ clients. Today I'm a Systems Engineer II at Critical Network Solutions, where I design, build and deploy automations at scale, lead cloud implementations and migrations, and build AI solutions in Azure Foundry.",
