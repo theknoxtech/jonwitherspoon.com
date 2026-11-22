@@ -110,9 +110,9 @@ test('each job references only its own deploy secret', () => {
     assert.doesNotMatch(jobBlock('close_pull_request'), /AZURE_STATIC_WEB_APPS_API_TOKEN_DEV/);
 });
 
-test('production_branch is dev on the dev job and main on the production job', () => {
-    assert.match(jobBlock('deploy_dev'), /production_branch: dev\n/);
-    assert.match(jobBlock('build_and_deploy'), /production_branch: main\n/);
+test('a push to main is never cancelled by another run, and each event type has its own group', () => {
+    assert.match(workflow, /group: deploy-\$\{\{ github\.event_name \}\}-\$\{\{ github\.ref \}\}/);
+    assert.match(workflow, /cancel-in-progress: \$\{\{ !\(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \}\}/);
 });
 
 test('the dev job runs make-dev-config.mjs on dist before the deploy step', () => {

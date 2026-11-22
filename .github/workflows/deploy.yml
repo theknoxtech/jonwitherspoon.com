@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  group: deploy-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 jobs:
   build_and_deploy:
@@ -72,8 +72,6 @@ jobs:
           app_location: dist
           output_location: ""
           skip_app_build: true
-          skip_api_build: true
-          production_branch: main
 
   deploy_dev:
     name: Build and deploy dev site
@@ -126,8 +124,6 @@ jobs:
           app_location: dist
           output_location: ""
           skip_app_build: true
-          skip_api_build: true
-          production_branch: dev
 
   close_pull_request:
     name: Close preview

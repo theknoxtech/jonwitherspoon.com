@@ -80,7 +80,7 @@ test('workflow permissions, triggers and secrets', () => {
     assert.match(workflow, /run: npm ci$/m);
     assert.doesNotMatch(workflow, /npm install/);
     assert.match(workflow, /skip_app_build: true/);
-    assert.match(workflow, /skip_api_build: true/);
+    assert.doesNotMatch(workflow, /skip_api_build|production_branch/);
     assert.match(workflow, /app_location: dist/);
     assert.match(workflow, /head\.repo\.full_name == github\.repository/);
     assert.match(workflow, /dependabot\[bot\]/);
