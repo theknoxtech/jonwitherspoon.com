@@ -213,9 +213,9 @@ test('QC: About text has no draft marker and the old Silicon Scripted branding i
     }
 });
 
-test('QC: Portfolio page keeps the planned order, seven certifications and one past exam', { skip: !hasBuild }, () => {
+test('QC: Portfolio page keeps the planned order, eight certifications and one past exam', { skip: !hasBuild }, () => {
     const html = readDist('portfolio/index.html');
-    assert.equal((html.match(/class="cert"/g) ?? []).length, 7);
+    assert.equal((html.match(/class="cert"/g) ?? []).length, 8);
     assert.equal((html.match(/class="exam"/g) ?? []).length, 1);
     assert.equal((html.match(/class="badge mono">current</g) ?? []).length, 1, 'exactly one current badge');
     assert.ok(html.indexOf('current') < html.indexOf('Enable Resource Group'));

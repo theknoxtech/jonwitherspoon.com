@@ -106,7 +106,11 @@ test('no built page contains "[TO SUPPLY" (production deploys with FAIL_ON_PLACE
 
 test('portfolio page has certifications with verify links, past exams, education', () => {
     const html = readPage('portfolio/index.html');
-    assert.equal(countMatches(html, /class="cert"/g), 7, 'expected seven certifications');
+    assert.equal(countMatches(html, /class="cert"/g), 8, 'expected eight certifications');
+    const endpoint = html.slice(html.indexOf('Microsoft 365 Certified: Endpoint Administrator Associate'));
+    assert.ok(endpoint.length > 0, 'MD-102 certification missing');
+    assert.match(endpoint.slice(0, endpoint.indexOf('</li>')), /Earned 24 Nov 2026/);
+    assert.match(endpoint.slice(0, endpoint.indexOf('</li>')), /href="https:\/\/learn\.microsoft\.com\/api\/credentials\/share\/en-us\/JonWitherspoon-9260\/3AD0B06E7370667D\?sharingId=76B3F23CC8D338C8"/);
     assert.equal(countMatches(html, /class="exam"/g), 1, 'expected one past exam');
     assert.match(html, /Verify on/);
     const sc300 = html.slice(html.indexOf('Identity and Access Administrator Associate', html.indexOf('class="cert"')));
